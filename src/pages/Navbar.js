@@ -1,52 +1,110 @@
-import React from 'react';
-import { AppBar, Toolbar, Button, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
-import Logo from '../assets/images/LogoRG3.png';
+import React from "react";
+import { AppBar, Container, Toolbar, Box, Button } from "@mui/material";
+import { Link } from "react-router-dom";
+import Logo from "../assets/images/LogoRG3.png"; // Pastikan path ini benar
 
-function Navbar() {
-
+const Navbar = () => {
     return (
-        <AppBar position="fixed" sx={{ backgroundColor: '#B4881B', height: '50px', boxShadow: 'none' }}>
-            <Toolbar>
-                <Box sx={{ ml: 'auto', mr: '5px', mb: "10px" }}>
-                    <Button color="inherit" component={Link} to="" sx={{ mx: 1, textTransform: 'none' }}>
-                        Sign In
-                    </Button>
-                    <Button color="inherit" component={Link} to="" sx={{ mx: 1, textTransform: 'none' }}>
-                        Sign Up
-                    </Button>
-                </Box>
-            </Toolbar>
-            <Toolbar sx={{ minHeight: '40px', ml: 'auto', borderBottom: '1px solid #555555', width: '100%', mt: "10px", backgroundColor:"white" }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Link to="" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-                        <img
-                            src={Logo}
-                            alt="Logo"
-                            style={{
-                                height: '60px',
-                                marginLeft: '70px',
-                                marginTop: '15px',
-                                marginBottom: '35px'
-                            }}
-                        />
+        <>
+            {/* Navbar Atas */}
+            <AppBar position="fixed" sx={{ backgroundColor: '#B4881B', height: '50px', boxShadow: 'none' }}>
+                <Container maxWidth="lg">
+                    <Toolbar sx={{ display: 'flex', minHeight: '10px' }}>
+                        <Box sx={{ flexGrow: 1 }} /> {/* Mendorong tombol ke kanan */}
+                        <Box sx={{ display: 'flex', gap: 2, mb: "15px", ml: 'auto' }}>
+                            <Button
+                                variant="outlined"
+                                component={Link}
+                                to="/signin"
+                                sx={{
+                                    color: '#FFFFFF',
+                                    border: '3px solid #FFFFFF',
+                                    padding: '1px 15px',
+                                    textTransform: 'none',
+                                    fontWeight: 'bold',
+                                    fontFamily: 'Inter, sans-serif',
+                                    fontSize: '13px'
+                                }}>
+                                Sign In
+                            </Button>
+                            <Button
+                                variant="contained"
+                                component={Link}
+                                to="/signup"
+                                sx={{
+                                    color: '#B4881B',
+                                    backgroundColor: '#FFFFFF',
+                                    textTransform: 'none',
+                                    fontWeight: 'bold',
+                                    fontFamily: 'Inter, sans-serif',
+                                    fontSize: '13px',
+                                    padding: '1px 15px'
+                                }}>
+                                Sign Up
+                            </Button>
+                        </Box>
+                    </Toolbar>
+                </Container>
+            </AppBar>
 
-                    </Link>
-                </Box>
-                <Box sx={{ ml: 'auto', display: 'flex', mr: "70px", mb: "15px" }}>
-                    <Button sx={{ color: 'black', mx: 2, textTransform: 'none' }}>
-                        Home
-                    </Button>
-                    <Button sx={{ color: 'black', mx: 2, textTransform: 'none' }}>
-                        About
-                    </Button>
-                    <Button sx={{ color: 'black', mx: 2, textTransform: 'none' }}>
-                        Contact
-                    </Button>
-                </Box>
-            </Toolbar>
-        </AppBar>
+            {/* Navbar Bawah */}
+            <AppBar position="fixed" sx={{ top: 50, backgroundColor: 'white', boxShadow: 3, height: '90px' }}>
+                <Container maxWidth="lg">
+                    <Toolbar sx={{ justifyContent: 'space-between', minHeight: '80px' }}>
+                        {/* Logo */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', mt: "8px" }}>
+                            <Link to="/" style={{ textDecoration: 'none' }}>
+                                <Box
+                                    component="img"
+                                    src={Logo}
+                                    alt="Logo"
+                                    sx={{ height: '70px', width: 'auto', maxWidth: '100%', objectFit: 'contain' }}
+                                />
+                            </Link>
+                        </Box>
+
+                        {/* Navigation Links */}
+                        <Box sx={{ display: 'flex', gap: 3 }}>
+                            {['Home', 'Destination', 'About', 'Contact'].map((text, index) => (
+                                <Button
+                                    key={index}
+                                    color="inherit"
+                                    component={Link}
+                                    to={`/${text.toLowerCase()}`}
+                                    sx={{
+                                        color: 'black',
+                                        textTransform: 'none',
+                                        fontSize: '16px',
+                                        fontFamily: 'Graphik, sans-serif',
+                                        fontWeight: 400,
+                                        position: 'relative',
+                                        '&:hover': {
+                                            color: '',
+                                        },
+                                        '&::after': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            width: '100%',
+                                            height: '3px',
+                                            backgroundColor: '#B4881B',
+                                            left: 0,
+                                            bottom: '-4px',
+                                            transform: 'scaleX(0)',
+                                            transition: 'transform 0.3s ease-in-out',
+                                        },
+                                        '&:hover::after': {
+                                            transform: 'scaleX(1)',
+                                        }
+                                    }}>
+                                    {text}
+                                </Button>
+                            ))}
+                        </Box>
+                    </Toolbar>
+                </Container>
+            </AppBar>
+        </>
     );
-}
+};
 
 export default Navbar;
