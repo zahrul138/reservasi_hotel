@@ -515,7 +515,7 @@ function SignUp() {
             </PromoBox>
             <PromoBox>
               <h4><i class="bi bi-gift" style={{ marginRight: "8px" }}></i>Exclusive Offer</h4>
-              <p>Get more exclusive offers and exciting features</p>
+              <p>Get more exclusive offers and exciting features in our hotel website </p>
             </PromoBox>
         </div>
       </Card>
