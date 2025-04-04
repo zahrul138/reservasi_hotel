@@ -503,6 +503,7 @@ function SignUp() {
           </form>
         </div>
 
+
         <div className="benefits-panel">
           <h2>Why Create an Account ?</h2>
             <PromoBox>
