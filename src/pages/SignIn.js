@@ -1,162 +1,60 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { FaLock, FaEnvelope, FaEyeSlash, FaEye } from "react-icons/fa";
 import Logo from "../assets/images/LogoRG3.png";
 
 const Container = styled.div`
+  min-height: 95vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f8f8f8;
+  justify-content: center;
+  padding: 1rem;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 `;
 
 const Card = styled.div`
-  display: flex;
-  width: 80%;
-  max-width: 900px;
+  width: 100%;
+  max-width: 400px;
   background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-`;
-
-const Left = styled.div`
-  width: 50%;
-  padding: 40px;
-  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
   text-align: center;
 `;
 
-const Right = styled.div`
-  width: 50%;
-  padding: 40px;
-  background: linear-gradient(135deg, #87723b, #d09500);
-  color: white;
-`;
-
-const Title = styled.h2`
-  font-size: 24px;
-  font-weight: bold;
+const Title = styled.h1`
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 `;
 
 const Subtitle = styled.p`
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #666;
-`;
-
-const Form = styled.form`
-  margin-top: 20px;
-  text-align: left;
-`;
-
-const Label = styled.label`
-  display: block;
-  font-size: 14px;
-  margin-bottom: 5px;
-  color: #333;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  background: #f0f0f0;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 15px;
-`;
-
-const IconWrapper = styled.span`
-  color: #b8860b;
-  font-size: 18px;
-  margin-right: 10px;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  border: none;
-  background: none;
-  outline: none;
-  font-size: 16px;
-`;
-
-const TogglePassword = styled.span`
-  cursor: pointer;
-  margin-left: 10px;
-  color: #b8860b;
-`;
-
-const Options = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  margin-bottom: 15px;
-`;
-
-const Forgot = styled.a`
-  color: #b8860b;
-  text-decoration: none;
-`;
-
-const SignInBtn = styled.button`
-  width: 100%;
-  background: #b8860b;
-  color: white;
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-`;
-
-const Register = styled.p`
-  font-size: 14px;
-  margin-top: 15px;
-  a {
-    color: #b8860b;
-    text-decoration: none;
-  }
-`;
-
-const PromoTitle = styled.h3`
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 20px;
-`;
-
-const PromoBox = styled.div`
-  background: rgba(255, 255, 255, 0.2);
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 15px;
+  margin-bottom: 2rem;
 `;
 
 const GlobalStyle = createGlobalStyle`
+  .form-field {
+    margin-bottom: 1.25rem;
+    text-align: left;
+  }
+
+  .form-field label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #87723b;
+  }
+
   .input-wrapper {
     position: relative;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-    .input-wrapper input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: all 0.2s;
-  }
-    .input-wrapper input:focus {
-    border-color: #d09500;
-    box-shadow: 0 0 0 3px rgba(208, 149, 0, 0.15);
-  }
-  
-  .input-wrapper input.input-error {
-    border-color: #e53e3e;
-    box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
-  }
-    .field-icon {
+
+  .field-icon {
     position: absolute;
     left: 1rem;
     top: 50%;
@@ -164,104 +62,203 @@ const GlobalStyle = createGlobalStyle`
     color: #d09500;
     font-size: 0.875rem;
   }
-    .form-field label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #87723b;
-  }
-`
 
-const SignIn = () => {
+  .input-wrapper input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+  }
+
+  .input-wrapper input:focus {
+    border-color: #d09500;
+    box-shadow: 0 0 0 3px rgba(208, 149, 0, 0.15);
+  }
+
+  .signin-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .signin-options label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .signin-options input {
+    margin-right: 0.5rem;
+  }
+
+  .forgot-password {
+    color: #d09500;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .forgot-password:hover {
+    color: #87723b;
+    text-decoration: underline;
+  }
+
+  .signin-button {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background-color: #d09500;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(208, 149, 0, 0.2);
+  }
+
+  .signin-button:hover {
+    background-color: #87723b;
+  }
+
+  .signin-link {
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .signin-link a {
+    color: #d09500;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.25rem;
+  }
+
+  .signin-link a:hover {
+    color: #87723b;
+    text-decoration: underline;
+  }
+`;
+
+function SignIn() {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    rememberMe: false,
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [passwordValue, setPasswordValue] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simulasi login (replace dengan API login)
+    setTimeout(() => {
+      setIsLoading(false);
+      console.log("Login data:", formData);
+    }, 1500);
+  };
 
   return (
     <Container>
       <GlobalStyle />
       <Card>
-        <Left>
-          <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px" }} />
-          <Title>Welcome Back</Title>
-          <Subtitle>Sign in to your account</Subtitle>
-          <Form>
-            <div className="form-field">
-              <label htmlFor="email">Email Address</label>
-              <div className="input-wrapper">
-                <div className="field-icon">
-                  <FaEnvelope />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
+        <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px", marginBottom: "1rem" }} />
+        <Title>Welcome Back</Title>
+        <Subtitle>Sign in to your account</Subtitle>
+        <form onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label htmlFor="email">Email Address</label>
+            <div className="input-wrapper">
+              <div className="field-icon">
+                <FaEnvelope />
               </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+              />
             </div>
-            <div className="form-field" style={{ marginTop: "7px" }}>
-              <label htmlFor="password-icon">Password</label>
-              <div className="input-wrapper" style={{ position: "relative" }}>
-                <div className="field-icon">
-                  <FaLock />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={passwordVisible ? "text" : "password"}
-                  value={passwordValue}
-                  onChange={(e) => setPasswordValue(e.target.value)}
-                  required
-                />
-                {passwordValue && ( 
-                  <div
-                    className="toggle-password"
-                    onClick={() => setPasswordVisible(!passwordVisible)}
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      cursor: "pointer",
-                      color: "#b8860b"
-                    }}
-                  >
-                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                  </div>
-                )}
-              </div>
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <span className="field-icon">
+                <FaLock />
+              </span>
+              <input
+                id="password"
+                name="password"
+                type={passwordVisible ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                style={{ paddingRight: "2.5rem" }}
+              />
+              {formData.password && (
+                <span
+                  className="toggle-password"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    color: "#b8860b",
+                  }}
+                >
+                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              )}
             </div>
+          </div>
 
-            <Options>
-              <label>
-                <input type="checkbox" style={{ marginTop: "12px" }} /> Remember me
-              </label>
-              <Forgot href="/" style={{ marginTop: "12px" }}>Forgot password?</Forgot>
-            </Options>
-            <SignInBtn type="submit">Sign in</SignInBtn>
-          </Form>
-          <Register>
-            Don't have an account? <a href="/signup">Create new account</a>
-          </Register>
-        </Left>
-        <Right>
-          <PromoTitle>Exclusive Benefits for Our Guests</PromoTitle>
-          <PromoBox>
-            <h4><i className="bi bi-wifi" style={{ marginRight: "8px" }}></i>Free WiFi</h4>
-            <p>Stay connected anytime, anywhere with our complimentary internet access.</p>
-          </PromoBox>
-          <PromoBox>
-            <h4><i class="bi bi-brightness-alt-high-fill" style={{ marginRight: "8px" }}></i>Complimentary Breakfast</h4>
-            <p>Start your day with a delicious breakfast, freshly prepared in morning.</p>
-          </PromoBox>
-        </Right>
+          <div className="signin-options">
+            <label>
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+              />
+              Remember me
+            </label>
+            <a href="/forgot-password" className="forgot-password">
+              Forgot password?
+            </a>
+          </div>
 
+          <button type="submit" disabled={isLoading} className="signin-button">
+            {isLoading ? "Login..." : "Login"}
+          </button>
+        </form>
 
+        <div className="signin-link">
+          <span>Don't have an account?</span> <a href="/signup">Create a new account</a>
+        </div>
       </Card>
     </Container>
   );
-};
+}
 
 export default SignIn;

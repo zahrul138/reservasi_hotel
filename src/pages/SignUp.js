@@ -1,85 +1,70 @@
-import { useState } from "react"
-import { createGlobalStyle } from "styled-components";
-import { FaLock, FaEnvelope, FaUser, FaCheck, FaHistory } from "react-icons/fa"
-import { MdNotifications, MdPayment } from "react-icons/md"
+import { useState, useEffect } from "react"
+import styled, { createGlobalStyle } from "styled-components";
+import { FaLock, FaEnvelope, FaUser, FaEyeSlash, FaEye } from "react-icons/fa"
 import Logo from "../assets/images/LogoRG3.png";
 
-const GlobalStyle = createGlobalStyle`
-  .signup-container {
-    min-height: 100vh;
+const Container = styled.div`
+    min-height: 95vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f8f5f0;
     padding: 1rem;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
-      "Helvetica Neue", sans-serif;
-  }
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+`
 
-  /* Main container */
+const Card = styled.div`
+  width: 100%;
+  max-width: 1000px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 
-  
-  /* Card container */
-  .signup-card {
-    width: 100%;
-    max-width: 1000px;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Media query for desktop */
   @media (min-width: 768px) {
-    .signup-card {
-      flex-direction: row;
-      height: auto;
-    }
-  
+    flex-direction: row;
+    height: auto;
+
     .signup-form,
     .benefits-panel {
       width: 50%;
     }
   }
+`;
+
+const Title = styled.h1`
+  font-size: 1.70rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
+`;
+
+const Subtitle = styled.p`
+  font-size: 0.90rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 2rem;
+`;
+
+const PromoBox = styled.div`
+  background: rgba(255, 255, 255, 0.2);
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+   flex: 1;
+`;
+
+const GlobalStyle = createGlobalStyle`
   
-  /* Sign up form section */
   .signup-form {
     padding: 2.5rem;
     background-color: white;
   }
   
-  .signup-header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-  
-  .brand-logo {
-    display: flex;
-    justify-content: center;
-    font-size: 2.5rem;
-    color: #d09500;
-    margin-bottom: 1rem;
-  }
-  
-  .signup-header h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    // color: #87723b;
-    margin-bottom: 0.5rem;
-  }
-  
-  .signup-header p {
-    font-size: 0.95rem;
-    color: #666;
-  }
-  
-  /* Form elements */
   .name-fields {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1rem;
   }
   
   .name-fields .form-field {
@@ -122,6 +107,7 @@ const GlobalStyle = createGlobalStyle`
     font-size: 0.95rem;
     outline: none;
     transition: all 0.2s;
+    box-sizing: border-box;
   }
   
   .input-wrapper input:focus {
@@ -140,7 +126,6 @@ const GlobalStyle = createGlobalStyle`
     margin-top: 0.5rem;
   }
   
-  /* Consent checkboxes */
   .consent-checkbox {
     display: flex;
     align-items: flex-start;
@@ -148,7 +133,6 @@ const GlobalStyle = createGlobalStyle`
   }
   
   .consent-checkbox.required label::after {
-    content: "*";
     color: #e53e3e;
     margin-left: 2px;
   }
@@ -175,7 +159,6 @@ const GlobalStyle = createGlobalStyle`
     color: #87723b;
   }
   
-  /* Sign up button */
   .signup-button {
     width: 100%;
     padding: 0.875rem 1rem;
@@ -209,7 +192,6 @@ const GlobalStyle = createGlobalStyle`
     box-shadow: none;
   }
   
-  /* Loading spinner */
   .button-loading {
     display: flex;
     align-items: center;
@@ -240,7 +222,6 @@ const GlobalStyle = createGlobalStyle`
     opacity: 0.75;
   }
   
-  /* Sign in link section */
   .signin-link {
     margin-top: 1.5rem;
     text-align: center;
@@ -263,7 +244,6 @@ const GlobalStyle = createGlobalStyle`
     text-decoration: underline;
   }
   
-  /* Benefits panel */
   .benefits-panel {
     background: linear-gradient(135deg, #87723b, #d09500);
     padding: 2.5rem;
@@ -290,86 +270,6 @@ const GlobalStyle = createGlobalStyle`
     background-color: white;
     border-radius: 3px;
   }
-  
-  .benefits-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-  }
-  
-  .benefit-item {
-    display: flex;
-    align-items: flex-start;
-  }
-  
-  .benefit-check {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    margin-top: 0.25rem;
-    flex-shrink: 0;
-  }
-  
-  .benefit-item h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  
-  .benefit-item p {
-    font-size: 0.875rem;
-    opacity: 0.9;
-    line-height: 1.4;
-  }
-  
-  /* Upcoming promotion */
-  .upcoming-promo {
-    margin-top: auto;
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    padding: 1.25rem;
-    display: flex;
-    align-items: flex-start;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-  
-  .promo-icon {
-    background-color: white;
-    color: #d09500;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    flex-shrink: 0;
-  }
-  
-  .promo-content h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  
-  .promo-content p {
-    font-size: 0.95rem;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-  }
-  
-  .promo-dates {
-    font-size: 0.75rem;
-    opacity: 0.8;
-    font-style: italic;
-  }
 `
 
 function SignUp() {
@@ -377,61 +277,57 @@ function SignUp() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
   })
+
   const [isLoading, setIsLoading] = useState(false)
-  const [passwordMatch, setPasswordMatch] = useState(true)
+  const [passwordMatch, setPasswordMatch] = useState(true);
+  const [showError, setShowError] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
-    }))
+    }));
 
-    // Check password match when either password field changes
-    if (name === "password" || name === "confirmPassword") {
-      if (name === "password") {
-        setPasswordMatch(value === formData.confirmPassword || formData.confirmPassword === "")
-      } else {
-        setPasswordMatch(value === formData.password)
-      }
+    if (name === "confirmPassword") {
+      setShowError(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (formData.confirmPassword === "") {
+      setPasswordMatch(true);
+    } else {
+      setPasswordMatch(formData.password === formData.confirmPassword);
+    }
+  }, [formData.password, formData.confirmPassword]);
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setPasswordMatch(false)
       return
     }
-
     setIsLoading(true)
-
-    // Simulate registration
     setTimeout(() => {
       setIsLoading(false)
-      // Handle registration logic here
       console.log("Registration data:", formData)
     }, 1500)
   }
 
   return (
-    <div className="signup-container">
+    <Container>
       <GlobalStyle />
-      <div className="signup-card">
-        {/* Sign Up Form - Left Side */}
+      <Card>
         <div className="signup-form">
-          <div className="signup-header">
-            <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px" }} />
-            <h1>Create Your Account</h1>
-            <p>Sign up for a better booking experience</p>
-          </div>
-
+          <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px", display: "block", margin: "0 auto" }} />
+          <Title>Create Your Account</Title>
+          <Subtitle>Sign up for a better booking experience</Subtitle>
           <form onSubmit={handleSubmit}>
             <div className="name-fields">
               <div className="form-field">
@@ -490,43 +386,84 @@ function SignUp() {
             <div className="form-field">
               <label htmlFor="password">Create Password</label>
               <div className="input-wrapper">
-                <div className="field-icon">
+                <span className="field-icon">
                   <FaLock />
-                </div>
+                </span>
                 <input
                   id="password"
                   name="password"
-                  type="password"
-                  required
+                  type={passwordVisible ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
+                  required
+                  style={{ paddingRight: "2.5rem" }}
                 />
+                {formData.password && (
+                  <span
+                    className="toggle-password"
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                    style={{
+                      position: "absolute",
+                      right: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      cursor: "pointer",
+                      color: "#b8860b",
+                      zIndex: 5,
+                    }}
+                  >
+                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="form-field">
               <label htmlFor="confirmPassword">Confirm Password</label>
               <div className="input-wrapper">
-                <div className="field-icon">
+                <span className="field-icon">
                   <FaLock />
-                </div>
+                </span>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={confirmPasswordVisible ? "text" : "password"}
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={!passwordMatch ? "input-error" : ""}
+                  onBlur={() => setShowError(true)} 
+                  className={!passwordMatch && showError ? "input-error" : ""}
+                  style={{ paddingRight: "2.5rem" }}
                 />
+                {formData.confirmPassword && (
+                  <span
+                    className="toggle-password"
+                    onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                    style={{
+                      position: "absolute",
+                      right: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      cursor: "pointer",
+                      color: "#b8860b",
+                      zIndex: 5,
+                    }}
+                  >
+                    {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                )}
               </div>
-              {!passwordMatch && <p className="error-text">Passwords do not match</p>}
+              {!passwordMatch && showError && (
+                <p className="error-text" style={{ color: "red", fontSize: "14px" }}>
+                  Passwords do not match
+                </p>
+              )}
             </div>
 
-            <div className="consent-checkbox">
+            {/* <div className="consent-checkbox">
               <input id="marketing" name="marketing" type="checkbox" />
               <label htmlFor="marketing">I'd like to receive booking confirmations and updates via email</label>
-            </div>
+            </div> */}
 
             <div className="consent-checkbox required">
               <input id="terms" name="terms" type="checkbox" required />
@@ -566,54 +503,23 @@ function SignUp() {
           </form>
         </div>
 
-        {/* Benefits - Right Side */}
         <div className="benefits-panel">
-          <h2>Why Create an Account?</h2>
-
-          <div className="benefits-wrapper">
-            <div className="benefit-item">
-              <div className="benefit-check">
-                <FaCheck />
-              </div>
-              <div>
-                <h3>Faster Booking</h3>
-                <p>Save your information for a quicker reservation process</p>
-              </div>
-            </div>
-
-            <div className="benefit-item">
-              <div className="benefit-check">
-                <MdPayment />
-              </div>
-              <div>
-                <h3>Secure Payment</h3>
-                <p>Safely store your payment methods for future bookings</p>
-              </div>
-            </div>
-
-            <div className="benefit-item">
-              <div className="benefit-check">
-                <FaHistory />
-              </div>
-              <div>
-                <h3>Booking History</h3>
-                <p>Access your past and upcoming reservations anytime</p>
-              </div>
-            </div>
-
-            <div className="benefit-item">
-              <div className="benefit-check">
-                <MdNotifications />
-              </div>
-              <div>
-                <h3>Reservation Updates</h3>
-                <p>Receive important notifications about your stay</p>
-              </div>
-            </div>
-          </div>
+          <h2>Why Create an Account ?</h2>
+            <PromoBox>
+              <h4><i className="bi bi-wifi" style={{ marginRight: "8px" }}></i>Free WiFi</h4>
+              <p>Get a free Wifi, and stay connected anytime, anywhere with our internet access.</p>
+            </PromoBox>
+            <PromoBox>
+              <h4><i class="bi bi-brightness-alt-high-fill" style={{ marginRight: "8px" }}></i>Complimentary Breakfast</h4>
+              <p>Start your day with a free delicious breakfast, freshly prepared in morning.</p>
+            </PromoBox>
+            <PromoBox>
+              <h4><i class="bi bi-gift" style={{ marginRight: "8px" }}></i>Exclusive Offer</h4>
+              <p>Get more any exclusive offer in your account</p>
+            </PromoBox>
         </div>
-      </div>
-    </div>
+      </Card>
+    </Container>
   )
 }
 
