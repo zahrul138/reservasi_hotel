@@ -503,7 +503,6 @@ function SignUp() {
           </form>
         </div>
 
-
         <div className="benefits-panel">
           <h2>Why Create an Account ?</h2>
             <PromoBox>
@@ -516,7 +515,7 @@ function SignUp() {
             </PromoBox>
             <PromoBox>
               <h4><i class="bi bi-gift" style={{ marginRight: "8px" }}></i>Exclusive Offer</h4>
-              <p>Get more any exclusive offer in your account</p>
+              <p>Get more exclusive offers and exciting features</p>
             </PromoBox>
         </div>
       </Card>
