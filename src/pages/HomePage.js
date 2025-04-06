@@ -1,6 +1,13 @@
-"use client"
-
 import { useState, useRef, useEffect } from "react"
+import Latar1 from "../assets/images/FotoLatar1.png";
+import SuperiorBG from "../assets/images/SuperiorBG.png";
+import DeluxeBG from "../assets/images/DeluxeBG.png";
+import ExecutiveBG from "../assets/images/ExecutiveBG.png";
+import HotelLobby from "../assets/images/HotelLobbyBG.png";
+import Pool from "../assets/images/PoolBG.png";
+import Restaurant from "../assets/images/RestaurantBG.png";
+import Spa from "../assets/images/SpaBG.png";
+
 import {
   FaHotel,
   FaSearch,
@@ -20,9 +27,7 @@ import {
   FaCamera,
 } from "react-icons/fa"
 
-// Inline styles object
 const styles = {
-  // Base styles
   page: {
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
@@ -52,10 +57,9 @@ const styles = {
 
   // Hero section
   hero: {
-    height: "90vh",
+    height: "80vh",
     minHeight: "600px",
-    backgroundImage:
-      'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("/placeholder.svg?height=800&width=1200")',
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${Latar1})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     display: "flex",
@@ -64,47 +68,55 @@ const styles = {
     textAlign: "center",
     color: "white",
     padding: "2rem",
+    position: "relative",
   },
   heroContent: {
+    padding: "2rem",
+    borderRadius: "10px",
     maxWidth: "800px",
+    color: "#1a1a1a",
+  },
+  smallHeading: {
+    fontSize: "0.75rem",
+    letterSpacing: "1.5px",
+    color: "#fff",
+    marginBottom: "0.5rem",
+    textTransform: "uppercase",
+  },
+  underline: {
+    width: "80px",
+    height: "3px",
+    backgroundColor: "#B4881B",
+    margin: "0 auto 1.5rem auto",
   },
   heroTitle: {
-    fontSize: "3.5rem",
+    fontSize: "2.5rem",
+    fontWeight: "bold",
     marginBottom: "1rem",
-    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+    color: "#fff",
   },
-  heroSubtitle: {
-    fontSize: "1.5rem",
-    marginBottom: "2rem",
-    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-  },
-  primaryButton: {
-    display: "inline-block",
-    padding: "0.875rem 2rem",
-    backgroundColor: "#D09500",
-    color: "white",
-    fontWeight: 600,
-    fontSize: "1.125rem",
-    borderRadius: "6px",
-    transition: "all 0.2s",
-    cursor: "pointer",
-    border: "none",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    textDecoration: "none",
+  heroDescription: {
+    fontSize: "1rem",
+    marginBottom: "1rem",
+    lineHeight: "1.6",
+    color: "#fff"
   },
 
-   // Booking section
-   bookingSection: {
+  // Booking section
+  bookingSection: {
     backgroundColor: "#f8f5f0",
-    padding: "3rem 1rem",
+    padding: "1rem 1rem",
   },
   bookingContainer: {
-    maxWidth: "1000px",
+    maxWidth: "970px",
     margin: "0 auto",
     backgroundColor: "white",
-    borderRadius: "12px",
+    borderRadius: "15px",
     boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-    padding: "2.5rem",
+    padding: "1.7rem",
+    marginTop: "-95px",
+    zIndex: 2,
+    position: "relative",
   },
   bookingTitle: {
     marginBottom: "2rem",
@@ -122,32 +134,34 @@ const styles = {
     flexWrap: "wrap",
     gap: "1.5rem",
     justifyContent: "space-between",
+    marginBottom: "10px"
   },
   formGroup: {
-    flex: "1",
     minWidth: "200px",
-    marginRight: "2rem",
   },
   formLabel: {
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
-    marginBottom: "0.75rem",
+    marginBottom: "0.30rem",
     fontWeight: 500,
     color: "#87723B",
     fontSize: "0.95rem",
   },
   formInput: {
-    width: "100%",
+    width: "97%",
+    height: "1.70rem",
     padding: "0.875rem",
     border: "1px solid #e2e8f0",
     borderRadius: "8px",
     fontSize: "1rem",
     transition: "all 0.2s",
+
   },
   guestSelector: {
     position: "relative",
-    width: "100%",
+    width: "95%",
+
   },
   guestDisplay: {
     display: "flex",
@@ -226,12 +240,14 @@ const styles = {
     transition: "all 0.2s",
   },
   searchButton: {
+    width: "90%",
+    marginTop: "2px",
     padding: "1rem",
     backgroundColor: "#D09500",
     color: "white",
     border: "none",
     borderRadius: "8px",
-    fontWeight: 600,
+    fontWeight: 200,
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -240,11 +256,12 @@ const styles = {
     transition: "all 0.2s",
     fontSize: "1.1rem",
     boxShadow: "0 4px 6px rgba(208, 149, 0, 0.2)",
+    height: "57px",
   },
 
   // Rooms section
   roomsSection: {
-    backgroundColor: "white",
+    backgroundColor: "#f8f5f0",
   },
   roomsGrid: {
     display: "flex",
@@ -264,7 +281,8 @@ const styles = {
     flex: "0 0 auto",
   },
   roomImage: {
-    height: "220px",
+    borderRadius: "5px",
+    height: "200px",
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
@@ -327,8 +345,8 @@ const styles = {
 
   // Amenities section
   amenitiesSection: {
-    backgroundColor: "#f8f5f0",
-    
+    backgroundColor: "#ffffff",
+
   },
   amenitiesGrid: {
     display: "grid",
@@ -339,7 +357,7 @@ const styles = {
     textAlign: "center",
     padding: "2.5rem 2rem",
     borderRadius: "12px",
-    backgroundColor: "white",
+    backgroundColor: "#f8f5f0",
     transition: "transform 0.3s, box-shadow 0.3s",
     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.05)",
   },
@@ -399,7 +417,7 @@ const styles = {
     textDecoration: "none",
   },
   testimonialsSection: {
-    backgroundColor: "white",
+    backgroundColor: "#f8f5f0",
     padding: "5rem 2rem",
   },
   testimonialSlider: {
@@ -480,7 +498,7 @@ const styles = {
     transition: "all 0.2s",
   },
   gallerySection: {
-    backgroundColor: "#f8f5f0",
+    backgroundColor: "#ffffff",
     padding: "5rem 2rem",
   },
   galleryGrid: {
@@ -535,12 +553,20 @@ const styles = {
   },
   modalContent: {
     position: "relative",
-    maxWidth: "90%",
-    maxHeight: "90%",
+    width: "90vw",
+    maxWidth: "800px",
+    height: "50vh",
+    maxHeight: "500px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000",
+    borderRadius: "8px",
   },
   modalImage: {
-    maxWidth: "100%",
-    maxHeight: "90vh",
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
     borderRadius: "4px",
   },
   modalClose: {
@@ -576,7 +602,7 @@ const styles = {
     transition: "all 0.2s",
   },
   offersSection: {
-    backgroundColor: "white",
+    backgroundColor: "#f8f5f0",
     padding: "5rem 2rem",
   },
   offersGrid: {
@@ -754,12 +780,11 @@ function Homepage() {
   ]
 
   const galleryImages = [
-    { id: 1, url: "/placeholder.svg?height=400&width=600", alt: "Hotel Lobby" },
-    { id: 2, url: "/placeholder.svg?height=400&width=600", alt: "Deluxe Room" },
-    { id: 3, url: "/placeholder.svg?height=400&width=600", alt: "Swimming Pool" },
-    { id: 4, url: "/placeholder.svg?height=400&width=600", alt: "Restaurant" },
-    { id: 5, url: "/placeholder.svg?height=400&width=600", alt: "Spa" },
-    { id: 6, url: "/placeholder.svg?height=400&width=600", alt: "Gym" },
+    { id: 1, url: HotelLobby, alt: "Hotel Lobby" },
+    { id: 2, url: DeluxeBG, alt: "Deluxe Room" },
+    { id: 3, url: Pool, alt: "Swimming Pool" },
+    { id: 4, url: Restaurant, alt: "Restaurant" },
+    { id: 5, url: Spa, alt: "Spa" },
   ]
 
   const specialOffers = [
@@ -879,32 +904,23 @@ function Homepage() {
       {/* Hero Section */}
       <section style={styles.hero}>
         <div style={styles.heroContent}>
-          <h1 style={styles.heroTitle}>Experience Luxury & Comfort</h1>
-          <p style={styles.heroSubtitle}>Your perfect getaway in the heart of the city</p>
-          <a
-            href="#booking"
-            style={styles.primaryButton}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = "#87723B"
-              e.currentTarget.style.transform = "translateY(-2px)"
-              e.currentTarget.style.boxShadow = "0 6px 8px rgba(0, 0, 0, 0.15)"
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = "#D09500"
-              e.currentTarget.style.transform = "none"
-              e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)"
-            }}
-          >
-            Book Your Stay
-          </a>
+          <div style={styles.smallHeading}>WELCOME TO ROYAL GOLD BATAM HOTEL</div>
+          <div style={styles.underline}></div>
+          <h1 style={styles.heroTitle}>
+            Explore Indonesia from our 5-star hotel in Batam
+          </h1>
+          <p style={styles.heroDescription}>
+            Batam Marriott Hotel Harbour Bay invites you to experience the best of Batam Island, Indonesia, amidst
+            5-star luxury, superb service, and premium, high-tech amenities. Set along picturesque Harbour Bay,...
+          </p>
         </div>
       </section>
 
-      
+
       {/* Booking Form */}
       <section id="booking" style={styles.bookingSection}>
         <div style={styles.bookingContainer}>
-          <h2 style={styles.bookingTitle}>Find Your Perfect Room</h2>
+
           <form onSubmit={handleSearch} style={styles.bookingForm}>
             <div style={styles.bookingRow}>
               <div style={styles.formGroup}>
@@ -1017,7 +1033,7 @@ function Homepage() {
                       <div style={styles.guestTypeRow}>
                         <div style={styles.guestTypeLabel}>
                           <FaChild />
-                          <span>Children</span>
+                          <span>Children (&lt;13)</span>
                         </div>
                         <div style={styles.guestCounter}>
                           <button
@@ -1067,24 +1083,30 @@ function Homepage() {
                   )}
                 </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              style={styles.searchButton}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#87723B"
-                e.currentTarget.style.transform = "translateY(-2px)"
-                e.currentTarget.style.boxShadow = "0 6px 8px rgba(208, 149, 0, 0.25)"
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#D09500"
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(208, 149, 0, 0.2)"
-              }}
-            >
-              <FaSearch /> Search Available Rooms
-            </button>
+              <div style={styles.formGroup}>
+                <label style={{ visibility: "hidden", marginBottom: "0.75rem" }}>
+                  Search
+                </label>
+                <button
+                  type="submit"
+                  style={styles.searchButton}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#87723B"
+                    e.currentTarget.style.transform = "translateY(-2px)"
+                    e.currentTarget.style.boxShadow = "0 6px 8px rgba(208, 149, 0, 0.25)"
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "#D09500"
+                    e.currentTarget.style.transform = "none"
+                    e.currentTarget.style.boxShadow = "0 4px 6px rgba(208, 149, 0, 0.2)"
+                  }}
+                >
+                  <FaSearch /> Search
+                </button>
+              </div>
+
+            </div>
           </form>
         </div>
       </section>
@@ -1108,10 +1130,10 @@ function Homepage() {
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: 'url("/placeholder.svg?height=400&width=600")' }}
+                style={{ ...styles.roomImage, backgroundImage: `url(${SuperiorBG})` }}
               ></div>
               <div style={styles.roomDetails}>
-                <h3 style={styles.roomTitle}>Standard Room</h3>
+                <h3 style={styles.roomTitle}>Superior Room</h3>
                 <p style={styles.roomDescription}>Comfortable room with essential amenities for a pleasant stay.</p>
                 <div style={styles.roomFeatures}>
                   <span style={styles.roomFeature}>
@@ -1156,7 +1178,7 @@ function Homepage() {
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: 'url("/placeholder.svg?height=400&width=600")' }}
+                style={{ ...styles.roomImage, backgroundImage: `url(${DeluxeBG})` }}
               ></div>
               <div style={styles.roomDetails}>
                 <h3 style={styles.roomTitle}>Deluxe Room</h3>
@@ -1204,7 +1226,7 @@ function Homepage() {
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: 'url("/placeholder.svg?height=400&width=600")' }}
+                style={{ ...styles.roomImage, backgroundImage: `url(${ExecutiveBG})` }}
               ></div>
               <div style={styles.roomDetails}>
                 <h3 style={styles.roomTitle}>Executive Suite</h3>
@@ -1397,27 +1419,204 @@ function Homepage() {
           <h2 style={styles.sectionTitle}>Photo Gallery</h2>
           <p style={styles.sectionDescription}>Take a visual tour of our hotel and facilities</p>
 
-          <div style={styles.galleryGrid}>
-            {galleryImages.map((image, index) => (
-              <div
-                key={image.id}
-                style={styles.galleryItem}
-                onClick={() => openGallery(index)}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = "scale(1.03)"
-                  e.currentTarget.querySelector(".overlay").style.opacity = "1"
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+              gridTemplateRows: isMobile ? "repeat(3, 200px)" : "200px 200px",
+              gap: "1rem",
+              maxWidth: "1200px",
+              margin: "0 auto",
+            }}
+          >
+            {/* Gambar utama (besar) */}
+            <div
+              style={{
+                gridColumn: isMobile ? "span 2" : "span 2",
+                gridRow: "span 2",
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onClick={() => openGallery(0)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+              }}
+            >
+              <img
+                src={HotelLobby}
+                alt={galleryImages[0].alt}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
                 }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = "scale(1)"
-                  e.currentTarget.querySelector(".overlay").style.opacity = "0"
-                }}
-              >
-                <img src={image.url || "/placeholder.svg"} alt={image.alt} style={styles.galleryImage} />
-                <div className="overlay" style={styles.galleryOverlay}>
-                  <FaCamera style={styles.galleryIcon} />
-                </div>
+              />
+              <div className="overlay" style={styles.galleryOverlay}>
+                <FaCamera style={styles.galleryIcon} />
               </div>
-            ))}
+            </div>
+
+            {/* Spa */}
+            <div
+              style={{
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onClick={() => openGallery(1)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+              }}
+            >
+              <img
+                src={Spa}
+                alt="Spa Facility"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              <div className="overlay" style={styles.galleryOverlay}>
+                <FaCamera style={styles.galleryIcon} />
+              </div>
+            </div>
+
+            {/* Restaurant */}
+            <div
+              style={{
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onClick={() => openGallery(2)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+              }}
+            >
+              <img
+                src={Restaurant}
+                alt="Restaurant"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              <div className="overlay" style={styles.galleryOverlay}>
+                <FaCamera style={styles.galleryIcon} />
+              </div>
+            </div>
+
+            {/* Pool */}
+            <div
+              style={{
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onClick={() => openGallery(3)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+              }}
+            >
+              <img
+                src={Pool}
+                alt="Swimming Pool"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              <div className="overlay" style={styles.galleryOverlay}>
+                <FaCamera style={styles.galleryIcon} />
+              </div>
+            </div>
+
+            {/* Deluxe Room */}
+            <div
+              style={{
+                position: "relative",
+                borderRadius: "8px",
+                overflow: "hidden",
+                cursor: "pointer",
+              }}
+              onClick={() => openGallery(4)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "scale(1.03)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "scale(1)"
+                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+              }}
+            >
+              <img
+                src={DeluxeBG}
+                alt="Deluxe Room"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+              <div className="overlay" style={styles.galleryOverlay}>
+                <FaCamera style={styles.galleryIcon} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "2rem" }}>
+            <a
+              href="#"
+              style={{
+                display: "inline-block",
+                padding: "0.75rem 1.5rem",
+                backgroundColor: "transparent",
+                border: "2px solid #87723B",
+                color: "#87723B",
+                borderRadius: "6px",
+                fontWeight: "600",
+                transition: "all 0.2s",
+                textDecoration: "none",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = "#87723B"
+                e.currentTarget.style.color = "white"
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent"
+                e.currentTarget.style.color = "#87723B"
+              }}
+            >
+              View All Photos
+            </a>
           </div>
 
           {galleryOpen && (
@@ -1611,4 +1810,3 @@ function Homepage() {
 }
 
 export default Homepage
-
