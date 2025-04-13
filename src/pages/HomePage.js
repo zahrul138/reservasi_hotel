@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react"
-import { Link } from 'react-router-dom';
+import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Latar1 from "../assets/images/FotoLatar1.png";
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import DeluxeBG from "../assets/images/DeluxeBG.png";
@@ -26,7 +26,7 @@ import {
   FaArrowRight,
   FaStar,
   FaCamera,
-} from "react-icons/fa"
+} from "react-icons/fa";
 
 const styles = {
   page: {
@@ -100,7 +100,7 @@ const styles = {
     fontSize: "1rem",
     marginBottom: "1rem",
     lineHeight: "1.6",
-    color: "#fff"
+    color: "#fff",
   },
 
   // Booking section
@@ -135,7 +135,7 @@ const styles = {
     flexWrap: "wrap",
     gap: "1.5rem",
     justifyContent: "space-between",
-    marginBottom: "10px"
+    marginBottom: "10px",
   },
   formGroup: {
     minWidth: "200px",
@@ -157,12 +157,10 @@ const styles = {
     borderRadius: "8px",
     fontSize: "1rem",
     transition: "all 0.2s",
-
   },
   guestSelector: {
     position: "relative",
     width: "95%",
-
   },
   guestDisplay: {
     display: "flex",
@@ -347,7 +345,6 @@ const styles = {
   // Amenities section
   amenitiesSection: {
     backgroundColor: "#ffffff",
-
   },
   amenitiesGrid: {
     display: "grid",
@@ -741,20 +738,20 @@ const styles = {
     display: "flex",
     gap: "1.5rem",
   },
-}
+};
 
 function Homepage() {
-  const [checkIn, setCheckIn] = useState("")
-  const [checkOut, setCheckOut] = useState("")
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const [currentTestimonial, setCurrentTestimonial] = useState(0)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [galleryOpen, setGalleryOpen] = useState(false);
 
-  const guestDropdownRef = useRef(null)
+  const guestDropdownRef = useRef(null);
 
   const testimonials = [
     {
@@ -778,7 +775,7 @@ function Homepage() {
       location: "Toronto, Canada",
       rating: 4,
     },
-  ]
+  ];
 
   const galleryImages = [
     { id: 1, url: HotelLobby, alt: "Hotel Lobby" },
@@ -786,12 +783,13 @@ function Homepage() {
     { id: 3, url: Pool, alt: "Swimming Pool" },
     { id: 4, url: Restaurant, alt: "Restaurant" },
     { id: 5, url: Spa, alt: "Spa" },
-  ]
+  ];
 
   const specialOffers = [
     {
       title: "Weekend Getaway",
-      description: "Enjoy a relaxing weekend with breakfast included and late checkout.",
+      description:
+        "Enjoy a relaxing weekend with breakfast included and late checkout.",
       image: "/placeholder.svg?height=400&width=600",
       badge: "20% OFF",
       regularPrice: "$200",
@@ -800,7 +798,8 @@ function Homepage() {
     },
     {
       title: "Family Package",
-      description: "Special package for families including activities for children and extra amenities.",
+      description:
+        "Special package for families including activities for children and extra amenities.",
       image: "/placeholder.svg?height=400&width=600",
       badge: "FAMILY",
       regularPrice: "$280",
@@ -809,119 +808,133 @@ function Homepage() {
     },
     {
       title: "Extended Stay",
-      description: "Stay longer and save more. Includes daily housekeeping and complimentary laundry.",
+      description:
+        "Stay longer and save more. Includes daily housekeeping and complimentary laundry.",
       image: "/placeholder.svg?height=400&width=600",
       badge: "SAVE 25%",
       regularPrice: "$150/night",
       discountPrice: "$112/night",
       validUntil: "Minimum 5 nights",
     },
-  ]
+  ];
 
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
     // Set initial value
-    handleResize()
+    handleResize();
 
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (guestDropdownRef.current && !guestDropdownRef.current.contains(event.target)) {
-        setIsGuestDropdownOpen(false)
+      if (
+        guestDropdownRef.current &&
+        !guestDropdownRef.current.contains(event.target)
+      ) {
+        setIsGuestDropdownOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [guestDropdownRef])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [guestDropdownRef]);
 
   const handleSearch = (e) => {
-    e.preventDefault()
-    console.log("Search for:", { checkIn, checkOut, adults, children })
+    e.preventDefault();
+    console.log("Search for:", { checkIn, checkOut, adults, children });
     // Handle search logic
-  }
+  };
 
   const incrementAdults = () => {
-    if (adults < 10) setAdults(adults + 1)
-  }
+    if (adults < 10) setAdults(adults + 1);
+  };
 
   const decrementAdults = () => {
-    if (adults > 1) setAdults(adults - 1)
-  }
+    if (adults > 1) setAdults(adults - 1);
+  };
 
   const incrementChildren = () => {
-    if (children < 6) setChildren(children + 1)
-  }
+    if (children < 6) setChildren(children + 1);
+  };
 
   const decrementChildren = () => {
-    if (children > 0) setChildren(children - 1)
-  }
+    if (children > 0) setChildren(children - 1);
+  };
 
   const toggleGuestDropdown = () => {
-    setIsGuestDropdownOpen(!isGuestDropdownOpen)
-  }
+    setIsGuestDropdownOpen(!isGuestDropdownOpen);
+  };
 
-  const totalGuests = adults + children
+  const totalGuests = adults + children;
 
   const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))
-  }
+    setCurrentTestimonial((prev) =>
+      prev === testimonials.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const prevTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))
-  }
+    setCurrentTestimonial((prev) =>
+      prev === 0 ? testimonials.length - 1 : prev - 1
+    );
+  };
 
   const openGallery = (index) => {
-    setSelectedImage(index)
-    setGalleryOpen(true)
-    document.body.style.overflow = "hidden"
-  }
+    setSelectedImage(index);
+    setGalleryOpen(true);
+    document.body.style.overflow = "hidden";
+  };
 
   const closeGallery = () => {
-    setGalleryOpen(false)
-    document.body.style.overflow = "auto"
-  }
+    setGalleryOpen(false);
+    document.body.style.overflow = "auto";
+  };
 
   const nextImage = () => {
-    setSelectedImage((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1))
-  }
+    setSelectedImage((prev) =>
+      prev === galleryImages.length - 1 ? 0 : prev + 1
+    );
+  };
 
   const prevImage = () => {
-    setSelectedImage((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1))
-  }
+    setSelectedImage((prev) =>
+      prev === 0 ? galleryImages.length - 1 : prev - 1
+    );
+  };
 
   return (
     <div style={styles.page}>
       {/* Hero Section */}
       <section style={styles.hero}>
         <div style={styles.heroContent}>
-          <div style={styles.smallHeading}>WELCOME TO ROYAL GOLD BATAM HOTEL</div>
+          <div style={styles.smallHeading}>
+            WELCOME TO ROYAL GOLD BATAM HOTEL
+          </div>
           <div style={styles.underline}></div>
           <h1 style={styles.heroTitle}>
             Explore Indonesia from our 5-star hotel in Batam
           </h1>
           <p style={styles.heroDescription}>
-            Batam Marriott Hotel Harbour Bay invites you to experience the best of Batam Island, Indonesia, amidst
-            5-star luxury, superb service, and premium, high-tech amenities. Set along picturesque Harbour Bay,...
+            Batam Marriott Hotel Harbour Bay invites you to experience the best
+            of Batam Island, Indonesia, amidst 5-star luxury, superb service,
+            and premium, high-tech amenities. Set along picturesque Harbour
+            Bay,...
           </p>
         </div>
       </section>
 
-
       {/* Booking Form */}
       <section id="booking" style={styles.bookingSection}>
         <div style={styles.bookingContainer}>
-
           <form onSubmit={handleSearch} style={styles.bookingForm}>
             <div style={styles.bookingRow}>
               <div style={styles.formGroup}>
@@ -936,12 +949,13 @@ function Homepage() {
                   required
                   style={styles.formInput}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#D09500"
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(208, 149, 0, 0.15)"
+                    e.currentTarget.style.borderColor = "#D09500";
+                    e.currentTarget.style.boxShadow =
+                      "0 0 0 3px rgba(208, 149, 0, 0.15)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0"
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 />
               </div>
@@ -957,12 +971,13 @@ function Homepage() {
                   required
                   style={styles.formInput}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#D09500"
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(208, 149, 0, 0.15)"
+                    e.currentTarget.style.borderColor = "#D09500";
+                    e.currentTarget.style.boxShadow =
+                      "0 0 0 3px rgba(208, 149, 0, 0.15)";
                   }}
                   onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#e2e8f0"
-                    e.currentTarget.style.boxShadow = "none"
+                    e.currentTarget.style.borderColor = "#e2e8f0";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                 />
               </div>
@@ -977,16 +992,21 @@ function Homepage() {
                     style={{
                       ...styles.guestDisplay,
                       borderColor: isGuestDropdownOpen ? "#D09500" : "#e2e8f0",
-                      boxShadow: isGuestDropdownOpen ? "0 0 0 3px rgba(208, 149, 0, 0.15)" : "none",
+                      boxShadow: isGuestDropdownOpen
+                        ? "0 0 0 3px rgba(208, 149, 0, 0.15)"
+                        : "none",
                     }}
                     onClick={toggleGuestDropdown}
                   >
                     <span>
-                      {totalGuests} {totalGuests === 1 ? "Guest" : "Guests"} ({adults} Adults, {children} Children)
+                      {totalGuests} {totalGuests === 1 ? "Guest" : "Guests"} (
+                      {adults} Adults, {children} Children)
                     </span>
                     <FaChevronDown
                       style={{
-                        transform: isGuestDropdownOpen ? "rotate(180deg)" : "rotate(0)",
+                        transform: isGuestDropdownOpen
+                          ? "rotate(180deg)"
+                          : "rotate(0)",
                         transition: "transform 0.2s",
                         color: "#87723B",
                       }}
@@ -1006,10 +1026,10 @@ function Homepage() {
                             onClick={decrementAdults}
                             style={styles.counterButton}
                             onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e2e8f0"
+                              e.currentTarget.style.backgroundColor = "#e2e8f0";
                             }}
                             onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f8f5f0"
+                              e.currentTarget.style.backgroundColor = "#f8f5f0";
                             }}
                           >
                             -
@@ -1020,10 +1040,10 @@ function Homepage() {
                             onClick={incrementAdults}
                             style={styles.counterButton}
                             onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e2e8f0"
+                              e.currentTarget.style.backgroundColor = "#e2e8f0";
                             }}
                             onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f8f5f0"
+                              e.currentTarget.style.backgroundColor = "#f8f5f0";
                             }}
                           >
                             +
@@ -1042,10 +1062,10 @@ function Homepage() {
                             onClick={decrementChildren}
                             style={styles.counterButton}
                             onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e2e8f0"
+                              e.currentTarget.style.backgroundColor = "#e2e8f0";
                             }}
                             onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f8f5f0"
+                              e.currentTarget.style.backgroundColor = "#f8f5f0";
                             }}
                           >
                             -
@@ -1056,10 +1076,10 @@ function Homepage() {
                             onClick={incrementChildren}
                             style={styles.counterButton}
                             onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = "#e2e8f0"
+                              e.currentTarget.style.backgroundColor = "#e2e8f0";
                             }}
                             onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = "#f8f5f0"
+                              e.currentTarget.style.backgroundColor = "#f8f5f0";
                             }}
                           >
                             +
@@ -1072,10 +1092,10 @@ function Homepage() {
                         style={styles.applyButton}
                         onClick={() => setIsGuestDropdownOpen(false)}
                         onMouseOver={(e) => {
-                          e.currentTarget.style.backgroundColor = "#87723B"
+                          e.currentTarget.style.backgroundColor = "#87723B";
                         }}
                         onMouseOut={(e) => {
-                          e.currentTarget.style.backgroundColor = "#D09500"
+                          e.currentTarget.style.backgroundColor = "#D09500";
                         }}
                       >
                         Apply
@@ -1086,27 +1106,30 @@ function Homepage() {
               </div>
 
               <div style={styles.formGroup}>
-                <label style={{ visibility: "hidden", marginBottom: "0.75rem" }}>
+                <label
+                  style={{ visibility: "hidden", marginBottom: "0.75rem" }}
+                >
                   Search
                 </label>
                 <button
                   type="submit"
                   style={styles.searchButton}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#87723B"
-                    e.currentTarget.style.transform = "translateY(-2px)"
-                    e.currentTarget.style.boxShadow = "0 6px 8px rgba(208, 149, 0, 0.25)"
+                    e.currentTarget.style.backgroundColor = "#87723B";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 8px rgba(208, 149, 0, 0.25)";
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500"
-                    e.currentTarget.style.transform = "none"
-                    e.currentTarget.style.boxShadow = "0 4px 6px rgba(208, 149, 0, 0.2)"
+                    e.currentTarget.style.backgroundColor = "#D09500";
+                    e.currentTarget.style.transform = "none";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 6px rgba(208, 149, 0, 0.2)";
                   }}
                 >
                   <FaSearch /> Search
                 </button>
               </div>
-
             </div>
           </form>
         </div>
@@ -1116,26 +1139,35 @@ function Homepage() {
       <section id="rooms" style={styles.roomsSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Our Accommodations</h2>
-          <p style={styles.sectionDescription}>Choose from our selection of comfortable and elegant rooms</p>
+          <p style={styles.sectionDescription}>
+            Choose from our selection of comfortable and elegant rooms
+          </p>
 
           <div style={styles.roomsGrid}>
             <div
               style={styles.roomCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 25px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(0, 0, 0, 0.08)";
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: `url(${SuperiorBG})` }}
+                style={{
+                  ...styles.roomImage,
+                  backgroundImage: `url(${SuperiorBG})`,
+                }}
               ></div>
               <div style={styles.roomDetails}>
                 <h3 style={styles.roomTitle}>Superior Room</h3>
-                <p style={styles.roomDescription}>Comfortable room with essential amenities for a pleasant stay.</p>
+                <p style={styles.roomDescription}>
+                  Comfortable room with essential amenities for a pleasant stay.
+                </p>
                 <div style={styles.roomFeatures}>
                   <span style={styles.roomFeature}>
                     <FaCheck size={12} /> 1 Queen Bed
@@ -1154,12 +1186,12 @@ function Homepage() {
                   to="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500"
-                    e.currentTarget.style.color = "white"
+                    e.currentTarget.style.backgroundColor = "#D09500";
+                    e.currentTarget.style.color = "white";
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent"
-                    e.currentTarget.style.color = "#D09500"
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#D09500";
                   }}
                 >
                   View Details
@@ -1170,20 +1202,27 @@ function Homepage() {
             <div
               style={styles.roomCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 25px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(0, 0, 0, 0.08)";
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: `url(${DeluxeBG})` }}
+                style={{
+                  ...styles.roomImage,
+                  backgroundImage: `url(${DeluxeBG})`,
+                }}
               ></div>
               <div style={styles.roomDetails}>
                 <h3 style={styles.roomTitle}>Deluxe Room</h3>
-                <p style={styles.roomDescription}>Spacious room with additional amenities and city views.</p>
+                <p style={styles.roomDescription}>
+                  Spacious room with additional amenities and city views.
+                </p>
                 <div style={styles.roomFeatures}>
                   <span style={styles.roomFeature}>
                     <FaCheck size={12} /> 1 King Bed
@@ -1202,12 +1241,12 @@ function Homepage() {
                   href="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500"
-                    e.currentTarget.style.color = "white"
+                    e.currentTarget.style.backgroundColor = "#D09500";
+                    e.currentTarget.style.color = "white";
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent"
-                    e.currentTarget.style.color = "#D09500"
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#D09500";
                   }}
                 >
                   View Details
@@ -1218,20 +1257,27 @@ function Homepage() {
             <div
               style={styles.roomCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 25px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(0, 0, 0, 0.08)";
               }}
             >
               <div
-                style={{ ...styles.roomImage, backgroundImage: `url(${ExecutiveBG})` }}
+                style={{
+                  ...styles.roomImage,
+                  backgroundImage: `url(${ExecutiveBG})`,
+                }}
               ></div>
               <div style={styles.roomDetails}>
                 <h3 style={styles.roomTitle}>Executive Suite</h3>
-                <p style={styles.roomDescription}>Luxury suite with separate living area and premium amenities.</p>
+                <p style={styles.roomDescription}>
+                  Luxury suite with separate living area and premium amenities.
+                </p>
                 <div style={styles.roomFeatures}>
                   <span style={styles.roomFeature}>
                     <FaCheck size={12} /> 1 King Bed
@@ -1250,12 +1296,12 @@ function Homepage() {
                   href="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500"
-                    e.currentTarget.style.color = "white"
+                    e.currentTarget.style.backgroundColor = "#D09500";
+                    e.currentTarget.style.color = "white";
                   }}
                   onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent"
-                    e.currentTarget.style.color = "#D09500"
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#D09500";
                   }}
                 >
                   View Details
@@ -1270,79 +1316,103 @@ function Homepage() {
       <section id="amenities" style={styles.amenitiesSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Hotel Amenities</h2>
-          <p style={styles.sectionDescription}>Enjoy our premium facilities during your stay</p>
+          <p style={styles.sectionDescription}>
+            Enjoy our premium facilities during your stay
+          </p>
 
-          <div style={isMobile ? { ...styles.amenitiesGrid, gridTemplateColumns: "1fr" } : styles.amenitiesGrid}>
+          <div
+            style={
+              isMobile
+                ? { ...styles.amenitiesGrid, gridTemplateColumns: "1fr" }
+                : styles.amenitiesGrid
+            }
+          >
             <div
               style={styles.amenityCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 15px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 15px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 0, 0, 0.05)";
               }}
             >
               <div style={styles.amenityIcon}>
                 <FaWifi />
               </div>
               <h3 style={styles.amenityTitle}>Free Wi-Fi</h3>
-              <p style={styles.amenityDescription}>High-speed internet throughout the property</p>
+              <p style={styles.amenityDescription}>
+                High-speed internet throughout the property
+              </p>
             </div>
 
             <div
               style={styles.amenityCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 15px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 15px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 0, 0, 0.05)";
               }}
             >
               <div style={styles.amenityIcon}>
                 <FaParking />
               </div>
               <h3 style={styles.amenityTitle}>Parking</h3>
-              <p style={styles.amenityDescription}>Secure on-site parking for guests</p>
+              <p style={styles.amenityDescription}>
+                Secure on-site parking for guests
+              </p>
             </div>
 
             <div
               style={styles.amenityCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 15px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 15px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 0, 0, 0.05)";
               }}
             >
               <div style={styles.amenityIcon}>
                 <FaSwimmingPool />
               </div>
               <h3 style={styles.amenityTitle}>Swimming Pool</h3>
-              <p style={styles.amenityDescription}>Indoor heated pool open year-round</p>
+              <p style={styles.amenityDescription}>
+                Indoor heated pool open year-round
+              </p>
             </div>
 
             <div
               style={styles.amenityCard}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)"
-                e.currentTarget.style.boxShadow = "0 10px 15px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.transform = "translateY(-5px)";
+                e.currentTarget.style.boxShadow =
+                  "0 10px 15px rgba(0, 0, 0, 0.1)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)"
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 0, 0, 0.05)";
               }}
             >
               <div style={styles.amenityIcon}>
                 <FaUtensils />
               </div>
               <h3 style={styles.amenityTitle}>Restaurant</h3>
-              <p style={styles.amenityDescription}>On-site dining with room service available</p>
+              <p style={styles.amenityDescription}>
+                On-site dining with room service available
+              </p>
             </div>
           </div>
         </div>
@@ -1352,7 +1422,9 @@ function Homepage() {
       <section style={styles.testimonialsSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>What Our Guests Say</h2>
-          <p style={styles.sectionDescription}>Read testimonials from guests who have experienced our hospitality</p>
+          <p style={styles.sectionDescription}>
+            Read testimonials from guests who have experienced our hospitality
+          </p>
 
           <div style={styles.testimonialSlider}>
             <div style={styles.testimonialSlide}>
@@ -1361,12 +1433,18 @@ function Homepage() {
                 {testimonials[currentTestimonial].quote}
               </div>
               <div style={styles.testimonialRating}>
-                {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                  <FaStar key={i} style={{ color: "#D09500" }} />
-                ))}
+                {[...Array(testimonials[currentTestimonial].rating)].map(
+                  (_, i) => (
+                    <FaStar key={i} style={{ color: "#D09500" }} />
+                  )
+                )}
               </div>
-              <div style={styles.testimonialAuthor}>{testimonials[currentTestimonial].author}</div>
-              <div style={styles.testimonialLocation}>{testimonials[currentTestimonial].location}</div>
+              <div style={styles.testimonialAuthor}>
+                {testimonials[currentTestimonial].author}
+              </div>
+              <div style={styles.testimonialLocation}>
+                {testimonials[currentTestimonial].location}
+              </div>
             </div>
 
             <div style={styles.sliderControls}>
@@ -1374,10 +1452,10 @@ function Homepage() {
                 style={styles.sliderButton}
                 onClick={prevTestimonial}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = "#e2e8f0"
+                  e.currentTarget.style.backgroundColor = "#e2e8f0";
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f5f0"
+                  e.currentTarget.style.backgroundColor = "#f8f5f0";
                 }}
               >
                 <FaArrowLeft />
@@ -1386,10 +1464,10 @@ function Homepage() {
                 style={styles.sliderButton}
                 onClick={nextTestimonial}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = "#e2e8f0"
+                  e.currentTarget.style.backgroundColor = "#e2e8f0";
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "#f8f5f0"
+                  e.currentTarget.style.backgroundColor = "#f8f5f0";
                 }}
               >
                 <FaArrowRight />
@@ -1402,7 +1480,8 @@ function Homepage() {
                   key={index}
                   style={{
                     ...styles.sliderDot,
-                    backgroundColor: currentTestimonial === index ? "#D09500" : "#e2e8f0",
+                    backgroundColor:
+                      currentTestimonial === index ? "#D09500" : "#e2e8f0",
                     width: currentTestimonial === index ? "12px" : "10px",
                     height: currentTestimonial === index ? "12px" : "10px",
                   }}
@@ -1418,7 +1497,9 @@ function Homepage() {
       <section style={styles.gallerySection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Photo Gallery</h2>
-          <p style={styles.sectionDescription}>Take a visual tour of our hotel and facilities</p>
+          <p style={styles.sectionDescription}>
+            Take a visual tour of our hotel and facilities
+          </p>
 
           <div
             style={{
@@ -1442,12 +1523,12 @@ function Homepage() {
               }}
               onClick={() => openGallery(0)}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "1";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "0";
               }}
             >
               <img
@@ -1474,12 +1555,12 @@ function Homepage() {
               }}
               onClick={() => openGallery(1)}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "1";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "0";
               }}
             >
               <img
@@ -1506,12 +1587,12 @@ function Homepage() {
               }}
               onClick={() => openGallery(2)}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "1";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "0";
               }}
             >
               <img
@@ -1538,12 +1619,12 @@ function Homepage() {
               }}
               onClick={() => openGallery(3)}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "1";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "0";
               }}
             >
               <img
@@ -1570,12 +1651,12 @@ function Homepage() {
               }}
               onClick={() => openGallery(4)}
               onMouseOver={(e) => {
-                e.currentTarget.style.transform = "scale(1.03)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "1"
+                e.currentTarget.style.transform = "scale(1.03)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "1";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.transform = "scale(1)"
-                e.currentTarget.querySelector(".overlay").style.opacity = "0"
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.querySelector(".overlay").style.opacity = "0";
               }}
             >
               <img
@@ -1608,12 +1689,12 @@ function Homepage() {
                 textDecoration: "none",
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#87723B"
-                e.currentTarget.style.color = "white"
+                e.currentTarget.style.backgroundColor = "#87723B";
+                e.currentTarget.style.color = "white";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent"
-                e.currentTarget.style.color = "#87723B"
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#87723B";
               }}
             >
               View All Photos
@@ -1622,7 +1703,10 @@ function Homepage() {
 
           {galleryOpen && (
             <div style={styles.galleryModal} onClick={closeGallery}>
-              <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <div
+                style={styles.modalContent}
+                onClick={(e) => e.stopPropagation()}
+              >
                 <img
                   src={galleryImages[selectedImage].url || "/placeholder.svg"}
                   alt={galleryImages[selectedImage].alt}
@@ -1636,10 +1720,12 @@ function Homepage() {
                     style={styles.modalNavButton}
                     onClick={prevImage}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)"
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255, 255, 255, 0.3)";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)"
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255, 255, 255, 0.2)";
                     }}
                   >
                     <FaArrowLeft />
@@ -1648,10 +1734,12 @@ function Homepage() {
                     style={styles.modalNavButton}
                     onClick={nextImage}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.3)"
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255, 255, 255, 0.3)";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.2)"
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255, 255, 255, 0.2)";
                     }}
                   >
                     <FaArrowRight />
@@ -1719,38 +1807,53 @@ function Homepage() {
       <section style={styles.ctaSection}>
         <div style={styles.ctaContainer}>
           <h2 style={styles.ctaTitle}>Ready to Experience Our Hospitality?</h2>
-          <p style={styles.ctaDescription}>Book directly with us for the best rates and personalized service</p>
+          <p style={styles.ctaDescription}>
+            Book directly with us for the best rates and personalized service
+          </p>
           <div style={styles.ctaButtons}>
-            <a
+            <Link
               href="#booking"
-              style={styles.primaryButton}
+              style={{
+                backgroundColor: "#ffffff",
+                color: "#D09500",
+                fontWeight: "600",
+                padding: "10px 20px",
+                borderRadius: "6px",
+                textDecoration: "none",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                transition: "all 0.3s ease",
+                display: "inline-block",
+                border: "1px solid #D09500",
+              }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#87723B"
-                e.currentTarget.style.transform = "translateY(-2px)"
-                e.currentTarget.style.boxShadow = "0 6px 8px rgba(0, 0, 0, 0.15)"
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255, 255, 255, 0.9)";
+                e.currentTarget.style.color = "#D09500";
+                e.currentTarget.style.transform = "translateY(-2px)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#D09500"
-                e.currentTarget.style.transform = "none"
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)"
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.transform = "none";
               }}
             >
               Book Now
-            </a>
-            <a
-              href="/signup"
+            </Link>
+
+            <Link
+              to="/signup"
               style={styles.secondaryButton}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.9)"
-                e.currentTarget.style.transform = "translateY(-2px)"
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255, 255, 255, 0.9)";
+                e.currentTarget.style.transform = "translateY(-2px)";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "white"
-                e.currentTarget.style.transform = "none"
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.transform = "none";
               }}
             >
               Create Account
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -1764,8 +1867,9 @@ function Homepage() {
               <span>Golden Stays</span>
             </div>
             <p style={styles.footerText}>
-              Experience luxury and comfort in the heart of the city. Our hotel offers the perfect blend of elegance,
-              convenience, and exceptional service.
+              Experience luxury and comfort in the heart of the city. Our hotel
+              offers the perfect blend of elegance, convenience, and exceptional
+              service.
             </p>
           </div>
 
@@ -1795,7 +1899,9 @@ function Homepage() {
         </div>
 
         <div style={styles.footerBottom}>
-          <p style={styles.copyright}>&copy; 2023 Golden Stays. All rights reserved.</p>
+          <p style={styles.copyright}>
+            &copy; 2023 Golden Stays. All rights reserved.
+          </p>
           <div style={styles.footerLinks}>
             <a href="#" style={{ ...styles.footerLink, marginBottom: 0 }}>
               Privacy Policy
@@ -1807,7 +1913,7 @@ function Homepage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export default Homepage
+export default Homepage;
