@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react"
+import { Link } from 'react-router-dom';
 import Latar1 from "../assets/images/FotoLatar1.png";
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import DeluxeBG from "../assets/images/DeluxeBG.png";
@@ -1149,8 +1150,8 @@ function Homepage() {
                 <div style={styles.roomPrice}>
                   <span style={styles.price}>$120</span> / night
                 </div>
-                <a
-                  href="#"
+                <Link
+                  to="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500"
@@ -1162,7 +1163,7 @@ function Homepage() {
                   }}
                 >
                   View Details
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -1197,8 +1198,8 @@ function Homepage() {
                 <div style={styles.roomPrice}>
                   <span style={styles.price}>$180</span> / night
                 </div>
-                <a
-                  href="#"
+                <Link
+                  href="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500"
@@ -1210,7 +1211,7 @@ function Homepage() {
                   }}
                 >
                   View Details
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -1245,8 +1246,8 @@ function Homepage() {
                 <div style={styles.roomPrice}>
                   <span style={styles.price}>$250</span> / night
                 </div>
-                <a
-                  href="#"
+                <Link
+                  href="/roomdetail"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500"
@@ -1258,7 +1259,7 @@ function Homepage() {
                   }}
                 >
                   View Details
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -1662,7 +1663,7 @@ function Homepage() {
         </div>
       </section>
 
-      {/* Special Offers Section */}
+      {/* Special Offers Section
       <section style={styles.offersSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Special Offers</h2>
@@ -1712,7 +1713,7 @@ function Homepage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Call to Action */}
       <section style={styles.ctaSection}>

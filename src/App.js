@@ -3,7 +3,9 @@ import Navbar from "./pages/Navbar";
 
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+
 import Homepage from "./pages/HomePage";
+import RoomDetail from "./pages/RoomDetail";
 
 // Layout dengan Navbar
 const LayoutWithNavbar = ({ children }) => (
@@ -27,6 +29,11 @@ function App() {
         <Route path="/home" element={
           <LayoutWithNavbar>
             <Homepage />
+          </LayoutWithNavbar>
+        } />
+         <Route path="/roomdetail" element={
+          <LayoutWithNavbar>
+            <RoomDetail />
           </LayoutWithNavbar>
         } />
 
