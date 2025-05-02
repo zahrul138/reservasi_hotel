@@ -4,8 +4,13 @@ import Navbar from "./pages/Navbar";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 
+import DashboardAdmin from "./admin/DashboardAdmin";
+import GuestList from "./admin/GuestList";
+
 import Homepage from "./pages/HomePage";
-import RoomDetail from "./pages/RoomDetail";
+import RoomDeluxe from "./pages/RoomDeluxe";
+import RoomSuperior from "./pages/RoomSuperior";
+import RoomExecutive from "./pages/RoomExecutive";
 
 // Layout dengan Navbar
 const LayoutWithNavbar = ({ children }) => (
@@ -25,15 +30,28 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
 
+        <Route path="/dashboardadmin" element={<DashboardAdmin />} />
+        <Route path="/guestlist" element={<GuestList />} />
+
         {/* Route dengan Navbar */}
         <Route path="/home" element={
           <LayoutWithNavbar>
             <Homepage />
           </LayoutWithNavbar>
         } />
-         <Route path="/roomdetail" element={
+         <Route path="/roomdeluxe" element={
           <LayoutWithNavbar>
-            <RoomDetail />
+            <RoomDeluxe />
+          </LayoutWithNavbar>
+        } />
+        <Route path="/roomsuperior" element={
+          <LayoutWithNavbar>
+            <RoomSuperior />
+          </LayoutWithNavbar>
+        } />
+         <Route path="/roomexecutive" element={
+          <LayoutWithNavbar>
+            <RoomExecutive />
           </LayoutWithNavbar>
         } />
 

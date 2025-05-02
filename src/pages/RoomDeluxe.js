@@ -1,6 +1,13 @@
-"use client"
+import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 
-import { useState, useRef, useEffect } from "react"
+import DeluxeBG from "../assets/images/DeluxeBG.png";
+import deluxeToilet from "../assets/images/deluxeToilet.png";
+import deluxeAlt from "../assets/images/deluxeAlt.png";
+
+import SuperiorBG from "../assets/images/SuperiorBG.png";
+import ExecutiveBG from "../assets/images/ExecutiveBG.png";
+
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -22,7 +29,9 @@ import {
   FaWineGlassAlt,
 } from "react-icons/fa"
 
-function RoomDetail() {
+
+
+function RoomDeluxe() {
   const [checkIn, setCheckIn] = useState("")
   const [checkOut, setCheckOut] = useState("")
   const [adults, setAdults] = useState(2)
@@ -83,12 +92,9 @@ function RoomDetail() {
       "Extra bed: $30 per night (upon request)",
     ],
     images: [
-      "/placeholder.svg?height=600&width=900",
-      "/placeholder.svg?height=600&width=900",
-      "/placeholder.svg?height=600&width=900",
-      "/placeholder.svg?height=600&width=900",
-      "/placeholder.svg?height=600&width=900",
-      "/placeholder.svg?height=600&width=900",
+      DeluxeBG,
+      deluxeToilet,
+      deluxeAlt,
     ],
     reviews: [
       {
@@ -126,25 +132,18 @@ function RoomDetail() {
     ],
     similarRooms: [
       {
-        id: "standard-room",
-        title: "Standard Room",
+        id: "superior-room",
+        title: "Superior Room",
         price: "$120",
-        image: "/placeholder.svg?height=300&width=500",
+        image: SuperiorBG,
         description: "Comfortable room with essential amenities",
       },
       {
         id: "executive-suite",
         title: "Executive Suite",
         price: "$250",
-        image: "/placeholder.svg?height=300&width=500",
+        image: ExecutiveBG,
         description: "Luxury suite with separate living area",
-      },
-      {
-        id: "family-suite",
-        title: "Family Suite",
-        price: "$320",
-        image: "/placeholder.svg?height=300&width=500",
-        description: "Perfect for families with two bedrooms",
       },
     ],
   }
@@ -206,7 +205,8 @@ function RoomDetail() {
     setCurrentImage(index)
   }
 
-  const openGallery = () => {
+  const openGallery = (idx = 0) => {
+    setCurrentImage(idx);
     setGalleryOpen(true)
     document.body.style.overflow = "hidden"
   }
@@ -214,6 +214,66 @@ function RoomDetail() {
   const closeGallery = () => {
     setGalleryOpen(false)
     document.body.style.overflow = "auto"
+  }
+
+  const styles ={
+    // Footer
+  footer: {
+    backgroundColor: "#222",
+    color: "#f8f5f0",
+    paddingTop: "4rem",
+  },
+  footerContainer: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "0 2rem 3rem",
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "3rem",
+  },
+  footerLogo: {
+    display: "flex",
+    alignItems: "center",
+    fontSize: "1.5rem",
+    fontWeight: 700,
+    color: "#D09500",
+    marginBottom: "1rem",
+  },
+  footerText: {
+    color: "#ccc",
+    marginBottom: "0.5rem",
+    fontSize: "0.95rem",
+  },
+  footerTitle: {
+    color: "#D09500",
+    marginBottom: "1.25rem",
+    fontSize: "1.25rem",
+    fontWeight: 600,
+  },
+  footerLink: {
+    color: "#ccc",
+    transition: "color 0.2s",
+    display: "block",
+    marginBottom: "0.75rem",
+    textDecoration: "none",
+  },
+  footerBottom: {
+    backgroundColor: "#111",
+    padding: "1.5rem 2rem",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "1rem",
+  },
+  copyright: {
+    color: "#999",
+    fontSize: "0.9rem",
+  },
+  footerLinks: {
+    display: "flex",
+    gap: "1.5rem",
+  },
   }
 
   return (
@@ -227,30 +287,11 @@ function RoomDetail() {
         }
 
         /* Header with Breadcrumb */
-        .room-detail-header {
-          background-color: #f8f5f0;
-          padding: 1.5rem 0;
-        }
-
+       
         .container {
           max-width: 1200px;
           margin: 0 auto;
           padding: 0 2rem;
-        }
-
-        .breadcrumb {
-          color: #666;
-          font-size: 0.9rem;
-        }
-
-        .breadcrumb a {
-          color: #87723b;
-          text-decoration: none;
-          transition: color 0.2s ease;
-        }
-
-        .breadcrumb a:hover {
-          color: #d09500;
         }
 
         /* Room Gallery Hero */
@@ -258,39 +299,26 @@ function RoomDetail() {
           width: 100%;
           height: 500px;
           overflow: hidden;
+          margin-top: 150px;
         }
-
         .gallery-grid {
           display: grid;
-          grid-template-columns: 2fr 1fr;
-          grid-template-rows: repeat(2, 1fr);
+          grid-template-columns: 3fr 2fr;
           gap: 0.5rem;
           height: 100%;
         }
-
-        .gallery-main {
-          grid-column: 1 / 2;
-          grid-row: 1 / 3;
-          position: relative;
-          cursor: pointer;
-          overflow: hidden;
-        }
-
-        .gallery-secondary {
-          grid-column: 2 / 3;
-          grid-row: 1 / 3;
-          display: grid;
-          grid-template-columns: 1fr;
-          grid-template-rows: repeat(4, 1fr);
-          gap: 0.5rem;
-        }
-
+        .gallery-main,
         .gallery-item {
           position: relative;
           cursor: pointer;
           overflow: hidden;
         }
-
+        .gallery-secondary {
+          display: grid;
+          grid-template-rows: repeat(2, 1fr);
+          gap: 0.5rem;
+          height: 100%;
+        }
         .gallery-main img,
         .gallery-item img {
           width: 100%;
@@ -298,12 +326,10 @@ function RoomDetail() {
           object-fit: cover;
           transition: transform 0.5s;
         }
-
         .gallery-main:hover img,
         .gallery-item:hover img {
           transform: scale(1.05);
         }
-
         .gallery-overlay {
           position: absolute;
           bottom: 0;
@@ -319,22 +345,49 @@ function RoomDetail() {
           justify-content: center;
           height: 100%;
         }
-
         .gallery-overlay span {
           background-color: rgba(0, 0, 0, 0.5);
           padding: 0.75rem 1.5rem;
           border-radius: 4px;
           font-weight: 500;
         }
-
         .gallery-main:hover .gallery-overlay,
         .gallery-item:hover .gallery-overlay {
           opacity: 1;
         }
 
+        /* Full-Screen Gallery */
+        .full-gallery {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.8);
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+          padding: 1rem;
+          box-sizing: border-box;
+          align-items: stretch;
+          justify-items: stretch;
+          z-index: 999;
+          grid-template-rows: 1fr;
+        }
+        .full-img-wrapper {
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+        }
+        .full-img-wrapper img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
         /* Room Overview */
         .room-overview {
-          padding: 3rem 0;
+          padding: 2rem 0;
           background-color: white;
         }
 
@@ -838,8 +891,11 @@ function RoomDetail() {
 
         /* Similar Rooms */
         .similar-rooms {
-          padding: 4rem 0;
+          padding: 2rem 0;
           background-color: white;
+          width: 95%;            
+          max-width: 1200px;     
+          margin: 0 auto;
         }
 
         .section-header {
@@ -860,13 +916,21 @@ function RoomDetail() {
           font-size: 1.1rem;
         }
 
+        .similar-rooms .container {
+          max-width: 600px;  /* atau sesuai kebutuhan */
+          margin: 0 auto;
+        }
+
         .similar-rooms-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, minmax(300px, 1fr));
           gap: 2rem;
+          justify-content: center;
         }
 
         .similar-room-card {
+          max-width: 300px;
+          margin: 0 auto;
           background-color: white;
           border-radius: 8px;
           overflow: hidden;
@@ -1030,6 +1094,8 @@ function RoomDetail() {
           max-width: 100%;
           max-height: 70vh;
           border-radius: 4px;
+          aspect-ratio: 1;    
+          object-fit: cover;
         }
 
         .modal-close {
@@ -1211,35 +1277,55 @@ function RoomDetail() {
             flex: 1 0 100%;
           }
         }
+          
       `}</style>
-
-      {/* Header with Breadcrumb */}
-      <div className="room-detail-header">
-        <div className="container">
-          <div className="breadcrumb">
-            <a href="/">Home</a> / <a href="/#rooms">Rooms</a> / <span>{room.title}</span>
-          </div>
-        </div>
-      </div>
 
       {/* Room Gallery Hero */}
       <section className="room-gallery-hero">
         <div className="gallery-grid">
-          <div className="gallery-main" onClick={() => openGallery()}>
-            <img src={room.images[0] || "/placeholder.svg"} alt={`${room.title} - Main View`} />
+          {/* Gambar Utama */}
+          <div className="gallery-main" onClick={() => openGallery(0)}>
+            <img
+              src={room.images[0]}
+              alt={`${room.title} - Main View`}
+            />
             <div className="gallery-overlay">
               <span>View All Photos</span>
             </div>
           </div>
+
+          {/* Dua Gambar Sekunder */}
           <div className="gallery-secondary">
-            {room.images.slice(1, 5).map((image, index) => (
-              <div key={index} className="gallery-item" onClick={() => openGallery(index + 1)}>
-                <img src={image || "/placeholder.svg"} alt={`${room.title} - View ${index + 2}`} />
+            {room.images.slice(1, 3).map((img, i) => (
+              <div
+                key={i}
+                className="gallery-item"
+                onClick={() => openGallery(i + 1)}
+              >
+                <img
+                  src={img}
+                  alt={`${room.title} - View ${i + 2}`}
+                />
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Full-Screen Gallery */}
+      {galleryOpen && (
+        <div className="full-gallery" onClick={closeGallery}>
+          {room.images.map((img, i) => (
+            <div key={i} className="full-img-wrapper">
+              <img
+                src={img}
+                alt={`${room.title} - Full ${i + 1}`}
+              />
+            </div>
+          ))}
+        </div>
+
+      )}
 
       {/* Room Overview */}
       <section className="room-overview">
@@ -1519,30 +1605,19 @@ function RoomDetail() {
                 <div className="similar-room-details">
                   <h3>{similarRoom.title}</h3>
                   <p>{similarRoom.description}</p>
-                  <a href={`/room/${similarRoom.id}`} className="btn btn-outline">
-                    View Details
-                  </a>
+                  {similarRoom.id === "superior-room" && (
+                    <Link to="/roomsuperior" className="btn btn-outline">
+                      View Details
+                    </Link>
+                  )}
+                  {similarRoom.id === "executive-suite" && (
+                    <Link to="/roomexecutive" className="btn btn-outline">
+                      View Details
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="cta-section">
-        <div className="container">
-          <div className="cta-content">
-            <h2>Ready to Experience Luxury?</h2>
-            <p>Book your stay now and enjoy our premium amenities and services</p>
-            <div className="cta-buttons">
-              <a href="#" className="btn btn-primary book-now-scroll">
-                Book Now
-              </a>
-              <a href="/contact" className="btn btn-secondary">
-                Contact Us
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -1586,4 +1661,4 @@ function RoomDetail() {
   )
 }
 
-export default RoomDetail
+export default RoomDeluxe

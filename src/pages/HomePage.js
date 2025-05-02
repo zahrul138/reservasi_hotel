@@ -1183,7 +1183,7 @@ function Homepage() {
                   <span style={styles.price}>$120</span> / night
                 </div>
                 <Link
-                  to="/roomdetail"
+                  to="/roomsuperior"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500";
@@ -1238,7 +1238,7 @@ function Homepage() {
                   <span style={styles.price}>$180</span> / night
                 </div>
                 <Link
-                  href="/roomdetail"
+                  to="/roomdeluxe"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500";
@@ -1293,7 +1293,7 @@ function Homepage() {
                   <span style={styles.price}>$250</span> / night
                 </div>
                 <Link
-                  href="/roomdetail"
+                  to="/roomexecutive"
                   style={styles.viewDetailsButton}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500";
@@ -1867,9 +1867,7 @@ function Homepage() {
               <span>Golden Stays</span>
             </div>
             <p style={styles.footerText}>
-              Experience luxury and comfort in the heart of the city. Our hotel
-              offers the perfect blend of elegance, convenience, and exceptional
-              service.
+              Experience luxury, comfort, and convenience at its finest. Your perfect stay starts here.
             </p>
           </div>
 

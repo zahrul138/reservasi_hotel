@@ -274,8 +274,7 @@ const GlobalStyle = createGlobalStyle`
 
 function SignUp() {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullname: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -331,7 +330,7 @@ function SignUp() {
           <form onSubmit={handleSubmit}>
             <div className="name-fields">
               <div className="form-field">
-                <label htmlFor="firstName">First Name</label>
+                <label htmlFor="firstName">Full Name</label>
                 <div className="input-wrapper">
                   <div className="field-icon">
                     <FaUser />
@@ -341,24 +340,7 @@ function SignUp() {
                     name="firstName"
                     type="text"
                     required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-field">
-                <label htmlFor="lastName">Last Name</label>
-                <div className="input-wrapper">
-                  <div className="field-icon">
-                    <FaUser />
-                  </div>
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
+                    value={formData.fullname}
                     onChange={handleChange}
                   />
                 </div>
@@ -459,11 +441,6 @@ function SignUp() {
                 </p>
               )}
             </div>
-
-            {/* <div className="consent-checkbox">
-              <input id="marketing" name="marketing" type="checkbox" />
-              <label htmlFor="marketing">I'd like to receive booking confirmations and updates via email</label>
-            </div> */}
 
             <div className="consent-checkbox required">
               <input id="terms" name="terms" type="checkbox" required />
