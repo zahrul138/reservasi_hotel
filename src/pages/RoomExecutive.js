@@ -1,14 +1,11 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
 import ExecutiveBG from "../assets/images/ExecutiveBG.png";
-
+import ExecutiveRT from "../assets/images/ExecutiveRT.png";
+import ExecutiveToilet from "../assets/images/ExecutiveToilet.png";
 
 import SuperiorBG from "../assets/images/SuperiorBG.png";
-
 import DeluxeBG from "../assets/images/DeluxeBG.png";
-import deluxeToilet from "../assets/images/deluxeToilet.png";
-import deluxeAlt from "../assets/images/deluxeAlt.png";
-
 
 import {
   FaArrowLeft,
@@ -95,8 +92,8 @@ function RoomExecutive() {
     ],
     images: [
       ExecutiveBG,
-      deluxeToilet,
-      deluxeAlt,
+      ExecutiveRT,
+      ExecutiveToilet,
     ],
     reviews: [
       {
@@ -141,7 +138,7 @@ function RoomExecutive() {
         description: "Comfortable room with essential amenities",
       },
       {
-        id: "deluxe-suite",
+        id: "deluxe-room",
         title: "Deluxe Room",
         price: "$250",
         image: DeluxeBG,
@@ -228,14 +225,11 @@ function RoomExecutive() {
           flex-direction: column;
         }
 
-        /* Header with Breadcrumb */
-       
-
         .container {
           max-width: 1200px;
           margin: 0 auto;
           padding: 0 2rem;
-        }  
+        }
 
         /* Room Gallery Hero */
         .room-gallery-hero {
@@ -252,8 +246,12 @@ function RoomExecutive() {
         }
         .gallery-main,
         .gallery-item {
+          height: 100%;
+          width: 100%;
           position: relative;
           cursor: pointer;
+          overflow: hidden;
+          aspect-ratio: 4/1; 
           overflow: hidden;
         }
         .gallery-secondary {
@@ -297,35 +295,6 @@ function RoomExecutive() {
         .gallery-main:hover .gallery-overlay,
         .gallery-item:hover .gallery-overlay {
           opacity: 1;
-        }
-
-        /* Full-Screen Gallery */
-        .full-gallery {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.8);
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
-          padding: 1rem;
-          box-sizing: border-box;
-          align-items: stretch;
-          justify-items: stretch;
-          z-index: 999;
-          grid-template-rows: 1fr;
-        }
-        .full-img-wrapper {
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-        .full-img-wrapper img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
         }
 
         /* Room Overview */
@@ -834,7 +803,7 @@ function RoomExecutive() {
 
         /* Similar Rooms */
         .similar-rooms {
-           padding: 2rem 0;
+          padding: 2rem 0;
           background-color: white;
           width: 95%;            
           max-width: 1200px;     
@@ -859,7 +828,7 @@ function RoomExecutive() {
           font-size: 1.1rem;
         }
 
-         .similar-rooms .container {
+        .similar-rooms .container {
           max-width: 600px;  /* atau sesuai kebutuhan */
           margin: 0 auto;
         }
@@ -1022,6 +991,8 @@ function RoomExecutive() {
           align-items: center;
           justify-content: center;
           z-index: 1000;
+          overflow-y: auto;
+          padding:  60px 0 200px 0; 
         }
 
         .modal-content {
@@ -1031,11 +1002,13 @@ function RoomExecutive() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          margin-top: 150px;
         }
 
         .modal-image {
-          max-width: 100%;
-          max-height: 70vh;
+          width: 800px; 
+          height: 500px;
+          object-fit: cover;
           border-radius: 4px;
         }
 
@@ -1058,8 +1031,8 @@ function RoomExecutive() {
 
         .modal-nav {
           position: absolute;
-          top: 50%;
-          width: 100%;
+          top: 40%;
+          width: 110%;
           display: flex;
           justify-content: space-between;
           padding: 0 20px;
@@ -1094,8 +1067,8 @@ function RoomExecutive() {
         }
 
         .modal-thumbnail {
-          width: 80px;
-          height: 60px;
+          width: 120px;
+          height: 80px;
           border-radius: 4px;
           overflow: hidden;
           cursor: pointer;
@@ -1218,10 +1191,86 @@ function RoomExecutive() {
             flex: 1 0 100%;
           }
         }
+
+        /* Footer - Light Theme */
+        .footer-light {
+          background-color: #f8f5f0;
+          color: #444;
+          padding-top: 4rem;
+          font-family: inherit;
+        }
+
+        .footer-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem 3rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 3rem;
+        }
+
+        .footer-logo {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #d09500;
+          margin-bottom: 1rem;
+        }
+
+        .footer-title {
+          color: #87723b;
+          font-size: 1.25rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+        }
+
+        .footer-text {
+          color: #666;
+          font-size: 0.95rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .footer-link {
+          color: #666;
+          text-decoration: none;
+          margin-bottom: 0.5rem;
+          display: block;
+          font-size: 0.95rem;
+        }
+
+        .footer-link:hover {
+          color: #d09500;
+        }
+
+        .footer-bottom-light {
+          background-color: #eee;
+          padding: 1.25rem 2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.85rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+
+        .footer-links {
+          display: flex;
+          gap: 1.25rem;
+        }
+
+        .footer-links a {
+          color: #666;
+          text-decoration: none;
+        }
+
+        .footer-links a:hover {
+          color: #d09500;
+        }
+
+
       `}</style>
 
-       {/* Room Gallery Hero */}
-       <section className="room-gallery-hero">
+      {/* Room Gallery Hero */}
+      <section className="room-gallery-hero">
         <div className="gallery-grid">
           {/* Gambar Utama */}
           <div className="gallery-main" onClick={() => openGallery(0)}>
@@ -1264,7 +1313,7 @@ function RoomExecutive() {
             </div>
           ))}
         </div>
-        
+
       )}
 
       {/* Room Overview */}
@@ -1526,41 +1575,41 @@ function RoomExecutive() {
         </div>
       </section>
 
-    {/* Similar Rooms */}
-          <section className="similar-rooms">
-            <div className="container">
-              <div className="section-header">
-                <h2>Similar Rooms</h2>
-                <p>You might also be interested in these accommodations</p>
-              </div>
-              <div className="similar-rooms-grid">
-                {room.similarRooms.map((similarRoom) => (
-                  <div key={similarRoom.id} className="similar-room-card">
-                    <div className="similar-room-image">
-                      <img src={similarRoom.image || "/placeholder.svg"} alt={similarRoom.title} />
-                      <div className="similar-room-price">
-                        <span>{similarRoom.price}</span> / night
-                      </div>
-                    </div>
-                    <div className="similar-room-details">
-                      <h3>{similarRoom.title}</h3>
-                      <p>{similarRoom.description}</p>
-                      {similarRoom.id === "superior-room" && (
-                        <Link to="/roomsuperior" className="btn btn-outline">
-                          View Details
-                        </Link>
-                      )}
-                      {similarRoom.id === "deluxe-suite" && (
-                        <Link to="/roomdeluxe" className="btn btn-outline">
-                          View Details
-                        </Link>
-                      )}
-                    </div>
+      {/* Other Rooms */}
+      <section className="similar-rooms">
+        <div className="container">
+          <div className="section-header">
+            <h2>Other Rooms</h2>
+            <p>You might also be interested in these accommodations</p>
+          </div>
+          <div className="similar-rooms-grid">
+            {room.similarRooms.map((similarRoom) => (
+              <div key={similarRoom.id} className="similar-room-card">
+                <div className="similar-room-image">
+                  <img src={similarRoom.image || "/placeholder.svg"} alt={similarRoom.title} />
+                  <div className="similar-room-price">
+                    <span>{similarRoom.price}</span> / night
                   </div>
-                ))}
+                </div>
+                <div className="similar-room-details">
+                  <h3>{similarRoom.title}</h3>
+                  <p>{similarRoom.description}</p>
+                  {similarRoom.id === "superior-room" && (
+                    <Link to="/roomsuperior" className="btn btn-outline">
+                      View Details
+                    </Link>
+                  )}
+                  {similarRoom.id === "deluxe-room" && (
+                    <Link to="/roomdeluxe" className="btn btn-outline">
+                      View Details
+                    </Link>
+                  )}
+                </div>
               </div>
-            </div>
-          </section>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Full Screen Gallery */}
       {galleryOpen && (
@@ -1597,7 +1646,45 @@ function RoomExecutive() {
           </div>
         </div>
       )}
+
+      <footer className="footer-light">
+        <div className="footer-container">
+          <div>
+            <div className="footer-logo">GoldenStay</div>
+            <p className="footer-text">
+              Experience luxury, comfort, and convenience at its finest. Your perfect stay starts here.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Quick Links</h4>
+            <a href="/about" className="footer-link">About Us</a>
+            <a href="/contact" className="footer-link">Contact</a>
+            <a href="/faq" className="footer-link">FAQ</a>
+            <a href="/terms" className="footer-link">Terms & Conditions</a>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Contact</h4>
+            <p className="footer-text">123 Golden Road, Batam</p>
+            <p className="footer-text">Email: info@goldenstay.com</p>
+            <p className="footer-text">Phone: +62 812 3456 7890</p>
+          </div>
+        </div>
+
+        <div className="footer-bottom-light">
+          <p className="copyright">
+            © {new Date().getFullYear()} GoldenStay. All rights reserved.
+          </p>
+          <div className="footer-links">
+            <a href="/privacy">Privacy</a>
+            <a href="/cookies">Cookies</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
+
   )
 }
 

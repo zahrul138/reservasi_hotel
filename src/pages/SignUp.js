@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import styled, { createGlobalStyle } from "styled-components";
+import { useNavigate } from 'react-router-dom';
 import { FaLock, FaEnvelope, FaUser, FaEyeSlash, FaEye } from "react-icons/fa"
 import Logo from "../assets/images/LogoRG3.png";
 
@@ -271,6 +272,50 @@ const GlobalStyle = createGlobalStyle`
     border-radius: 3px;
   }
 `
+const PopUpOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const PopUp = styled.div`
+  background: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+
+  p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  .close-popup {
+    background-color: #d09500;
+    color: #fff;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #87723b;
+    }
+  }
+`;
 
 function SignUp() {
   const [formData, setFormData] = useState({
@@ -281,10 +326,13 @@ function SignUp() {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate(); 
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [showError, setShowError] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -306,18 +354,48 @@ function SignUp() {
     }
   }, [formData.password, formData.confirmPassword]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      setPasswordMatch(false)
-      return
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const dataToSend = { 
+      ...formData, 
+      role: "Guest"
+    };
+  
+    try {
+      const res = await fetch('https://localhost:7298/api/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dataToSend) 
+      });
+  
+      if (res.ok) {
+        setPopupMessage('Registrasi berhasil!');
+        setShowPopup(true);
+        setFormData({ fullname: '', email: '', password: '', confirmPassword: '' });
+      } else {
+        setPopupMessage('Registrasi gagal. Silakan coba lagi.');
+        setShowPopup(true);
+      }
+    } catch (error) {
+      setPopupMessage('Terjadi kesalahan saat mengirim data.');
+      setShowPopup(true);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log("Registration data:", formData)
-    }, 1500)
-  }
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    if (popupMessage === 'Registrasi berhasil!') {
+      navigate('/signin');
+    }
+  };
+
 
   return (
     <Container>
@@ -330,14 +408,14 @@ function SignUp() {
           <form onSubmit={handleSubmit}>
             <div className="name-fields">
               <div className="form-field">
-                <label htmlFor="firstName">Full Name</label>
+                <label htmlFor="fullname">Full Name</label>
                 <div className="input-wrapper">
                   <div className="field-icon">
                     <FaUser />
                   </div>
                   <input
-                    id="firstName"
-                    name="firstName"
+                    id="fullname"
+                    name="fullname"
                     type="text"
                     required
                     value={formData.fullname}
@@ -496,6 +574,17 @@ function SignUp() {
             </PromoBox>
         </div>
       </Card>
+       {/* Tambahkan ini untuk pop-up */}
+    {showPopup && (
+      <PopUpOverlay>
+        <PopUp>
+          <p>{popupMessage}</p>
+          <button className="close-popup" onClick={handleClosePopup}>
+            OK
+          </button>
+        </PopUp>
+      </PopUpOverlay>
+    )}
     </Container>
   )
 }

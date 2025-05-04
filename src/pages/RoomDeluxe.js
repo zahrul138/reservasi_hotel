@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
-
 import DeluxeBG from "../assets/images/DeluxeBG.png";
-import deluxeToilet from "../assets/images/deluxeToilet.png";
 import deluxeAlt from "../assets/images/deluxeAlt.png";
+import deluxeToilet from "../assets/images/deluxeToilet.png";
 
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import ExecutiveBG from "../assets/images/ExecutiveBG.png";
@@ -93,8 +92,8 @@ function RoomDeluxe() {
     ],
     images: [
       DeluxeBG,
-      deluxeToilet,
       deluxeAlt,
+      deluxeToilet,
     ],
     reviews: [
       {
@@ -216,66 +215,6 @@ function RoomDeluxe() {
     document.body.style.overflow = "auto"
   }
 
-  const styles ={
-    // Footer
-  footer: {
-    backgroundColor: "#222",
-    color: "#f8f5f0",
-    paddingTop: "4rem",
-  },
-  footerContainer: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "0 2rem 3rem",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "3rem",
-  },
-  footerLogo: {
-    display: "flex",
-    alignItems: "center",
-    fontSize: "1.5rem",
-    fontWeight: 700,
-    color: "#D09500",
-    marginBottom: "1rem",
-  },
-  footerText: {
-    color: "#ccc",
-    marginBottom: "0.5rem",
-    fontSize: "0.95rem",
-  },
-  footerTitle: {
-    color: "#D09500",
-    marginBottom: "1.25rem",
-    fontSize: "1.25rem",
-    fontWeight: 600,
-  },
-  footerLink: {
-    color: "#ccc",
-    transition: "color 0.2s",
-    display: "block",
-    marginBottom: "0.75rem",
-    textDecoration: "none",
-  },
-  footerBottom: {
-    backgroundColor: "#111",
-    padding: "1.5rem 2rem",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "1rem",
-  },
-  copyright: {
-    color: "#999",
-    fontSize: "0.9rem",
-  },
-  footerLinks: {
-    display: "flex",
-    gap: "1.5rem",
-  },
-  }
-
   return (
     <div className="room-detail-page">
       <style jsx>{`
@@ -286,8 +225,6 @@ function RoomDeluxe() {
           flex-direction: column;
         }
 
-        /* Header with Breadcrumb */
-       
         .container {
           max-width: 1200px;
           margin: 0 auto;
@@ -309,8 +246,12 @@ function RoomDeluxe() {
         }
         .gallery-main,
         .gallery-item {
+          height: 100%;
+          width: 100%;
           position: relative;
           cursor: pointer;
+          overflow: hidden;
+          aspect-ratio: 4/1; 
           overflow: hidden;
         }
         .gallery-secondary {
@@ -354,35 +295,6 @@ function RoomDeluxe() {
         .gallery-main:hover .gallery-overlay,
         .gallery-item:hover .gallery-overlay {
           opacity: 1;
-        }
-
-        /* Full-Screen Gallery */
-        .full-gallery {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.8);
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
-          padding: 1rem;
-          box-sizing: border-box;
-          align-items: stretch;
-          justify-items: stretch;
-          z-index: 999;
-          grid-template-rows: 1fr;
-        }
-        .full-img-wrapper {
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-        .full-img-wrapper img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
         }
 
         /* Room Overview */
@@ -1079,6 +991,8 @@ function RoomDeluxe() {
           align-items: center;
           justify-content: center;
           z-index: 1000;
+          overflow-y: auto;
+          padding:  60px 0 200px 0; 
         }
 
         .modal-content {
@@ -1088,14 +1002,14 @@ function RoomDeluxe() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          margin-top: 150px;
         }
 
         .modal-image {
-          max-width: 100%;
-          max-height: 70vh;
-          border-radius: 4px;
-          aspect-ratio: 1;    
+          width: 800px; 
+          height: 500px;
           object-fit: cover;
+          border-radius: 4px;
         }
 
         .modal-close {
@@ -1117,8 +1031,8 @@ function RoomDeluxe() {
 
         .modal-nav {
           position: absolute;
-          top: 50%;
-          width: 100%;
+          top: 40%;
+          width: 110%;
           display: flex;
           justify-content: space-between;
           padding: 0 20px;
@@ -1153,8 +1067,8 @@ function RoomDeluxe() {
         }
 
         .modal-thumbnail {
-          width: 80px;
-          height: 60px;
+          width: 120px;
+          height: 80px;
           border-radius: 4px;
           overflow: hidden;
           cursor: pointer;
@@ -1277,7 +1191,82 @@ function RoomDeluxe() {
             flex: 1 0 100%;
           }
         }
-          
+
+        /* Footer - Light Theme */
+        .footer-light {
+          background-color: #f8f5f0;
+          color: #444;
+          padding-top: 4rem;
+          font-family: inherit;
+        }
+
+        .footer-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 2rem 3rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 3rem;
+        }
+
+        .footer-logo {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #d09500;
+          margin-bottom: 1rem;
+        }
+
+        .footer-title {
+          color: #87723b;
+          font-size: 1.25rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+        }
+
+        .footer-text {
+          color: #666;
+          font-size: 0.95rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .footer-link {
+          color: #666;
+          text-decoration: none;
+          margin-bottom: 0.5rem;
+          display: block;
+          font-size: 0.95rem;
+        }
+
+        .footer-link:hover {
+          color: #d09500;
+        }
+
+        .footer-bottom-light {
+          background-color: #eee;
+          padding: 1.25rem 2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.85rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+
+        .footer-links {
+          display: flex;
+          gap: 1.25rem;
+        }
+
+        .footer-links a {
+          color: #666;
+          text-decoration: none;
+        }
+
+        .footer-links a:hover {
+          color: #d09500;
+        }
+
+
       `}</style>
 
       {/* Room Gallery Hero */}
@@ -1586,11 +1575,11 @@ function RoomDeluxe() {
         </div>
       </section>
 
-      {/* Similar Rooms */}
+      {/* Other Rooms */}
       <section className="similar-rooms">
         <div className="container">
           <div className="section-header">
-            <h2>Similar Rooms</h2>
+            <h2>Other Rooms</h2>
             <p>You might also be interested in these accommodations</p>
           </div>
           <div className="similar-rooms-grid">
@@ -1657,7 +1646,45 @@ function RoomDeluxe() {
           </div>
         </div>
       )}
+
+      <footer className="footer-light">
+        <div className="footer-container">
+          <div>
+            <div className="footer-logo">GoldenStay</div>
+            <p className="footer-text">
+              Experience luxury, comfort, and convenience at its finest. Your perfect stay starts here.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Quick Links</h4>
+            <a href="/about" className="footer-link">About Us</a>
+            <a href="/contact" className="footer-link">Contact</a>
+            <a href="/faq" className="footer-link">FAQ</a>
+            <a href="/terms" className="footer-link">Terms & Conditions</a>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Contact</h4>
+            <p className="footer-text">123 Golden Road, Batam</p>
+            <p className="footer-text">Email: info@goldenstay.com</p>
+            <p className="footer-text">Phone: +62 812 3456 7890</p>
+          </div>
+        </div>
+
+        <div className="footer-bottom-light">
+          <p className="copyright">
+            © {new Date().getFullYear()} GoldenStay. All rights reserved.
+          </p>
+          <div className="footer-links">
+            <a href="/privacy">Privacy</a>
+            <a href="/cookies">Cookies</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
+
   )
 }
 

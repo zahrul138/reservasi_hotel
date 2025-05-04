@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
 import SuperiorBG from "../assets/images/SuperiorBG.png";
-import deluxeToilet from "../assets/images/deluxeToilet.png";
-import deluxeAlt from "../assets/images/deluxeAlt.png";
+import SuperiorRT from "../assets/images/SuperiorRT.png";
+import SuperiorToilet from "../assets/images/SuperiorToilet.png";
 
 import DeluxeBG from "../assets/images/DeluxeBG.png";
 import ExecutiveBG from "../assets/images/ExecutiveBG.png";
-
-
 
 import {
   FaArrowLeft,
@@ -94,8 +92,8 @@ function RoomSuperior() {
     ],
     images: [
       SuperiorBG,
-      deluxeToilet,
-      deluxeAlt,
+      SuperiorRT,
+      SuperiorToilet,
     ],
     reviews: [
       {
@@ -227,9 +225,6 @@ function RoomSuperior() {
           flex-direction: column;
         }
 
-        /* Header with Breadcrumb */
-       
-
         .container {
           max-width: 1200px;
           margin: 0 auto;
@@ -251,8 +246,12 @@ function RoomSuperior() {
         }
         .gallery-main,
         .gallery-item {
+          height: 100%;
+          width: 100%;
           position: relative;
           cursor: pointer;
+          overflow: hidden;
+          aspect-ratio: 4/1; 
           overflow: hidden;
         }
         .gallery-secondary {
@@ -296,35 +295,6 @@ function RoomSuperior() {
         .gallery-main:hover .gallery-overlay,
         .gallery-item:hover .gallery-overlay {
           opacity: 1;
-        }
-
-        /* Full-Screen Gallery */
-        .full-gallery {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.8);
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.5rem;
-          padding: 1rem;
-          box-sizing: border-box;
-          align-items: stretch;
-          justify-items: stretch;
-          z-index: 999;
-          grid-template-rows: 1fr;
-        }
-        .full-img-wrapper {
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
-        .full-img-wrapper img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
         }
 
         /* Room Overview */
@@ -1021,6 +991,8 @@ function RoomSuperior() {
           align-items: center;
           justify-content: center;
           z-index: 1000;
+          overflow-y: auto;
+          padding:  60px 0 200px 0; 
         }
 
         .modal-content {
@@ -1030,11 +1002,13 @@ function RoomSuperior() {
           display: flex;
           flex-direction: column;
           align-items: center;
+          margin-top: 150px;
         }
 
         .modal-image {
-          max-width: 100%;
-          max-height: 70vh;
+          width: 800px; 
+          height: 500px;
+          object-fit: cover;
           border-radius: 4px;
         }
 
@@ -1057,8 +1031,8 @@ function RoomSuperior() {
 
         .modal-nav {
           position: absolute;
-          top: 50%;
-          width: 100%;
+          top: 40%;
+          width: 110%;
           display: flex;
           justify-content: space-between;
           padding: 0 20px;
@@ -1093,8 +1067,8 @@ function RoomSuperior() {
         }
 
         .modal-thumbnail {
-          width: 80px;
-          height: 60px;
+          width: 120px;
+          height: 80px;
           border-radius: 4px;
           overflow: hidden;
           cursor: pointer;
@@ -1601,11 +1575,11 @@ function RoomSuperior() {
         </div>
       </section>
 
-      {/* Similar Rooms */}
+      {/* Other Rooms */}
       <section className="similar-rooms">
         <div className="container">
           <div className="section-header">
-            <h2>Similar Rooms</h2>
+            <h2>Other Rooms</h2>
             <p>You might also be interested in these accommodations</p>
           </div>
           <div className="similar-rooms-grid">

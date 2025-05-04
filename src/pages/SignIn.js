@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { FaLock, FaEnvelope, FaEyeSlash, FaEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import Logo from "../assets/images/LogoRG3.png";
 
 const Container = styled.div`
@@ -154,6 +155,8 @@ function SignIn() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -163,16 +166,48 @@ function SignIn() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Simulasi login (replace dengan API login)
-    setTimeout(() => {
+    setErrorMessage("");
+  
+    try {
+      const response = await fetch("https://localhost:7298/api/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        const user = result.user; // ambil data dari result.user
+  
+        localStorage.setItem("fullname", user.fullname);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("role", user.role);
+  
+        // trigger update navbar (opsional tapi disarankan)
+        window.dispatchEvent(new Event("storage"));
+  
+        navigate("/home");
+      } else {
+        setErrorMessage(result.message || "Email atau password salah");
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Terjadi kesalahan saat login.");
+    } finally {
       setIsLoading(false);
-      console.log("Login data:", formData);
-    }, 1500);
+    }
   };
+  
+
 
   return (
     <Container>
@@ -233,7 +268,7 @@ function SignIn() {
             </div>
           </div>
 
-          <div className="signin-options">
+          {/* <div className="signin-options">
             <label>
               <input
                 type="checkbox"
@@ -246,7 +281,13 @@ function SignIn() {
             <a href="/forgot-password" className="forgot-password">
               Forgot password?
             </a>
-          </div>
+          </div> */}
+
+          {errorMessage && (
+            <div style={{ color: "red", marginBottom: "1rem", fontSize: "0.9rem" }}>
+              {errorMessage}
+            </div>
+          )}
 
           <button type="submit" disabled={isLoading} className="signin-button">
             {isLoading ? "Login..." : "Login"}

@@ -69,7 +69,7 @@ const SidebarAdmin = ({ activePage = "" }) => {
 
   const menu = [
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "/dashboardadmin" },
-    { icon: <FaUser />, text: "Guest List", path: "/guestlist" },
+    { icon: <FaUser />, text: "Guest Account", path: "/guestlist" },
     { icon: <FaDoorOpen />, text: "Rooms", path: "/admin/rooms" },
     { icon: <FaCog />, text: "Settings", path: "/admin/settings" },
   ];

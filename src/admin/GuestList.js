@@ -1,6 +1,7 @@
-// pages/Dashboard/GuestList.js
-import React, { useState } from "react";
-import SidebarAdmin from "../components/SidebarAdmin";// pastikan path sesuai
+// src/admin/GuestList.js atau pages/Dashboard/GuestList.js
+import React, { useState, useEffect } from "react";
+import SidebarAdmin from "../components/SidebarAdmin";
+import { getAllUsers } from "../services/userService"; // pastikan path benar
 
 const style = {
   container: {
@@ -56,42 +57,25 @@ const style = {
   }),
 };
 
-const guestData = [
-  {
-    id: 1,
-    name: "Andi Saputra",
-    email: "andi@email.com",
-    checkInDate: "2025-04-20",
-    status: "Checked In",
-  },
-  {
-    id: 2,
-    name: "Rina Marlina",
-    email: "rina@email.com",
-    checkInDate: "2025-04-22",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    name: "Budi Hartono",
-    email: "budi@email.com",
-    checkInDate: "2025-04-25",
-    status: "Checked Out",
-  },
-  {
-    id: 4,
-    name: "Siti Aminah",
-    email: "siti@email.com",
-    checkInDate: "2025-04-29",
-    status: "Checked In",
-  },
-];
-
 const GuestList = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [guests, setGuests] = useState([]);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  useEffect(() => {
+    const fetchGuests = async () => {
+      try {
+        const users = await getAllUsers();
+        setGuests(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchGuests();
+  }, []);
 
   return (
     <div style={style.container}>
@@ -103,30 +87,35 @@ const GuestList = () => {
       />
 
       <main style={style.main}>
-        <h1 style={style.title}>Guest List</h1>
+        <h1 style={style.title}>Guest Account</h1>
         <div style={style.tableContainer}>
           <table style={style.table}>
             <thead>
               <tr>
-                <th style={style.th}>#</th>
+                <th style={style.th}>No</th>
                 <th style={style.th}>Name</th>
                 <th style={style.th}>Email</th>
-                <th style={style.th}>Check-In Date</th>
-                <th style={style.th}>Status</th>
+                <th style={style.th}>Create Time</th>
+                <th style={style.th}>Role</th> 
               </tr>
             </thead>
             <tbody>
-              {guestData.map((guest, index) => (
+              {guests.map((guest, index) => (
                 <tr key={guest.id}>
                   <td style={style.td}>{index + 1}</td>
-                  <td style={style.td}>{guest.name}</td>
+                  <td style={style.td}>{guest.fullname}</td>
                   <td style={style.td}>{guest.email}</td>
-                  <td style={style.td}>{guest.checkInDate}</td>
-                  <td style={style.td}>
-                    <span style={style.status(guest.status)}>{guest.status}</span>
-                  </td>
+                  <td style={style.td}>{guest.createtime}</td>
+                  <td style={style.td}>{guest.role}</td>
                 </tr>
               ))}
+              {guests.length === 0 && (
+                <tr>
+                  <td style={style.td} colSpan="5">
+                    No guest data found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
