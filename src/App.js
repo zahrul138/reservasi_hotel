@@ -6,6 +6,7 @@ import SignUp from "./pages/SignUp";
 
 import DashboardAdmin from "./admin/DashboardAdmin";
 import GuestList from "./admin/GuestList";
+import CheckInAdmin from "./admin/CheckInAdmin";
 
 import Homepage from "./pages/HomePage";
 import RoomDeluxe from "./pages/RoomDeluxe";
@@ -33,6 +34,7 @@ function App() {
 
         <Route path="/dashboardadmin" element={<DashboardAdmin />} />
         <Route path="/guestlist" element={<GuestList />} />
+        <Route path="/checkinadmin" element={<CheckInAdmin />} />
 
         {/* Route dengan Navbar */}
         <Route path="/home" element={

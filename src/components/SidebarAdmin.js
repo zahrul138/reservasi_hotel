@@ -2,13 +2,15 @@
 import React, { useState } from "react";
 import {
   FaUser,
-  FaDoorOpen,
-  FaCog,
   FaSignOutAlt,
   FaBars,
   FaChevronLeft,
   FaTachometerAlt,
 } from "react-icons/fa";
+import { 
+  ImExit,
+  ImEnter, 
+} from "react-icons/im";
 import { useNavigate } from "react-router-dom";
 
 const styles = {
@@ -69,9 +71,9 @@ const SidebarAdmin = ({ activePage = "" }) => {
 
   const menu = [
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "/dashboardadmin" },
-    { icon: <FaUser />, text: "Guest Account", path: "/guestlist" },
-    { icon: <FaDoorOpen />, text: "Rooms", path: "/admin/rooms" },
-    { icon: <FaCog />, text: "Settings", path: "/admin/settings" },
+    { icon: <FaUser />, text: "Account", path: "/guestlist" },
+    { icon: <ImEnter />, text: "Check In", path: "/checkinadmin" },
+    { icon: <ImExit />, text: "Check Out", path: "/" },
   ];
 
   return (

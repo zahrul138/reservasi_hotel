@@ -1,7 +1,7 @@
-// src/admin/GuestList.js atau pages/Dashboard/GuestList.js
+// src/admin/GuestList.js
 import React, { useState, useEffect } from "react";
 import SidebarAdmin from "../components/SidebarAdmin";
-import { getAllUsers } from "../services/userService"; // pastikan path benar
+import { getAllUsers } from "../services/userService"; // pastikan path ini sesuai
 
 const style = {
   container: {
@@ -41,20 +41,25 @@ const style = {
     borderBottom: "1px solid #eee",
     color: "#444",
   },
-  status: (value) => ({
-    padding: "6px 12px",
-    borderRadius: "20px",
-    color: "#fff",
-    fontSize: "14px",
-    backgroundColor:
-      value === "Checked In"
-        ? "#4caf50"
-        : value === "Checked Out"
-        ? "#2196f3"
-        : "#ff9800",
-    display: "inline-block",
-    textAlign: "center",
-  }),
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Invalid Date";
+
+  const day = date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const time = date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${day} at ${time}`;
 };
 
 const GuestList = () => {
@@ -62,7 +67,7 @@ const GuestList = () => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [guests, setGuests] = useState([]);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   useEffect(() => {
     const fetchGuests = async () => {
@@ -73,7 +78,6 @@ const GuestList = () => {
         console.error("Error fetching users:", error);
       }
     };
-
     fetchGuests();
   }, []);
 
@@ -95,21 +99,22 @@ const GuestList = () => {
                 <th style={style.th}>No</th>
                 <th style={style.th}>Name</th>
                 <th style={style.th}>Email</th>
-                <th style={style.th}>Create Time</th>
-                <th style={style.th}>Role</th> 
+                <th style={style.th}>Created</th>
+                <th style={style.th}>Role</th>
               </tr>
             </thead>
             <tbody>
-              {guests.map((guest, index) => (
-                <tr key={guest.id}>
-                  <td style={style.td}>{index + 1}</td>
-                  <td style={style.td}>{guest.fullname}</td>
-                  <td style={style.td}>{guest.email}</td>
-                  <td style={style.td}>{guest.createtime}</td>
-                  <td style={style.td}>{guest.role}</td>
-                </tr>
-              ))}
-              {guests.length === 0 && (
+              {guests.length > 0 ? (
+                guests.map((guest, index) => (
+                  <tr key={`${guest.id}-${index}`}>
+                    <td style={style.td}>{index + 1}</td>
+                    <td style={style.td}>{guest.fullname || "N/A"}</td>
+                    <td style={style.td}>{guest.email || "N/A"}</td>
+                    <td style={style.td}>{formatDate(guest.createtime)}</td>
+                    <td style={style.td}>{guest.role || "Guest"}</td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td style={style.td} colSpan="5">
                     No guest data found.
