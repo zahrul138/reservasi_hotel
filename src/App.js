@@ -11,6 +11,7 @@ import Homepage from "./pages/HomePage";
 import RoomDeluxe from "./pages/RoomDeluxe";
 import RoomSuperior from "./pages/RoomSuperior";
 import RoomExecutive from "./pages/RoomExecutive";
+import BookingForm from './pages/BookingForm';
 
 
 // Layout dengan Navbar
@@ -53,6 +54,11 @@ function App() {
          <Route path="/roomexecutive" element={
           <LayoutWithNavbar>
             <RoomExecutive />
+          </LayoutWithNavbar>
+        } />
+          <Route path="/bookingform" element={
+            <LayoutWithNavbar>
+            <BookingForm />
           </LayoutWithNavbar>
         } />
 

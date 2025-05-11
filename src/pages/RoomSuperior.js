@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import SuperiorRT from "../assets/images/SuperiorRT.png";
 import SuperiorToilet from "../assets/images/SuperiorToilet.png";
@@ -1455,10 +1456,13 @@ function RoomSuperior() {
                     <span>$540</span>
                   </div>
                 </div>
+                
+                <Link to="/bookingform">
+                  <button type="button" className="book-now-btn">
+                    Book Now
+                  </button>
+                </Link>
 
-                <button type="submit" className="book-now-btn">
-                  Book Now
-                </button>
 
                 <div className="booking-policies">
                   <div className="policy-item">
@@ -1647,44 +1651,44 @@ function RoomSuperior() {
         </div>
       )}
 
-<footer className="footer-light">
-  <div className="footer-container">
-    <div>
-      <div className="footer-logo">GoldenStay</div>
-      <p className="footer-text">
-        Experience luxury, comfort, and convenience at its finest. Your perfect stay starts here.
-      </p>
+      <footer className="footer-light">
+        <div className="footer-container">
+          <div>
+            <div className="footer-logo">GoldenStay</div>
+            <p className="footer-text">
+              Experience luxury, comfort, and convenience at its finest. Your perfect stay starts here.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Quick Links</h4>
+            <a href="/about" className="footer-link">About Us</a>
+            <a href="/contact" className="footer-link">Contact</a>
+            <a href="/faq" className="footer-link">FAQ</a>
+            <a href="/terms" className="footer-link">Terms & Conditions</a>
+          </div>
+
+          <div>
+            <h4 className="footer-title">Contact</h4>
+            <p className="footer-text">123 Golden Road, Batam</p>
+            <p className="footer-text">Email: info@goldenstay.com</p>
+            <p className="footer-text">Phone: +62 812 3456 7890</p>
+          </div>
+        </div>
+
+        <div className="footer-bottom-light">
+          <p className="copyright">
+            © {new Date().getFullYear()} GoldenStay. All rights reserved.
+          </p>
+          <div className="footer-links">
+            <a href="/privacy">Privacy</a>
+            <a href="/cookies">Cookies</a>
+          </div>
+        </div>
+      </footer>
+
     </div>
 
-    <div>
-      <h4 className="footer-title">Quick Links</h4>
-      <a href="/about" className="footer-link">About Us</a>
-      <a href="/contact" className="footer-link">Contact</a>
-      <a href="/faq" className="footer-link">FAQ</a>
-      <a href="/terms" className="footer-link">Terms & Conditions</a>
-    </div>
-
-    <div>
-      <h4 className="footer-title">Contact</h4>
-      <p className="footer-text">123 Golden Road, Batam</p>
-      <p className="footer-text">Email: info@goldenstay.com</p>
-      <p className="footer-text">Phone: +62 812 3456 7890</p>
-    </div>
-  </div>
-
-  <div className="footer-bottom-light">
-    <p className="copyright">
-      © {new Date().getFullYear()} GoldenStay. All rights reserved.
-    </p>
-    <div className="footer-links">
-      <a href="/privacy">Privacy</a>
-      <a href="/cookies">Cookies</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    
   )
 }
 
