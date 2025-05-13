@@ -11,6 +11,7 @@ import {
   ImExit,
   ImEnter, 
 } from "react-icons/im";
+import { FaClockRotateLeft } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 
 const styles = {
@@ -73,7 +74,8 @@ const SidebarAdmin = ({ activePage = "" }) => {
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "/dashboardadmin" },
     { icon: <FaUser />, text: "Account", path: "/guestlist" },
     { icon: <ImEnter />, text: "Check In", path: "/checkinadmin" },
-    { icon: <ImExit />, text: "Check Out", path: "/" },
+    { icon: <ImExit />, text: "Check Out", path: "/checkoutadmin" },
+    { icon: <FaClockRotateLeft />, text: "History", path: "/historyadmin" },
   ];
 
   return (

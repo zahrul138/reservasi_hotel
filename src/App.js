@@ -7,12 +7,14 @@ import SignUp from "./pages/SignUp";
 import DashboardAdmin from "./admin/DashboardAdmin";
 import GuestList from "./admin/GuestList";
 import CheckInAdmin from "./admin/CheckInAdmin";
+import CheckOutAdmin from "./admin/CheckOutAdmin";
+import HistoryAdmin from "./admin/HistoryAdmin";
 
 import Homepage from "./pages/HomePage";
 import RoomDeluxe from "./pages/RoomDeluxe";
 import RoomSuperior from "./pages/RoomSuperior";
 import RoomExecutive from "./pages/RoomExecutive";
-import BookingForm from './pages/BookingForm';
+import BookingForm from "./pages/BookingForm";
 
 
 // Layout dengan Navbar
@@ -32,10 +34,13 @@ function App() {
         {/* Route tanpa Navbar */}
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/bookingform" element={<BookingForm />} />
 
         <Route path="/dashboardadmin" element={<DashboardAdmin />} />
         <Route path="/guestlist" element={<GuestList />} />
         <Route path="/checkinadmin" element={<CheckInAdmin />} />
+        <Route path="/checkoutadmin" element={<CheckOutAdmin />} />
+        <Route path="/historyadmin" element={<HistoryAdmin />} />
 
         {/* Route dengan Navbar */}
         <Route path="/home" element={
@@ -56,11 +61,6 @@ function App() {
          <Route path="/roomexecutive" element={
           <LayoutWithNavbar>
             <RoomExecutive />
-          </LayoutWithNavbar>
-        } />
-          <Route path="/bookingform" element={
-            <LayoutWithNavbar>
-            <BookingForm />
           </LayoutWithNavbar>
         } />
 

@@ -150,6 +150,8 @@ function RoomSuperior() {
 
   // Calculate average rating
   const averageRating = room.reviews.reduce((total, review) => total + review.rating, 0) / room.reviews.length
+  const user = JSON.parse(localStorage.getItem("user")) || { fullname: "", email: "" };
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -1456,13 +1458,19 @@ function RoomSuperior() {
                     <span>$540</span>
                   </div>
                 </div>
-                
-                <Link to="/bookingform">
-                  <button type="button" className="book-now-btn">
-                    Book Now
-                  </button>
-                </Link>
 
+                <Link
+                  to="/bookingform"
+                  state={{
+                    checkIn,
+                    checkOut,
+                    totalGuests,
+                    fullName: `${user.fullname}`,
+                    email: `${user.email}`
+                  }}
+                >
+                  <button type="button" className="book-now-btn">Book Now</button>
+                </Link>
 
                 <div className="booking-policies">
                   <div className="policy-item">

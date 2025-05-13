@@ -1456,9 +1456,11 @@ function RoomExecutive() {
                   </div>
                 </div>
 
-                <button type="submit" className="book-now-btn">
-                  Book Now
-                </button>
+                 <Link to="/bookingform">
+                  <button type="button" className="book-now-btn">
+                    Book Now
+                  </button>
+                </Link>
 
                 <div className="booking-policies">
                   <div className="policy-item">

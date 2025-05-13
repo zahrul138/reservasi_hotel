@@ -785,39 +785,6 @@ function Homepage() {
     { id: 5, url: Spa, alt: "Spa" },
   ];
 
-  const specialOffers = [
-    {
-      title: "Weekend Getaway",
-      description:
-        "Enjoy a relaxing weekend with breakfast included and late checkout.",
-      image: "/placeholder.svg?height=400&width=600",
-      badge: "20% OFF",
-      regularPrice: "$200",
-      discountPrice: "$160",
-      validUntil: "Valid until Dec 31, 2023",
-    },
-    {
-      title: "Family Package",
-      description:
-        "Special package for families including activities for children and extra amenities.",
-      image: "/placeholder.svg?height=400&width=600",
-      badge: "FAMILY",
-      regularPrice: "$280",
-      discountPrice: "$230",
-      validUntil: "Valid until Dec 31, 2023",
-    },
-    {
-      title: "Extended Stay",
-      description:
-        "Stay longer and save more. Includes daily housekeeping and complimentary laundry.",
-      image: "/placeholder.svg?height=400&width=600",
-      badge: "SAVE 25%",
-      regularPrice: "$150/night",
-      discountPrice: "$112/night",
-      validUntil: "Minimum 5 nights",
-    },
-  ];
-
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -1675,18 +1642,19 @@ function Homepage() {
           </div>
 
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <a
-              href="#"
+            <button
+              onClick={() => openGallery(0)}
               style={{
                 display: "inline-block",
                 padding: "0.75rem 1.5rem",
                 backgroundColor: "transparent",
-                border: "2px solid #87723B",
+                border: "3px solid #87723B",
                 color: "#87723B",
                 borderRadius: "6px",
-                fontWeight: "600",
+                fontWeight: "650",
                 transition: "all 0.2s",
                 textDecoration: "none",
+                cursor: "pointer",
               }}
               onMouseOver={(e) => {
                 e.currentTarget.style.backgroundColor = "#87723B";
@@ -1698,7 +1666,8 @@ function Homepage() {
               }}
             >
               View All Photos
-            </a>
+            </button>
+
           </div>
 
           {galleryOpen && (
