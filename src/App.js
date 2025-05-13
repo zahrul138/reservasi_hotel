@@ -42,7 +42,7 @@ function App() {
         <Route path="/checkoutadmin" element={<CheckOutAdmin />} />
         <Route path="/historyadmin" element={<HistoryAdmin />} />
 
-        {/* Route dengan Navbar */}
+        {/* Route dengan Navbar */}\
         <Route path="/home" element={
           <LayoutWithNavbar>
             <Homepage />
