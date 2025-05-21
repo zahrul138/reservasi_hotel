@@ -891,10 +891,7 @@ function Homepage() {
             Explore Indonesia from our 5-star hotel in Batam
           </h1>
           <p style={styles.heroDescription}>
-            Batam Marriott Hotel Harbour Bay invites you to experience the best
-            of Batam Island, Indonesia, amidst 5-star luxury, superb service,
-            and premium, high-tech amenities. Set along picturesque Harbour
-            Bay,...
+            Batam Royal Gold invites you to experience the best of Batam Island, Indonesia — where 5-star luxury, exceptional service, and premium high-tech amenities come together in the exclusive Royal Gold area.
           </p>
         </div>
       </section>
