@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { 
-    AppBar, 
-    Container, 
-    Toolbar, 
-    Box, 
-    Button, 
-    Slide,  
+import {
+    AppBar,
+    Container,
+    Toolbar,
+    Box,
+    Button,
+    Slide,
     Avatar,
     Menu,
     MenuItem,
     Typography,
     IconButton,
-    Tooltip, 
+    Tooltip,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import { Link, useNavigate } from "react-router-dom";
@@ -40,23 +40,17 @@ const Navbar = () => {
     }, [lastScrollY]);
 
     useEffect(() => {
-        const updateFullname = () => {
-            const fullname = localStorage.getItem("fullname");
-            setUserFullname(fullname || "");
-        };
-
-        window.addEventListener("storage", updateFullname);
-        updateFullname(); // initial check
-
-        return () => window.removeEventListener("storage", updateFullname);
+        const fullname = localStorage.getItem("fullname");
+        setUserFullname(fullname || "");
     }, []);
+
 
     const handleLogout = () => {
         localStorage.clear();
         setUserFullname("");
-        window.dispatchEvent(new Event("storage"));
         navigate("/signin");
     };
+    
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);

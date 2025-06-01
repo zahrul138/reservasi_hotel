@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import DeluxeBG from "../assets/images/DeluxeBG.png";
 import deluxeAlt from "../assets/images/deluxeAlt.png";
 import deluxeToilet from "../assets/images/deluxeToilet.png";
@@ -31,17 +32,6 @@ import {
 
 
 function RoomDeluxe() {
-  const [checkIn, setCheckIn] = useState("")
-  const [checkOut, setCheckOut] = useState("")
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
-  const [currentImage, setCurrentImage] = useState(0)
-  const [galleryOpen, setGalleryOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("description")
-
-  const guestDropdownRef = useRef(null)
-
   // Example room data
   const room = {
     id: "deluxe-room",
@@ -147,6 +137,79 @@ function RoomDeluxe() {
     ],
   }
 
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [adults, setAdults] = useState(1)
+  const [children, setChildren] = useState(0)
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
+  const [currentImage, setCurrentImage] = useState(0)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("description")
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
+  const navigate = useNavigate();
+
+  const guestDropdownRef = useRef(null)
+
+  const totalGuests = adults + children;
+
+  const toggleGuestDropdown = () => setIsGuestDropdownOpen(!isGuestDropdownOpen);
+  const incrementAdults = () => setAdults(adults + 1);
+  const decrementAdults = () => setAdults(adults > 1 ? adults - 1 : 1);
+  const incrementChildren = () => setChildren(children + 1);
+  const decrementChildren = () => setChildren(children > 0 ? children - 1 : 0);
+
+  const calculateTotalPrice = () => {
+    const roomPricePerNight = parseFloat(room.discountedPrice.replace('$', '')) || 0;
+    const nights =
+      checkIn && checkOut
+        ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+        : 0;
+    const subtotal = roomPricePerNight * nights;
+    const taxes = 60;
+    return subtotal + taxes;
+  };
+
+  const handleBookNow = (e) => {
+    e.preventDefault();
+
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      alert("You must be logged in to make a booking.");
+      return;
+    }
+
+    const user = JSON.parse(storedUser);
+
+    const totalPrice = calculateTotalPrice();
+
+    const bookingDetails = {
+      userId: user.id,
+      fullname: user.fullname,
+      email: user.email,
+      checkinDate: checkIn,
+      checkoutDate: checkOut,
+      roomType: room.title,
+      adultGuests: adults,
+      childGuests: children,
+      totalPrice: totalPrice,
+    };
+
+    navigate("/bookingform", { state: { bookingDetails } });
+  };
+
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+
+
+
   // Calculate average rating
   const averageRating = room.reviews.reduce((total, review) => total + review.rating, 0) / room.reviews.length
 
@@ -163,34 +226,6 @@ function RoomDeluxe() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [guestDropdownRef])
-
-  const handleBookNow = (e) => {
-    e.preventDefault()
-    console.log("Booking for:", { checkIn, checkOut, adults, children })
-    // Handle booking logic
-  }
-
-  const incrementAdults = () => {
-    if (adults < 10) setAdults(adults + 1)
-  }
-
-  const decrementAdults = () => {
-    if (adults > 1) setAdults(adults - 1)
-  }
-
-  const incrementChildren = () => {
-    if (children < 6) setChildren(children + 1)
-  }
-
-  const decrementChildren = () => {
-    if (children > 0) setChildren(children - 1)
-  }
-
-  const toggleGuestDropdown = () => {
-    setIsGuestDropdownOpen(!isGuestDropdownOpen)
-  }
-
-  const totalGuests = adults + children
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev === room.images.length - 1 ? 0 : prev + 1))
@@ -217,7 +252,7 @@ function RoomDeluxe() {
 
   return (
     <div className="room-detail-page">
-      <style jsx>{`
+      <style>{`
         /* Room Detail Page Styles */
         .room-detail-page {
           min-height: 100vh;
@@ -1380,13 +1415,37 @@ function RoomDeluxe() {
                     <label>
                       <FaCalendarAlt /> Check-in
                     </label>
-                    <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} required />
+                    <input
+                      type="date"
+                      value={checkIn}
+                      onChange={(e) => {
+                        if (!isLoggedIn) {
+                          alert("Anda harus login terlebih dahulu.");
+                          return;
+                        }
+                        setCheckIn(e.target.value);
+                      }}
+                      required
+                    />
+
                   </div>
                   <div className="form-group">
                     <label>
                       <FaCalendarAlt /> Check-out
                     </label>
-                    <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} required />
+                    <input
+                      type="date"
+                      value={checkOut}
+                      onChange={(e) => {
+                        if (!isLoggedIn) {
+                          alert("Anda harus login terlebih dahulu.");
+                          return;
+                        }
+                        setCheckOut(e.target.value);
+                      }}
+                      required
+                    />
+
                   </div>
                 </div>
 
@@ -1456,11 +1515,7 @@ function RoomDeluxe() {
                   </div>
                 </div>
 
-                <Link to="/bookingform">
-                  <button type="button" className="book-now-btn">
-                    Book Now
-                  </button>
-                </Link>
+                <button type="submit" className="book-now-btn">Book Now</button>
 
                 <div className="booking-policies">
                   <div className="policy-item">
@@ -1477,6 +1532,7 @@ function RoomDeluxe() {
           </div>
         </div>
       </section>
+
 
       {/* Room Details Tabs */}
       <section className="room-details">

@@ -1,7 +1,6 @@
-"use client"
-
-import { useState } from "react"
-import { Check, X } from "lucide-react"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Check } from "lucide-react";
 import SidebarAdmin from "../components/SidebarAdmin";
 
 const style = {
@@ -146,108 +145,70 @@ const style = {
 }
 
 const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    if (isNaN(date)) return "Invalid Date"
+    const date = new Date(dateString);
+    if (isNaN(date)) return "Invalid Date";
 
     const day = date.toLocaleDateString("id-ID", {
         day: "2-digit",
         month: "long",
         year: "numeric",
-    })
+    });
 
     const time = date.toLocaleTimeString("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
-    })
+    });
 
-    return `${day} at ${time}`
-}
-
-// Sample data for bookings with waiting-checkout status
-const initialBookings = [
-    {
-        id: 1,
-        guestName: "John Doe",
-        guestPhone: "081234567890",
-        guestEmail: "john@example.com",
-        bookingDate: "2025-05-11T09:30:00Z",
-        checkInDate: "2025-05-15T14:00:00Z",
-        checkOutDate: "2025-05-18T12:00:00Z",
-        guestAmount: "2 Adult, 1 Child",
-        roomType: "Deluxe Room",
-        roomNumber: "301",
-        stayDuration: "3 Nights",
-        totalPayment: "Rp3.200,000",
-        specialRequest: "Sea view room",
-        status: "waiting-checkout",
-        checkInApprovedDate: "2025-05-15T14:30:00Z",
-    },
-    {
-        id: 2,
-        guestName: "Jane Smith",
-        guestPhone: "082345678901",
-        guestEmail: "jane@example.com",
-        bookingDate: "2025-05-10T10:00:00Z",
-        checkInDate: "2025-05-20T12:00:00Z",
-        checkOutDate: "2025-05-22T10:00:00Z",
-        guestAmount: "3 Adult",
-        roomType: "Suite Room",
-        roomNumber: "405",
-        stayDuration: "2 Nights",
-        totalPayment: "Rp3.000,000",
-        specialRequest: "Late check-in",
-        status: "waiting-checkout",
-        checkInApprovedDate: "2025-05-20T12:45:00Z",
-    },
-    {
-        id: 3,
-        guestName: "Robert Johnson",
-        guestPhone: "083456789012",
-        guestEmail: "robert@example.com",
-        bookingDate: "2025-05-12T11:15:00Z",
-        checkInDate: "2025-05-16T15:00:00Z",
-        checkOutDate: "2025-05-19T11:00:00Z",
-        guestAmount: "1 Adult",
-        roomType: "Standard Room",
-        roomNumber: "205",
-        stayDuration: "3 Nights",
-        totalPayment: "Rp2.400,000",
-        specialRequest: "Quiet room away from elevator",
-        status: "waiting-checkout",
-        checkInApprovedDate: "2025-05-16T15:20:00Z",
-    },
-]
+    return `${day} at ${time}`;
+};
 
 const CheckOutAdmin = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-    const [hoveredItem, setHoveredItem] = useState(null)
-    const [bookings, setBookings] = useState(initialBookings)
-    const [selectedBooking, setSelectedBooking] = useState(null)
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [hoveredItem, setHoveredItem] = useState(null);
+    const [bookings, setBookings] = useState([]);
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
-    const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
+    const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-    const handleApprove = (id) => {
-        // In a real application, this would make an API call to update the booking status
-        setBookings(bookings.map((booking) => (booking.id === id ? { ...booking, status: "checkout-approved" } : booking)))
-
-        // Show success message
-        alert(`Approved check-out for booking ID: ${id}`)
-
-        // Close modal if it's open
-        if (selectedBooking && selectedBooking.id === id) {
-            setSelectedBooking(null)
+    // ✅ Fetch booking data dari API
+    const fetchBookings = async () => {
+        try {
+            const response = await axios.get("https://localhost:7298/api/Booking");
+            setBookings(response.data);
+        } catch (error) {
+            console.error("Failed to fetch bookings:", error);
         }
-    }
+    };
 
-    const handleReject = (id) => {
-        // In a real application, this would make an API call to handle rejection
-        alert(`Rejected check-out for booking ID: ${id}`)
-        setSelectedBooking(null)
-    }
+    useEffect(() => {
+        fetchBookings();
+    }, []);
 
-    // Filter to only show bookings with waiting-checkout status
-    const waitingCheckoutBookings = bookings.filter((booking) => booking.status === "waiting-checkout")
+    // ✅ Approve Check-out
+    const handleApprove = async (id) => {
+        const confirm = window.confirm("Are you sure you want to approve this check-out?");
+        if (!confirm) return;
+
+        try {
+            await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
+                status: "completed",
+            });
+            alert(`Check-out approved for booking ID: ${id}`);
+            setSelectedBooking(null);
+            fetchBookings();
+        } catch (error) {
+            console.error("Error approving checkout:", error);
+            alert("Failed to approve check-out.");
+        }
+    };
+
+
+    // ✅ Filter booking dengan status "waiting-checkout"
+    const waitingCheckoutBookings = bookings.filter(
+        (b) => b.status?.toLowerCase() === "waiting-checkout"
+    );
+
 
     return (
         <div style={style.container}>
@@ -278,12 +239,16 @@ const CheckOutAdmin = () => {
                                 waitingCheckoutBookings.map((booking, index) => (
                                     <tr key={booking.id}>
                                         <td style={style.td}>{index + 1}</td>
-                                        <td style={style.td}>{booking.guestName}</td>
-                                        <td style={style.td}>{`${booking.roomType} (${booking.roomNumber})`}</td>
-                                        <td style={style.td}>{formatDate(booking.checkInDate)}</td>
-                                        <td style={style.td}>{formatDate(booking.checkOutDate)}</td>
+                                        <td style={style.td}>{booking.fullname}</td>
+                                        <td style={style.td}>{booking.roomType}</td>
+                                        <td style={style.td}>{formatDate(booking.checkinDate)}</td>
+                                        <td style={style.td}>{formatDate(booking.checkoutDate)}</td>
                                         <td style={style.td}>
-                                            <span style={{ ...style.badge, backgroundColor: "#ffc107" }}>Waiting for Check-out</span>
+                                            <span
+                                                style={{ ...style.badge, backgroundColor: "#ffc107" }}
+                                            >
+                                                Waiting for Check-out
+                                            </span>
                                         </td>
                                         <td style={style.td}>
                                             <button
@@ -314,6 +279,7 @@ const CheckOutAdmin = () => {
                     </table>
                 </div>
 
+                {/* Modal detail */}
                 {selectedBooking && (
                     <div style={style.modalOverlay}>
                         <div style={style.modal}>
@@ -324,56 +290,59 @@ const CheckOutAdmin = () => {
                             <div style={style.grid}>
                                 <div style={style.field}>
                                     <span style={style.label}>Guest Name</span>
-                                    <span style={style.value}>{selectedBooking.guestName}</span>
+                                    <span style={style.value}>{selectedBooking.fullname}</span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Phone</span>
-                                    <span style={style.value}>{selectedBooking.guestPhone}</span>
+                                    <span style={style.value}>{selectedBooking.phoneNumber}</span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Email</span>
-                                    <span style={style.value}>{selectedBooking.guestEmail}</span>
+                                    <span style={style.value}>{selectedBooking.email}</span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Room</span>
                                     <span style={style.value}>{selectedBooking.roomType}</span>
                                 </div>
-
                                 <div style={style.field}>
                                     <span style={style.label}>Check-in Date</span>
-                                    <span style={style.value}>{formatDate(selectedBooking.checkInDate)}</span>
+                                    <span style={style.value}>{formatDate(selectedBooking.checkinDate)}</span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Check-out Date</span>
-                                    <span style={style.value}>{formatDate(selectedBooking.checkOutDate)}</span>
+                                    <span style={style.value}>{formatDate(selectedBooking.checkoutDate)}</span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Guest</span>
-                                    <span style={style.value}>{selectedBooking.guestAmount}</span>
-                                </div>
-                                <div style={style.field}>
-                                    <span style={style.label}>Stay Duration</span>
-                                    <span style={style.value}>{selectedBooking.stayDuration}</span>
+                                    <span style={style.value}>
+                                        {selectedBooking.adultGuests} Adult, {selectedBooking.childGuests} Child
+                                    </span>
                                 </div>
                                 <div style={style.field}>
                                     <span style={style.label}>Total Payment</span>
-                                    <span style={style.value}>{selectedBooking.totalPayment}</span>
-                                </div>
-                                <div style={style.field}>
-                                    <span style={style.label}>Check-in Approved</span>
-                                    <span style={style.value}>{formatDate(selectedBooking.checkInApprovedDate)}</span>
+                                    <span style={style.value}>${selectedBooking.totalPrice}</span>
                                 </div>
                                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                                     <span style={style.label}>Special Request</span>
-                                    <span style={style.value}>{selectedBooking.specialRequest}</span>
+                                    <span style={style.value}>
+                                        {selectedBooking.specialRequest || "-"}
+                                    </span>
                                 </div>
+                            </div>
+                            <div style={style.modalActions}>
+                                <button
+                                    style={{ ...style.actionBtn, ...style.approveBtn }}
+                                    onClick={() => handleApprove(selectedBooking.id)}
+                                >
+                                    <Check size={16} color="#fff" /> &nbsp; Approve
+                                </button>
                             </div>
                         </div>
                     </div>
                 )}
             </main>
         </div>
-    )
-}
+    );
+};
 
 export default CheckOutAdmin

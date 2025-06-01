@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, X } from "lucide-react";
+import axios from "axios";
+
 import SidebarAdmin from "../components/SidebarAdmin";
 
 const style = {
@@ -135,71 +137,88 @@ const style = {
   },
 };
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  if (isNaN(date)) return "Invalid Date";
-
-  const day = date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-
-  const time = date.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  return `${day} at ${time}`;
-};
-
-const initialBookings = [
-  {
-    id: 1,
-    guestName: "John Doe",
-    guestPhone: "081234567890",
-    guestEmail: "john@example.com",
-    bookingDate: "2025-05-11T09:30:00Z",
-    checkInDate: "2025-05-15T14:00:00Z",
-    guestAmount: "2 Adult, 1 Child",
-    roomType: "Deluxe Room",
-    stayDuration: "3 Nights",
-    totalPayment: "Rp3.200,000",
-    specialRequest: "Sea view room",
-  },
-  {
-    id: 2,
-    guestName: "Jane Smith",
-    guestPhone: "082345678901",
-    guestEmail: "jane@example.com",
-    bookingDate: "2025-05-10T10:00:00Z",
-    checkInDate: "2025-05-20T12:00:00Z",
-    guestAmount: "3 Adult",
-    roomType: "Suite Room",
-    stayDuration: "2 Nights",
-    totalPayment: "Rp3.000,000",
-    specialRequest: "Late check-in",
-  },
-];
-
 const CheckInAdmin = () => {
+  const [bookings, setBookings] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState(null);
-  const [bookings] = useState(initialBookings);
-  const [selectedBooking, setSelectedBooking] = useState(null);
 
-  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  const handleApprove = (id) => {
-    alert(`Approved booking ID: ${id}`);
-    setSelectedBooking(null);
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const res = await axios.get("https://localhost:7298/api/Booking");
+
+        // ✅ Filter hanya booking dengan status 'pending'
+        const filteredBookings = res.data.filter((b) => b.status?.toLowerCase() === "pending");
+        setBookings(filteredBookings);
+      } catch (err) {
+        console.error("Gagal memuat booking:", err);
+      }
+    };
+
+    fetchBookings();
+  }, []);
+
+
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    if (isNaN(date)) return "Invalid Date";
+
+    const day = date.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+
+    const time = date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    return `${day} at ${time}`;
   };
 
-  const handleReject = (id) => {
-    alert(`Rejected booking ID: ${id}`);
-    setSelectedBooking(null);
+  const handleApprove = async (id) => {
+    try {
+      await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
+        status: "waiting-checkout",
+        checkInApprovedDate: new Date().toISOString(),
+      });
+
+      alert(`Booking approved.`);
+
+      // Hilangkan booking dari daftar tampilan (tanpa fetch ulang)
+      setBookings((prev) => prev.filter((b) => b.id !== id));
+      setSelectedBooking(null);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyetujui booking.");
+    }
   };
+
+
+
+  const handleReject = async (id) => {
+    try {
+      await axios.delete(`https://localhost:7298/api/Booking/${id}`);
+      alert(`Booking rejected and removed.`);
+      setSelectedBooking(null);
+
+      // ✅ Fetch ulang booking dan filter hanya yang status 'pending'
+      const res = await axios.get("https://localhost:7298/api/Booking");
+      const filtered = res.data.filter(b => b.status === "pending");
+      setBookings(filtered);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reject booking.");
+    }
+  };
+
+
 
   return (
     <div style={style.container}>
@@ -225,25 +244,34 @@ const CheckInAdmin = () => {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((booking, index) => (
-                <tr key={booking.id}>
-                  <td style={style.td}>{index + 1}</td>
-                  <td style={style.td}>{booking.guestName}</td>
-                  <td style={style.td}>{formatDate(booking.bookingDate)}</td>
-                  <td style={style.td}>{booking.roomType}</td>
-                  <td style={style.td}>{formatDate(booking.checkInDate)}</td>
-                  <td style={style.td}>{booking.guestAmount}</td>
-                  
-                  <td style={style.td}>
-                    <button
-                      style={{ ...style.actionBtn, ...style.detailBtn }}
-                      onClick={() => setSelectedBooking(booking)}
-                    >
-                      More
-                    </button>
+              {bookings.length > 0 ? (
+                bookings.map((booking, index) => (
+                  <tr key={booking.id}>
+                    <td style={style.td}>{index + 1}</td>
+                    <td style={style.td}>{booking.fullname}</td>
+                    <td style={style.td}>{formatDate(booking.createdAt)}</td>
+                    <td style={style.td}>{booking.roomType}</td>
+                    <td style={style.td}>{formatDate(booking.checkinDate)}</td>
+                    <td style={style.td}>
+                      {booking.adultGuests} Adults, {booking.childGuests} Children
+                    </td>
+                    <td style={style.td}>
+                      <button
+                        style={{ ...style.actionBtn, ...style.detailBtn }}
+                        onClick={() => setSelectedBooking(booking)}
+                      >
+                        More
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} style={{ padding: "30px", textAlign: "center" }}>
+                    No guests currently checked in
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -251,53 +279,52 @@ const CheckInAdmin = () => {
         {selectedBooking && (
           <div style={style.modalOverlay}>
             <div style={style.modal}>
-              <button onClick={() => setSelectedBooking(null)} style={style.closeBtn}>✖</button>
+              <button onClick={() => setSelectedBooking(null)} style={style.closeBtn}>
+                ✖
+              </button>
               <div style={style.heading}>Booking Details</div>
               <div style={style.grid}>
                 <div style={style.field}>
-                  <span style={style.label}>Guest Name</span>
-                  <span style={style.value}>{selectedBooking.guestName}</span>
+                  <span style={style.label}>Full Name</span>
+                  <span style={style.value}>{selectedBooking.fullname}</span>
                 </div>
-                {/* <div style={style.field}>
+                <div style={style.field}>
                   <span style={style.label}>Phone</span>
-                  <span style={style.value}>{selectedBooking.guestPhone}</span>
-                </div> */}
+                  <span style={style.value}>{selectedBooking.phoneNumber}</span>
+                </div>
                 <div style={style.field}>
                   <span style={style.label}>Email</span>
-                  <span style={style.value}>{selectedBooking.guestEmail}</span>
+                  <span style={style.value}>{selectedBooking.email}</span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Booking Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.bookingDate)}</span>
+                  <span style={style.value}>{formatDate(selectedBooking.createdAt)}</span>
                 </div>
-                 <div style={style.field}>
+                <div style={style.field}>
                   <span style={style.label}>Guest</span>
-                  <span style={style.value}>{selectedBooking.guestAmount}</span>
+                  <span style={style.value}>
+                    {selectedBooking.adultGuests} Adults, {selectedBooking.childGuests} Children
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-in Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkInDate)}</span>
+                  <span style={style.value}>{formatDate(selectedBooking.checkinDate)}</span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-out Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkInDate)}</span>
+                  <span style={style.value}>{formatDate(selectedBooking.checkoutDate)}</span>
                 </div>
-               
                 <div style={style.field}>
                   <span style={style.label}>Room Type</span>
                   <span style={style.value}>{selectedBooking.roomType}</span>
                 </div>
                 <div style={style.field}>
-                  <span style={style.label}>Stay Duration</span>
-                  <span style={style.value}>{selectedBooking.stayDuration}</span>
-                </div>
-                <div style={style.field}>
                   <span style={style.label}>Total Payment</span>
-                  <span style={style.value}>{selectedBooking.totalPayment}</span>
+                  <span style={style.value}>${selectedBooking.totalPrice}</span>
                 </div>
                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                   <span style={style.label}>Special Request</span>
-                  <span style={style.value}>{selectedBooking.specialRequest}</span>
+                  <span style={style.value}>{selectedBooking.specialRequest || "-"}</span>
                 </div>
               </div>
               <div style={style.modalActions}>

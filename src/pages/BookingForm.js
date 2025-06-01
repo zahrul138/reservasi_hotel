@@ -1,79 +1,140 @@
-import { useState } from "react"
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-
+import React, { useEffect } from "react";
 
 const BookingForm = () => {
   // Form steps: 1 = Guest Info, 2 = Payment, 3 = Confirmation
-  const [formStep, setFormStep] = useState(1)
-  const [paymentMethod, setPaymentMethod] = useState("credit-card")
-  const [isLoading, setIsLoading] = useState(false)
+  const [formStep, setFormStep] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState("credit-card");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form fields
-  const [phone, setPhone] = useState("")
-  const [country, setCountry] = useState("indonesia")
-  const [address, setAddress] = useState("")
-  const [specialRequests, setSpecialRequests] = useState("")
-  const [cardName, setCardName] = useState("")
-  const [cardNumber, setCardNumber] = useState("")
-  const [expiryMonth, setExpiryMonth] = useState("05")
-  const [expiryYear, setExpiryYear] = useState("2025")
-  const [cvv, setCvv] = useState("")
-  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("indonesia");
+  const [address, setAddress] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("05");
+  const [expiryYear, setExpiryYear] = useState("2025");
+  const [cvv, setCvv] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
 
   const location = useLocation();
-  const bookingState = location.state || {};
-  const [checkIn, setCheckIn] = useState(bookingState.check_in_date || "");
-  const [checkOut, setCheckOut] = useState(bookingState.check_out_date || "");
-  const [totalGuests, setTotalGuests] = useState(bookingState.guest_count || 1);
-  const [fullName, setFullName] = useState(bookingState.fullname || "");
-  const [email, setEmail] = useState(bookingState.email || "");
+  // const bookingState = location.state || {};
+  const { bookingDetails = {} } = location.state || {};
+  // const [checkIn, setCheckIn] = useState(bookingState.check_in_date || "");
+  // const [checkOut, setCheckOut] = useState(bookingState.check_out_date || "");
+  // const [totalGuests, setTotalGuests] = useState(bookingState.guest_count || 1);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isAutoFilledName, setIsAutoFilledName] = useState(false);
+  const [isAutoFilledEmail, setIsAutoFilledEmail] = useState(false);
+
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullname") || "";
+    const storedEmail = localStorage.getItem("email") || "";
+    setFullName(storedName);
+    setEmail(storedEmail);
+  }, []);
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullname");
+    const storedEmail = localStorage.getItem("email");
+
+    if (storedName) {
+      setFullName(storedName);
+      setIsAutoFilledName(true);
+    }
+
+    if (storedEmail) {
+      setEmail(storedEmail);
+      setIsAutoFilledEmail(true);
+    }
+  }, []);
 
 
   // Booking details (would come from previous page in a real app)
-  const bookingDetails = {
-    bookingId: "GS-" + Math.floor(100000 + Math.random() * 900000),
-    roomType: "Superior Room",
-    checkIn: "2025-05-15",
-    checkOut: "2025-05-18",
-    guests: 2,
-    nights: 3,
-    pricePerNight: 160,
-    taxes: 60,
-    total: 540,
-  }
+  // const bookingDetails = {
+  //   bookingId: "GS-" + Math.floor(100000 + Math.random() * 900000),
+  //   roomType: "Superior Room",
+  //   checkIn: "2025-05-15",
+  //   checkOut: "2025-05-18",
+  //   guests: 2,
+  //   nights: 3,
+  //   pricePerNight: 160,
+  //   taxes: 60,
+  //   total: 540,
+  // };
 
   // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-    // In a real app, you would send this data to your backend
-    setTimeout(() => {
-      setIsLoading(false)
-      setFormStep(3) // Move to confirmation step
-    }, 1000)
-  }
+    try {
+      const response = await fetch("https://localhost:7298/api/Booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: bookingDetails.userId,
+          fullname: fullName,
+          email: email,
+          checkinDate: bookingDetails.checkinDate,
+          checkoutDate: bookingDetails.checkoutDate,
+          roomType: bookingDetails.roomType,
+          adultGuests: bookingDetails.adultGuests,
+          childGuests: bookingDetails.childGuests,
+          specialRequest: specialRequests,
+          totalPrice: bookingDetails.totalPrice,
+          phoneNumber: phone,
+          region: country,
+          address: address,
+          paymentMethod: paymentMethod,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Validation error:", errorData);
+        alert("Gagal menyimpan booking: " + JSON.stringify(errorData));
+        return;
+      }
+
+      setFormStep(3); // success
+    } catch (error) {
+      console.error("Booking error:", error);
+      alert("Terjadi kesalahan saat memproses booking.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   // Format card number to show only last 4 digits
   const formatCardNumber = (number) => {
-    if (!number) return ""
-    return "•••• •••• •••• " + number.slice(-4)
-  }
+    if (!number) return "";
+    return "•••• •••• •••• " + number.slice(-4);
+  };
 
   // Get payment method display name
   const getPaymentMethodName = (method) => {
     switch (method) {
       case "credit-card":
-        return "Credit/Debit Card"
+        return "Credit/Debit Card";
       case "paypal":
-        return "PayPal"
+        return "PayPal";
       case "bank-transfer":
-        return "Bank Transfer"
+        return "Bank Transfer";
       default:
-        return "Credit/Debit Card"
+        return "Credit/Debit Card";
     }
-  }
+  };
 
   // Format country name
   const formatCountryName = (countryCode) => {
@@ -84,33 +145,46 @@ const BookingForm = () => {
       thailand: "Thailand",
       philippines: "Philippines",
       other: "Other",
-    }
-    return countries[countryCode] || countryCode
-  }
+    };
+    return countries[countryCode] || countryCode;
+  };
 
   // Steps in the booking process
   const steps = [
-    { id: 1, name: "Guest Information", status: formStep >= 1 ? (formStep > 1 ? "complete" : "current") : "upcoming" },
-    { id: 2, name: "Payment", status: formStep >= 2 ? (formStep > 2 ? "complete" : "current") : "upcoming" },
-    { id: 3, name: "Confirmation", status: formStep >= 3 ? "current" : "upcoming" },
-  ]
+    {
+      id: 1,
+      name: "Guest Information",
+      status:
+        formStep >= 1 ? (formStep > 1 ? "complete" : "current") : "upcoming",
+    },
+    {
+      id: 2,
+      name: "Payment",
+      status:
+        formStep >= 2 ? (formStep > 2 ? "complete" : "current") : "upcoming",
+    },
+    {
+      id: 3,
+      name: "Confirmation",
+      status: formStep >= 3 ? "current" : "upcoming",
+    },
+  ];
 
   // Reset form and go back to first step
-  const resetForm = () => {
-    setFormStep(1)
-    setEmail("")
-    setPhone("")
-    setCountry("indonesia")
-    setAddress("")
-    setSpecialRequests("")
-    setPaymentMethod("credit-card")
-    setCardName("")
-    setCardNumber("")
-    setExpiryMonth("05")
-    setExpiryYear("2025")
-    setCvv("")
-    setTermsAccepted(false)
-  }
+  // const resetForm = () => {
+  //   setFormStep(1);
+  //   setPhone("");
+  //   setCountry("indonesia");
+  //   setAddress("");
+  //   setSpecialRequests("");
+  //   setPaymentMethod("credit-card");
+  //   setCardName("");
+  //   setCardNumber("");
+  //   setExpiryMonth("05");
+  //   setExpiryYear("2025");
+  //   setCvv("");
+  //   setTermsAccepted(false);
+  // };
 
   return (
     <>
@@ -126,7 +200,8 @@ const BookingForm = () => {
           --card-bg: #fff;
           --success-color: #2ecc71;
           --error-color: #e74c3c;
-          --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            Helvetica, Arial, sans-serif;
         }
 
         * {
@@ -168,6 +243,32 @@ const BookingForm = () => {
         .subtitle {
           color: var(--text-muted);
         }
+
+        .centered-grid {
+          display: flex;
+          justify-content: center;
+        }
+
+        .centered-grid .confirmation-wrapper {
+          width: 100%;
+          max-width: 800px;
+        }
+
+        .content-grid.centered {
+          display: flex;
+          justify-content: center;
+        }
+
+        .content-grid.centered .main-content {
+          width: 100%;
+          max-width: 800px;
+        }
+
+        .centered-content {
+          width: 100%;
+          max-width: 800px;
+        }
+
 
         /* Progress Bar */
         .progress-bar {
@@ -529,6 +630,17 @@ const BookingForm = () => {
         }
 
         /* Confirmation Details */
+        .confirmation-wrapper {
+          display: flex;
+          justify-content: center;
+          width: 100%;
+        }
+
+        .confirmation-wrapper .card {
+          max-width: 800px;
+          width: 100%;
+        }
+
         .confirmation-details {
           display: flex;
           flex-direction: column;
@@ -761,12 +873,18 @@ const BookingForm = () => {
           background-color: var(--border-color);
           margin: 1rem 0;
         }
+          .autofilled-input {
+          background-color: #e0f0ff; /* biru muda */
+          border: 1px solid #007bff;
+        }
       `}</style>
 
       <div className="booking-process">
         <div className="container">
           <div className="header">
-            <h1 className="title">{formStep < 3 ? "Complete Your Booking" : "Booking Confirmed!"}</h1>
+            <h1 className="title">
+              {formStep < 3 ? "Complete Your Booking" : "Booking Confirmed!"}
+            </h1>
             <p className="subtitle">
               {formStep < 3
                 ? "Please fill in your details to confirm your reservation"
@@ -788,7 +906,10 @@ const BookingForm = () => {
                       )}
                     </span>
                     {stepIdx !== steps.length - 1 && (
-                      <span className={`step-line ${step.status === "complete" ? "complete" : ""}`}></span>
+                      <span
+                        className={`step-line ${step.status === "complete" ? "complete" : ""
+                          }`}
+                      ></span>
                     )}
                     <span className="step-name">{step.name}</span>
                   </div>
@@ -798,23 +919,25 @@ const BookingForm = () => {
           </div>
 
           {/* Confirmation Success Icon (only on confirmation step) */}
-          {formStep === 3 && (
+          {/* {formStep === 3 && (
             <div className="success-icon">
               <div className="check-circle">
                 <span className="check">✓</span>
               </div>
             </div>
-          )}
+          )} */}
 
-          <div className="content-grid">
+          <div className={`content-grid ${formStep === 3 ? "centered" : ""}`}>
             {/* Main Form Area */}
-            <div className="main-content">
+            <div className="main-content centered-content">
               {/* Guest Information Form */}
               {formStep === 1 && (
                 <div className="card">
                   <div className="card-header">
                     <h2 className="card-title">Guest Information</h2>
-                    <p className="card-subtitle">Please provide your personal details</p>
+                    <p className="card-subtitle">
+                      Please provide your personal details
+                    </p>
                   </div>
                   <form>
                     <div className="form-row">
@@ -825,9 +948,14 @@ const BookingForm = () => {
                             id="fullName"
                             type="text"
                             value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
+                            readOnly
+                            onChange={(e) => {
+                              setFullName(e.target.value);
+                              setIsAutoFilledName(false);
+                            }}
                             placeholder="Enter your full name"
                             required
+                            className={isAutoFilledName ? "autofilled-input" : ""}
                           />
                           <span className="input-icon">👤</span>
                         </div>
@@ -841,13 +969,16 @@ const BookingForm = () => {
                           id="email"
                           type="email"
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          readOnly
+
                           placeholder="Enter your email address"
                           required
+                          className={isAutoFilledEmail ? "autofilled-input" : ""}
                         />
                         <span className="input-icon">📧</span>
                       </div>
                     </div>
+
 
                     <div className="form-group">
                       <label htmlFor="phone">Phone Number</label>
@@ -866,7 +997,11 @@ const BookingForm = () => {
 
                     <div className="form-group">
                       <label htmlFor="country">Country/Region</label>
-                      <select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
+                      <select
+                        id="country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                      >
                         <option value="indonesia">Indonesia</option>
                         <option value="singapore">Singapore</option>
                         <option value="malaysia">Malaysia</option>
@@ -888,7 +1023,9 @@ const BookingForm = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="specialRequests">Special Requests (Optional)</label>
+                      <label htmlFor="specialRequests">
+                        Special Requests (Optional)
+                      </label>
                       <textarea
                         id="specialRequests"
                         value={specialRequests}
@@ -898,8 +1035,12 @@ const BookingForm = () => {
                       ></textarea>
                     </div>
 
-                    <div className="form-actions">
-                      <button type="button" onClick={() => setFormStep(2)} className="btn btn-primary">
+                    <div className="form-actions" style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button
+                        type="button"
+                        onClick={() => setFormStep(2)}
+                        className="btn btn-primary"
+                      >
                         Continue to Payment
                       </button>
                     </div>
@@ -912,7 +1053,9 @@ const BookingForm = () => {
                 <div className="card">
                   <div className="card-header">
                     <h2 className="card-title">Payment Information</h2>
-                    <p className="card-subtitle">Please select your preferred payment method</p>
+                    <p className="card-subtitle">
+                      Please select your preferred payment method
+                    </p>
                   </div>
                   <form onSubmit={handleSubmit}>
                     <div className="payment-methods">
@@ -1000,26 +1143,32 @@ const BookingForm = () => {
                               onChange={(e) => setExpiryMonth(e.target.value)}
                             >
                               {Array.from({ length: 12 }, (_, i) => {
-                                const month = (i + 1).toString().padStart(2, "0")
+                                const month = (i + 1)
+                                  .toString()
+                                  .padStart(2, "0");
                                 return (
                                   <option key={month} value={month}>
                                     {month}
                                   </option>
-                                )
+                                );
                               })}
                             </select>
                           </div>
 
                           <div className="form-group">
                             <label htmlFor="expiryYear">Expiry Year</label>
-                            <select id="expiryYear" value={expiryYear} onChange={(e) => setExpiryYear(e.target.value)}>
+                            <select
+                              id="expiryYear"
+                              value={expiryYear}
+                              onChange={(e) => setExpiryYear(e.target.value)}
+                            >
                               {Array.from({ length: 10 }, (_, i) => {
-                                const year = (2025 + i).toString()
+                                const year = (2025 + i).toString();
                                 return (
                                   <option key={year} value={year}>
                                     {year}
                                   </option>
-                                )
+                                );
                               })}
                             </select>
                           </div>
@@ -1046,7 +1195,8 @@ const BookingForm = () => {
                     {paymentMethod === "paypal" && (
                       <div className="payment-details">
                         <p className="payment-info">
-                          You will be redirected to PayPal to complete your payment securely.
+                          You will be redirected to PayPal to complete your
+                          payment securely.
                         </p>
                         <div className="paypal-logo">
                           <div className="paypal-placeholder">PayPal Logo</div>
@@ -1056,27 +1206,314 @@ const BookingForm = () => {
 
                     {paymentMethod === "bank-transfer" && (
                       <div className="payment-details">
-                        <p className="payment-info">Please transfer the total amount to the following bank account:</p>
+                        <p className="payment-info">
+                          Please transfer the total amount to the following bank
+                          account:
+                        </p>
                         <div className="bank-details">
                           <p>
-                            <span className="detail-label">Bank Name:</span> Golden Bank
+                            <span className="detail-label">Bank Name:</span>{" "}
+                            Golden Bank
                           </p>
                           <p>
-                            <span className="detail-label">Account Name:</span> GoldenStay Hotels
+                            <span className="detail-label">Account Name:</span>{" "}
+                            GoldenStay Hotels
                           </p>
                           <p>
-                            <span className="detail-label">Account Number:</span> 1234567890
+                            <span className="detail-label">
+                              Account Number:
+                            </span>{" "}
+                            1234567890
                           </p>
                           <p>
-                            <span className="detail-label">Swift Code:</span> GOLDID12
+                            <span className="detail-label">Swift Code:</span>{" "}
+                            GOLDID12
                           </p>
                         </div>
                         <p className="payment-info">
-                          Please include your booking reference in the transfer description. Your booking will be
-                          confirmed once payment is received.
+                          Please include your booking reference in the transfer
+                          description. Your booking will be confirmed once
+                          payment is received.
                         </p>
                       </div>
                     )}
+
+
+
+                    <div className="form-actions">
+                      <button
+                        type="button"
+                        onClick={() => setFormStep(1)}
+                        className="btn btn-outline"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormStep(3)}
+                        className="btn btn-primary"
+                      >
+                        Continue to Confirmation
+                      </button>
+
+
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Confirmation Details */}
+              {formStep === 3 && (
+                <div className="confirmation-wrapper">
+                  <div className="card">
+                    <div className="card-header">
+                      <h2 className="card-title">Booking Details</h2>
+                      <p className="card-subtitle">
+                        Booking ID: {bookingDetails.bookingId}
+                      </p>
+                    </div>
+
+                    <div className="confirmation-details">
+                      {/* Room Details */}
+                      <div className="detail-section">
+                        <div className="detail-row">
+                          <span className="detail-label">Room Type:</span>
+                          <span>{bookingDetails.roomType}</span>
+                        </div>
+                        <hr />
+                        <div className="detail-row">
+                          <div className="detail-with-icon">
+                            <span className="detail-icon">📅</span>
+                            <span>Check-in:</span>
+                          </div>
+                          <span>
+                            {bookingDetails.checkinDate
+                              ? new Date(bookingDetails.checkinDate).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="detail-row">
+                          <div className="detail-with-icon">
+                            <span className="detail-icon">📅</span>
+                            <span>Check-out:</span>
+                          </div>
+                          <span>
+                            {bookingDetails.checkoutDate
+                              ? new Date(bookingDetails.checkoutDate).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                              : "-"}
+                          </span>
+                        </div>
+                        <div className="detail-row">
+                          <div className="detail-with-icon">
+                            <span className="detail-icon">👤</span>
+                            <span>Guests:</span>
+                          </div>
+                          <span>
+                            {bookingDetails.adultGuests || 0} Adults,{" "}
+                            {bookingDetails.childGuests || 0} Children
+                          </span>
+                        </div>
+                        <hr />
+                      </div>
+
+                      {/* Guest Information */}
+                      <div className="detail-section">
+                        <h3 className="section-title">Guest Information</h3>
+                        <div className="detail-grid">
+                          <div className="detail-item">
+                            <div className="detail-with-icon">
+                              <span className="detail-icon">👤</span>
+                              <span className="detail-label">Full Name:</span>
+                            </div>
+                            <p className="detail-value">{fullName}</p>
+                          </div>
+                          <div className="detail-item">
+                            <div className="detail-with-icon">
+                              <span className="detail-icon">📧</span>
+                              <span className="detail-label">Email:</span>
+                            </div>
+                            <p className="detail-value">{email}</p>
+                          </div>
+                          <div className="detail-item">
+                            <div className="detail-with-icon">
+                              <span className="detail-icon">📱</span>
+                              <span className="detail-label">Phone:</span>
+                            </div>
+                            <p className="detail-value">{phone}</p>
+                          </div>
+                          <div className="detail-item">
+                            <div className="detail-with-icon">
+                              <span className="detail-icon">🌐</span>
+                              <span className="detail-label">Country:</span>
+                            </div>
+                            <p className="detail-value">
+                              {formatCountryName(country)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="detail-item">
+                          <div className="detail-with-icon">
+                            <span className="detail-icon">📍</span>
+                            <span className="detail-label">Address:</span>
+                          </div>
+                          <p className="detail-value">
+                            {address || "Not provided"}
+                          </p>
+                        </div>
+
+                        {specialRequests && (
+                          <div className="detail-item">
+                            <div className="detail-with-icon">
+                              <span className="detail-icon">✓</span>
+                              <span className="detail-label">
+                                Special Requests:
+                              </span>
+                            </div>
+                            <p className="detail-value">{specialRequests}</p>
+                          </div>
+                        )}
+
+                        <hr />
+                      </div>
+
+                      {/* Payment Information */}
+                      <div className="detail-section">
+                        <h3 className="section-title">Payment Information</h3>
+                        <div className="detail-with-icon payment-method-display">
+                          <span className="detail-icon">
+                            {paymentMethod === "credit-card"
+                              ? "💳"
+                              : paymentMethod === "paypal"
+                                ? "🌐"
+                                : "💳"}
+                          </span>
+                          <span className="detail-label">
+                            Payment Method: {getPaymentMethodName(paymentMethod)}
+                          </span>
+                        </div>
+
+                        {paymentMethod === "credit-card" && (
+                          <div className="payment-details-display">
+                            <div className="detail-row">
+                              <span>Card Holder:</span>
+                              <span>{cardName}</span>
+                            </div>
+                            <div className="detail-row">
+                              <span>Card Number:</span>
+                              <span>{formatCardNumber(cardNumber)}</span>
+                            </div>
+                            <div className="detail-row">
+                              <span>Expiry Date:</span>
+                              <span>
+                                {expiryMonth}/{expiryYear}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentMethod === "bank-transfer" && (
+                          <div className="payment-details-display">
+                            <p>
+                              <span className="detail-label">Bank Name:</span>{" "}
+                              Golden Bank
+                            </p>
+                            <p>
+                              <span className="detail-label">Account Name:</span>{" "}
+                              GoldenStay Hotels
+                            </p>
+                            <p>
+                              <span className="detail-label">
+                                Account Number:
+                              </span>{" "}
+                              1234567890
+                            </p>
+                            <p>
+                              <span className="detail-label">Swift Code:</span>{" "}
+                              GOLDID12
+                            </p>
+                            <p className="payment-note">
+                              Please include your booking reference in the
+                              transfer description.
+                            </p>
+                          </div>
+                        )}
+
+                        {paymentMethod === "paypal" && (
+                          <div className="payment-details-display">
+                            <p className="payment-note">
+                              Payment will be processed through PayPal.
+                            </p>
+                          </div>
+                        )}
+
+                        <hr />
+                      </div>
+
+                      {/* Price Summary */}
+                      <div className="price-summary">
+                        <div className="detail-row">
+                          <span>Room Rate:</span>
+                          <span>
+                            ${bookingDetails.pricePerNight} ×{" "}
+                            {bookingDetails.nights} nights
+                          </span>
+                        </div>
+                        <div className="detail-row">
+                          <span>Taxes & Fees:</span>
+                          <span>${bookingDetails.taxes}</span>
+                        </div>
+                        <hr />
+                        <div className="detail-row total">
+                          <span>Total Paid:</span>
+                          <span className="total-price">
+                            ${bookingDetails.total}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="important-info">
+                        <h3 className="section-title">Important Information</h3>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>
+                            Check-in time starts at 3:00 PM. If you plan to arrive
+                            after 6:00 PM, please notify the hotel.
+                          </span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>
+                            Check-out time is 12:00 PM. Late check-out may result
+                            in an additional charge.
+                          </span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>
+                            Please present a valid ID and the credit card used for
+                            booking upon check-in.
+                          </span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>
+                            Free cancellation is available up to 48 hours before
+                            check-in.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="terms-checkbox">
                       <input
@@ -1094,41 +1531,38 @@ const BookingForm = () => {
                         and{" "}
                         <a href="#" className="link">
                           privacy policy
-                        </a>
-                        .
+                        </a>  
                       </label>
                     </div>
 
-                    <div className="form-actions">
-                      <button type="button" onClick={() => setFormStep(1)} className="btn btn-outline">
-                        Back
-                      </button>
+                    <div className="confirmation-actions">
                       <button
-                        type="submit"
-                        disabled={isLoading || !termsAccepted}
-                        className={`btn btn-primary ${isLoading || !termsAccepted ? "disabled" : ""}`}
+                        onClick={handleSubmit}
+                        className={`btn btn-primary btn-block ${!termsAccepted ? "disabled" : ""}`}
+                        disabled={isLoading}
                       >
                         {isLoading ? "Processing..." : "Confirm Booking"}
                       </button>
+
+                      <p className="confirmation-note">
+                        {/* A copy of your booking confirmation has been sent to your email. */}
+                      </p>
                     </div>
-                  </form>
+                  </div>
                 </div>
               )}
+            </div>
 
-              {/* Confirmation Details */}
-              {formStep === 3 && (
+            {/* Booking Summary Sidebar */}
+            {formStep !== 3 && (
+              <div className="sidebar">
                 <div className="card">
-                  <div className="card-header">
-                    <h2 className="card-title">Booking Details</h2>
-                    <p className="card-subtitle">Booking ID: {bookingDetails.bookingId}</p>
-                  </div>
-
-                  <div className="confirmation-details">
-                    {/* Room Details */}
+                  <h2 className="card-title">Booking Summary</h2>
+                  <div className="summary-content">
                     <div className="detail-section">
                       <div className="detail-row">
                         <span className="detail-label">Room Type:</span>
-                        <span>{bookingDetails.roomType}</span>
+                        <span>{bookingDetails.roomType || "-"}</span>
                       </div>
                       <hr />
                       <div className="detail-row">
@@ -1137,12 +1571,14 @@ const BookingForm = () => {
                           <span>Check-in:</span>
                         </div>
                         <span>
-                          {new Date(bookingDetails.checkIn).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {bookingDetails.checkinDate
+                            ? new Date(bookingDetails.checkinDate).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                            : "-"}
                         </span>
                       </div>
                       <div className="detail-row">
@@ -1151,12 +1587,14 @@ const BookingForm = () => {
                           <span>Check-out:</span>
                         </div>
                         <span>
-                          {new Date(bookingDetails.checkOut).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {bookingDetails.checkoutDate
+                            ? new Date(bookingDetails.checkoutDate).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                            : "-"}
                         </span>
                       </div>
                       <div className="detail-row">
@@ -1164,292 +1602,74 @@ const BookingForm = () => {
                           <span className="detail-icon">👤</span>
                           <span>Guests:</span>
                         </div>
-                        <span>{bookingDetails.guests} Adults</span>
-                      </div>
-                      <hr />
-                    </div>
-
-                    {/* Guest Information */}
-                    <div className="detail-section">
-                      <h3 className="section-title">Guest Information</h3>
-                      <div className="detail-grid">
-                        <div className="detail-item">
-                          <div className="detail-with-icon">
-                            <span className="detail-icon">👤</span>
-                            <span className="detail-label">Full Name:</span>
-                          </div>
-                          <p className="detail-value">{fullName}</p>
-                        </div>
-                        <div className="detail-item">
-                          <div className="detail-with-icon">
-                            <span className="detail-icon">📧</span>
-                            <span className="detail-label">Email:</span>
-                          </div>
-                          <p className="detail-value">{email}</p>
-                        </div>
-                        <div className="detail-item">
-                          <div className="detail-with-icon">
-                            <span className="detail-icon">📱</span>
-                            <span className="detail-label">Phone:</span>
-                          </div>
-                          <p className="detail-value">{phone}</p>
-                        </div>
-                        <div className="detail-item">
-                          <div className="detail-with-icon">
-                            <span className="detail-icon">🌐</span>
-                            <span className="detail-label">Country:</span>
-                          </div>
-                          <p className="detail-value">{formatCountryName(country)}</p>
-                        </div>
-                      </div>
-
-                      <div className="detail-item">
-                        <div className="detail-with-icon">
-                          <span className="detail-icon">📍</span>
-                          <span className="detail-label">Address:</span>
-                        </div>
-                        <p className="detail-value">{address || "Not provided"}</p>
-                      </div>
-
-                      {specialRequests && (
-                        <div className="detail-item">
-                          <div className="detail-with-icon">
-                            <span className="detail-icon">✓</span>
-                            <span className="detail-label">Special Requests:</span>
-                          </div>
-                          <p className="detail-value">{specialRequests}</p>
-                        </div>
-                      )}
-
-                      <hr />
-                    </div>
-
-                    {/* Payment Information */}
-                    <div className="detail-section">
-                      <h3 className="section-title">Payment Information</h3>
-                      <div className="detail-with-icon payment-method-display">
-                        <span className="detail-icon">
-                          {paymentMethod === "credit-card" ? "💳" : paymentMethod === "paypal" ? "🌐" : "💳"}
+                        <span>
+                          {bookingDetails.adultGuests || 0} Adults,{" "}
+                          {bookingDetails.childGuests || 0} Children
                         </span>
-                        <span className="detail-label">Payment Method: {getPaymentMethodName(paymentMethod)}</span>
                       </div>
-
-                      {paymentMethod === "credit-card" && (
-                        <div className="payment-details-display">
-                          <div className="detail-row">
-                            <span>Card Holder:</span>
-                            <span>{cardName}</span>
-                          </div>
-                          <div className="detail-row">
-                            <span>Card Number:</span>
-                            <span>{formatCardNumber(cardNumber)}</span>
-                          </div>
-                          <div className="detail-row">
-                            <span>Expiry Date:</span>
-                            <span>
-                              {expiryMonth}/{expiryYear}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {paymentMethod === "bank-transfer" && (
-                        <div className="payment-details-display">
-                          <p>
-                            <span className="detail-label">Bank Name:</span> Golden Bank
-                          </p>
-                          <p>
-                            <span className="detail-label">Account Name:</span> GoldenStay Hotels
-                          </p>
-                          <p>
-                            <span className="detail-label">Account Number:</span> 1234567890
-                          </p>
-                          <p>
-                            <span className="detail-label">Swift Code:</span> GOLDID12
-                          </p>
-                          <p className="payment-note">
-                            Please include your booking reference in the transfer description.
-                          </p>
-                        </div>
-                      )}
-
-                      {paymentMethod === "paypal" && (
-                        <div className="payment-details-display">
-                          <p className="payment-note">Payment will be processed through PayPal.</p>
-                        </div>
-                      )}
-
                       <hr />
                     </div>
 
-                    {/* Price Summary */}
                     <div className="price-summary">
                       <div className="detail-row">
-                        <span>Room Rate:</span>
-                        <span>
-                          ${bookingDetails.pricePerNight} × {bookingDetails.nights} nights
+                        <span>Total Price:</span>
+                        <span className="total-price">
+                          ${bookingDetails.totalPrice || 0}
                         </span>
-                      </div>
-                      <div className="detail-row">
-                        <span>Taxes & Fees:</span>
-                        <span>${bookingDetails.taxes}</span>
-                      </div>
-                      <hr />
-                      <div className="detail-row total">
-                        <span>Total Paid:</span>
-                        <span className="total-price">${bookingDetails.total}</span>
                       </div>
                     </div>
 
-                    <div className="important-info">
-                      <h3 className="section-title">Important Information</h3>
-                      <div className="info-item">
-                        <span className="info-icon">✓</span>
-                        <span>
-                          Check-in time starts at 3:00 PM. If you plan to arrive after 6:00 PM, please notify the hotel.
-                        </span>
+                    <div className="benefits">
+                      <div className="benefit-item">
+                        <span className="benefit-icon">✓</span>
+                        <span>Free cancellation before 48 hours of check-in</span>
                       </div>
-                      <div className="info-item">
-                        <span className="info-icon">✓</span>
-                        <span>Check-out time is 12:00 PM. Late check-out may result in an additional charge.</span>
+                      <div className="benefit-item">
+                        <span className="benefit-icon">✓</span>
+                        <span>No payment needed today</span>
                       </div>
-                      <div className="info-item">
-                        <span className="info-icon">✓</span>
-                        <span>Please present a valid ID and the credit card used for booking upon check-in.</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-icon">✓</span>
-                        <span>Free cancellation is available up to 48 hours before check-in.</span>
+                      <div className="benefit-item">
+                        <span className="benefit-icon">✓</span>
+                        <span>Secure payment process</span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="confirmation-actions">
-                    <button className="btn btn-primary btn-block">Download Booking Confirmation</button>
-                    <p className="confirmation-note">
-                      A copy of your booking confirmation has been sent to your email.
-                    </p>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Booking Summary Sidebar */}
-            <div className="sidebar">
-              <div className="card">
-                <h2 className="card-title">Booking Summary</h2>
-                <div className="summary-content">
-                  <div className="detail-section">
-                    <div className="detail-row">
-                      <span className="detail-label">Room Type:</span>
-                      <span>{bookingDetails.roomType}</span>
+                <div className="assistance-card">
+                  <h3 className="assistance-title">Need Assistance?</h3>
+                  <p className="assistance-text">
+                    Our customer service team is available 24/7 to help with your booking.
+                  </p>
+                  <div className="contact-info">
+                    <div className="contact-item">
+                      <span className="contact-icon">📱</span>
+                      <span>+62 812 3456 7890</span>
                     </div>
-                    <hr />
-                    <div className="detail-row">
-                      <div className="detail-with-icon">
-                        <span className="detail-icon">📅</span>
-                        <span>Check-in:</span>
-                      </div>
-                      <span>
-                        {new Date(bookingDetails.checkIn).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    <div className="detail-row">
-                      <div className="detail-with-icon">
-                        <span className="detail-icon">📅</span>
-                        <span>Check-out:</span>
-                      </div>
-                      <span>
-                        {new Date(bookingDetails.checkOut).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    <div className="detail-row">
-                      <div className="detail-with-icon">
-                        <span className="detail-icon">👤</span>
-                        <span>Guests:</span>
-                      </div>
-                      <span>{bookingDetails.guests} Adults</span>
-                    </div>
-                    <hr />
-                  </div>
-
-                  <div className="price-summary">
-                    <div className="detail-row">
-                      <span>Room Rate:</span>
-                      <span>
-                        ${bookingDetails.pricePerNight} × {bookingDetails.nights} nights
-                      </span>
-                    </div>
-                    <div className="detail-row">
-                      <span>Taxes & Fees:</span>
-                      <span>${bookingDetails.taxes}</span>
-                    </div>
-                    <hr />
-                    <div className="detail-row total">
-                      <span>Total:</span>
-                      <span className="total-price">${bookingDetails.total}</span>
-                    </div>
-                  </div>
-
-                  <div className="benefits">
-                    <div className="benefit-item">
-                      <span className="benefit-icon">✓</span>
-                      <span>Free cancellation before 48 hours of check-in</span>
-                    </div>
-                    <div className="benefit-item">
-                      <span className="benefit-icon">✓</span>
-                      <span>No payment needed today</span>
-                    </div>
-                    <div className="benefit-item">
-                      <span className="benefit-icon">✓</span>
-                      <span>Secure payment process</span>
+                    <div className="contact-item">
+                      <span className="contact-icon">📧</span>
+                      <span>booking@goldenstay.com</span>
                     </div>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div className="assistance-card">
-                <h3 className="assistance-title">Need Assistance?</h3>
-                <p className="assistance-text">
-                  Our customer service team is available 24/7 to help with your booking.
-                </p>
-                <div className="contact-info">
-                  <div className="contact-item">
-                    <span className="contact-icon">📱</span>
-                    <span>+62 812 3456 7890</span>
-                  </div>
-                  <div className="contact-item">
-                    <span className="contact-icon">📧</span>
-                    <span>booking@goldenstay.com</span>
-                  </div>
-                </div>
+
+            {/* Return to Homepage button (only on confirmation step) */}
+            {/* {formStep === 3 && (
+              <div className="return-home">
+                <Link to="/home" className="btn btn-outline btn-with-icon">
+                  <span className="btn-icon">←</span>
+                  Return to Homepage
+                </Link>
               </div>
-
-              {/* Return to Homepage button (only on confirmation step) */}
-              {formStep === 3 && (
-                <div className="return-home">
-                  <Link to="/home" className="btn btn-outline btn-with-icon">
-                    <span className="btn-icon">←</span>
-                    Return to Homepage
-                  </Link>
-                </div>
-              )}
-            </div>
+            )} */}
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default BookingForm
+export default BookingForm;

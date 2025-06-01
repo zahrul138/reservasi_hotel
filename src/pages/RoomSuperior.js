@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import SuperiorRT from "../assets/images/SuperiorRT.png";
 import SuperiorToilet from "../assets/images/SuperiorToilet.png";
 
 import DeluxeBG from "../assets/images/DeluxeBG.png";
 import ExecutiveBG from "../assets/images/ExecutiveBG.png";
+
 
 import {
   FaArrowLeft,
@@ -29,20 +30,7 @@ import {
   FaWineGlassAlt,
 } from "react-icons/fa"
 
-
-
 function RoomSuperior() {
-  const [checkIn, setCheckIn] = useState("")
-  const [checkOut, setCheckOut] = useState("")
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
-  const [currentImage, setCurrentImage] = useState(0)
-  const [galleryOpen, setGalleryOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("description")
-
-  const guestDropdownRef = useRef(null)
-
   // Example room data
   const room = {
     id: "superior-room",
@@ -148,10 +136,79 @@ function RoomSuperior() {
     ],
   }
 
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [adults, setAdults] = useState(1)
+  const [children, setChildren] = useState(0)
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
+  const [currentImage, setCurrentImage] = useState(0)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("description")
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
+  const navigate = useNavigate();
+
+  const guestDropdownRef = useRef(null)
+
+  const totalGuests = adults + children;
+
+  const toggleGuestDropdown = () => setIsGuestDropdownOpen(!isGuestDropdownOpen);
+  const incrementAdults = () => setAdults(adults + 1);
+  const decrementAdults = () => setAdults(adults > 1 ? adults - 1 : 1);
+  const incrementChildren = () => setChildren(children + 1);
+  const decrementChildren = () => setChildren(children > 0 ? children - 1 : 0);
+
+  const calculateTotalPrice = () => {
+    const roomPricePerNight = parseFloat(room.discountedPrice.replace('$', '')) || 0;
+    const nights =
+      checkIn && checkOut
+        ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+        : 0;
+    const subtotal = roomPricePerNight * nights;
+    const taxes = 60;
+    return subtotal + taxes;
+  };
+
+  const handleBookNow = (e) => {
+    e.preventDefault();
+
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      alert("You must be logged in to make a booking.");
+      return;
+    }
+
+    const user = JSON.parse(storedUser);
+
+    const totalPrice = calculateTotalPrice();
+
+    const bookingDetails = {
+      userId: user.id,
+      fullname: user.fullname,
+      email: user.email,
+      checkinDate: checkIn,
+      checkoutDate: checkOut,
+      roomType: room.title,
+      adultGuests: adults,
+      childGuests: children,
+      totalPrice: totalPrice,
+    };
+
+    navigate("/bookingform", { state: { bookingDetails } });
+  };
+
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+
   // Calculate average rating
   const averageRating = room.reviews.reduce((total, review) => total + review.rating, 0) / room.reviews.length
-  const user = JSON.parse(localStorage.getItem("user")) || { fullname: "", email: "" };
-
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -167,33 +224,6 @@ function RoomSuperior() {
     }
   }, [guestDropdownRef])
 
-  const handleBookNow = (e) => {
-    e.preventDefault()
-    console.log("Booking for:", { checkIn, checkOut, adults, children })
-    // Handle booking logic
-  }
-
-  const incrementAdults = () => {
-    if (adults < 10) setAdults(adults + 1)
-  }
-
-  const decrementAdults = () => {
-    if (adults > 1) setAdults(adults - 1)
-  }
-
-  const incrementChildren = () => {
-    if (children < 6) setChildren(children + 1)
-  }
-
-  const decrementChildren = () => {
-    if (children > 0) setChildren(children - 1)
-  }
-
-  const toggleGuestDropdown = () => {
-    setIsGuestDropdownOpen(!isGuestDropdownOpen)
-  }
-
-  const totalGuests = adults + children
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev === room.images.length - 1 ? 0 : prev + 1))
@@ -220,7 +250,7 @@ function RoomSuperior() {
 
   return (
     <div className="room-detail-page">
-      <style jsx>{`
+      <style>{`
         /* Room Detail Page Styles */
         .room-detail-page {
           min-height: 100vh;
@@ -1196,78 +1226,78 @@ function RoomSuperior() {
         }
 
         /* Footer - Light Theme */
-.footer-light {
-  background-color: #f8f5f0;
-  color: #444;
-  padding-top: 4rem;
-  font-family: inherit;
-}
+          .footer-light {
+            background-color: #f8f5f0;
+            color: #444;
+            padding-top: 4rem;
+            font-family: inherit;
+          }
 
-.footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem 3rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 3rem;
-}
+          .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+          }
 
-.footer-logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #d09500;
-  margin-bottom: 1rem;
-}
+          .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #d09500;
+            margin-bottom: 1rem;
+          }
 
-.footer-title {
-  color: #87723b;
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
+          .footer-title {
+            color: #87723b;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+          }
 
-.footer-text {
-  color: #666;
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
-}
+          .footer-text {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+          }
 
-.footer-link {
-  color: #666;
-  text-decoration: none;
-  margin-bottom: 0.5rem;
-  display: block;
-  font-size: 0.95rem;
-}
+          .footer-link {
+            color: #666;
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.95rem;
+          }
 
-.footer-link:hover {
-  color: #d09500;
-}
+          .footer-link:hover {
+            color: #d09500;
+          }
 
-.footer-bottom-light {
-  background-color: #eee;
-  padding: 1.25rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
+          .footer-bottom-light {
+            background-color: #eee;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+          }
 
-.footer-links {
-  display: flex;
-  gap: 1.25rem;
-}
+          .footer-links {
+            display: flex;
+            gap: 1.25rem;
+          }
 
-.footer-links a {
-  color: #666;
-  text-decoration: none;
-}
+          .footer-links a {
+            color: #666;
+            text-decoration: none;
+          }
 
-.footer-links a:hover {
-  color: #d09500;
-}
+          .footer-links a:hover {
+            color: #d09500;
+          }
 
 
       `}</style>
@@ -1383,13 +1413,39 @@ function RoomSuperior() {
                     <label>
                       <FaCalendarAlt /> Check-in
                     </label>
-                    <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} required />
+                    <input
+                      type="date"
+                      value={checkIn}
+                      onChange={(e) => {
+                        if (!isLoggedIn) {
+                          alert("Anda harus login terlebih dahulu.");
+                          return;
+                        }
+                        setCheckIn(e.target.value);
+                      }}
+                      required
+                    />
+
                   </div>
                   <div className="form-group">
                     <label>
                       <FaCalendarAlt /> Check-out
                     </label>
-                    <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} required />
+                    <input
+                      type="date"
+                      value={checkOut}
+                      onChange={(e) => {
+                        if (!isLoggedIn) {
+                          alert("Anda harus login terlebih dahulu.");
+                          return;
+                        }
+                        setCheckOut(e.target.value);
+                      }}
+                      required
+                      min={checkIn}
+                    />
+
+
                   </div>
                 </div>
 
@@ -1459,18 +1515,7 @@ function RoomSuperior() {
                   </div>
                 </div>
 
-                <Link
-                  to="/bookingform"
-                  state={{
-                    checkIn,
-                    checkOut,
-                    totalGuests,
-                    fullName: `${user.fullname}`,
-                    email: `${user.email}`
-                  }}
-                >
-                  <button type="button" className="book-now-btn">Book Now</button>
-                </Link>
+                <button type="submit" className="book-now-btn">Book Now</button>
 
                 <div className="booking-policies">
                   <div className="policy-item">

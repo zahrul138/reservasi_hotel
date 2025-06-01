@@ -170,7 +170,7 @@ function SignIn() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
-  
+
     try {
       const response = await fetch("https://localhost:7298/api/user/login", {
         method: "POST",
@@ -182,19 +182,22 @@ function SignIn() {
           password: formData.password,
         }),
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok) {
-        const user = result.user; // ambil data dari result.user
-  
-        localStorage.setItem("fullname", user.fullname);
-        localStorage.setItem("email", user.email);
-        localStorage.setItem("role", user.role);
-  
-        // trigger update navbar (opsional tapi disarankan)
+        const user = result.user;
+
+        // Simpan data user ke localStorage
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("fullname", user.fullname || "");
+        localStorage.setItem("avatar", user.avatar || "");
+        localStorage.setItem("email", user.email || "");
+        
+
+        // (Opsional) trigger event ke komponen lain jika perlu tahu perubahan user
         window.dispatchEvent(new Event("storage"));
-  
+
         navigate("/home");
       } else {
         setErrorMessage(result.message || "Email atau password salah");
@@ -206,8 +209,6 @@ function SignIn() {
       setIsLoading(false);
     }
   };
-  
-
 
   return (
     <Container>
