@@ -8,6 +8,8 @@ const BookingForm = () => {
   const [formStep, setFormStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isLoading, setIsLoading] = useState(false);
+   const [bookingConfirmed, setBookingConfirmed] = useState(false);
+
 
   // Form fields
   const [phone, setPhone] = useState("");
@@ -71,49 +73,62 @@ const BookingForm = () => {
   // };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      const response = await fetch("https://localhost:7298/api/Booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: bookingDetails.userId,
-          fullname: fullName,
-          email: email,
-          checkinDate: bookingDetails.checkinDate,
-          checkoutDate: bookingDetails.checkoutDate,
-          roomType: bookingDetails.roomType,
-          adultGuests: bookingDetails.adultGuests,
-          childGuests: bookingDetails.childGuests,
-          specialRequest: specialRequests,
-          totalPrice: bookingDetails.totalPrice,
-          phoneNumber: phone,
-          region: country,
-          address: address,
-          paymentMethod: paymentMethod,
-        }),
-      });
+  try {
+    // Simulasi loading delay selama 3 detik
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Validation error:", errorData);
+    const response = await fetch("https://localhost:7298/api/Booking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: bookingDetails.userId,
+        fullname: fullName,
+        email: email,
+        checkinDate: bookingDetails.checkinDate,
+        checkoutDate: bookingDetails.checkoutDate,
+        roomType: bookingDetails.roomType,
+        adultGuests: bookingDetails.adultGuests,
+        childGuests: bookingDetails.childGuests,
+        specialRequest: specialRequests,
+        totalPrice: bookingDetails.totalPrice,
+        phoneNumber: phone,
+        region: country,
+        address: address,
+        paymentMethod: paymentMethod,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      // Cek jika error dari duplikat booking
+      if (
+        errorData.message &&
+        errorData.message.includes("Pesanan dengan data yang sama")
+      ) {
+        alert("Pesanan dengan data yang sama sudah pernah dibuat.");
+      } else {
         alert("Gagal menyimpan booking: " + JSON.stringify(errorData));
-        return;
       }
 
-      setFormStep(3); // success
-    } catch (error) {
-      console.error("Booking error:", error);
-      alert("Terjadi kesalahan saat memproses booking.");
-    } finally {
-      setIsLoading(false);
+      return; // hentikan proses
     }
-  };
+
+    setFormStep(3); // Berhasil ke langkah sukses
+  } catch (error) {
+    console.error("Booking error:", error);
+    alert("Terjadi kesalahan saat memproses booking.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
 
   // Format card number to show only last 4 digits
