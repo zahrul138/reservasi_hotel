@@ -5,6 +5,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 
 import DashboardAdmin from "./admin/DashboardAdmin";
+import RoomManage from "./admin/RoomManage";
 import GuestList from "./admin/GuestList";
 import CheckInAdmin from "./admin/CheckInAdmin";
 import CheckOutAdmin from "./admin/CheckOutAdmin";
@@ -15,6 +16,7 @@ import RoomDeluxe from "./pages/RoomDeluxe";
 import RoomSuperior from "./pages/RoomSuperior";
 import RoomExecutive from "./pages/RoomExecutive";
 import BookingForm from "./pages/BookingForm";
+import RoomDetail from "./pages/RoomDetail";
 
 
 // Layout dengan Navbar
@@ -37,6 +39,7 @@ function App() {
         <Route path="/bookingform" element={<BookingForm />} />
 
         <Route path="/dashboardadmin" element={<DashboardAdmin />} />
+        <Route path="/roommanageadmin" element={<RoomManage />} />
         <Route path="/guestlist" element={<GuestList />} />
         <Route path="/checkinadmin" element={<CheckInAdmin />} />
         <Route path="/checkoutadmin" element={<CheckOutAdmin />} />
@@ -58,11 +61,17 @@ function App() {
             <RoomSuperior />
           </LayoutWithNavbar>
         } />
+         <Route path="/room/:id" element={
+          <LayoutWithNavbar>
+            <RoomDetail />
+          </LayoutWithNavbar>
+        } />
          <Route path="/roomexecutive" element={
           <LayoutWithNavbar>
             <RoomExecutive />
           </LayoutWithNavbar>
         } />
+        
 
         {/* Default route (beranda misalnya) */}
         <Route path="/" element={

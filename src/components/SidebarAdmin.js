@@ -1,4 +1,3 @@
-// src/components/SidebarAdmin.js
 import React, { useState } from "react";
 import {
   FaUser,
@@ -6,6 +5,7 @@ import {
   FaBars,
   FaChevronLeft,
   FaTachometerAlt,
+  FaBed
 } from "react-icons/fa";
 import { 
   ImExit,
@@ -72,6 +72,7 @@ const SidebarAdmin = ({ activePage = "" }) => {
 
   const menu = [
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "/dashboardadmin" },
+    { icon: <FaBed />, text: "Room Manage", path: "/roommanageadmin" },
     { icon: <FaUser />, text: "Account", path: "/guestlist" },
     { icon: <ImEnter />, text: "Check In", path: "/checkinadmin" },
     { icon: <ImExit />, text: "Check Out", path: "/checkoutadmin" },

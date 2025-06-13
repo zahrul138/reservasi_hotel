@@ -270,6 +270,7 @@ const styles = {
     justifyContent: "center",
   },
   roomCard: {
+    position: "relative",
     backgroundColor: "white",
     borderRadius: "12px",
     overflow: "hidden",
@@ -740,6 +741,8 @@ const styles = {
   },
 };
 
+const API_URL = "https://localhost:7298";
+
 function Homepage() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -750,8 +753,14 @@ function Homepage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
-
   const guestDropdownRef = useRef(null);
+
+  const [rooms, setRooms] = useState([]);
+  useEffect(() => {
+    fetch(`${API_URL}/api/room`)
+      .then(res => res.json())
+      .then(data => setRooms(data));
+  }, []);
 
   const testimonials = [
     {
@@ -1099,179 +1108,89 @@ function Homepage() {
         </div>
       </section>
 
-      {/* Featured Rooms */}
+      {/* DYNAMIC FEATURED ROOMS */}
       <section id="rooms" style={styles.roomsSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Our Accommodations</h2>
           <p style={styles.sectionDescription}>
             Choose from our selection of comfortable and elegant rooms
           </p>
-
           <div style={styles.roomsGrid}>
-            <div
-              style={styles.roomCard}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow =
-                  "0 10px 25px rgba(0, 0, 0, 0.1)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 20px rgba(0, 0, 0, 0.08)";
-              }}
-            >
-              <div
-                style={{
-                  ...styles.roomImage,
-                  backgroundImage: `url(${SuperiorBG})`,
-                }}
-              ></div>
-              <div style={styles.roomDetails}>
-                <h3 style={styles.roomTitle}>Superior Room</h3>
-                <p style={styles.roomDescription}>
-                  Comfortable room with essential amenities for a pleasant stay.
-                </p>
-                <div style={styles.roomFeatures}>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 1 Queen Bed
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> Up to 2 Guests
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 300 sq ft
-                  </span>
-                </div>
-                <div style={styles.roomPrice}>
-                  <span style={styles.price}>$120</span> / night
-                </div>
-                <Link
-                  to="/roomsuperior"
-                  style={styles.viewDetailsButton}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#D09500";
-                  }}
-                >
-                  View Details
-                </Link>
+            {rooms.length === 0 && (
+              <div style={{ color: "#D09500", fontWeight: 500, textAlign: "center" }}>
+                No rooms available.
               </div>
-            </div>
-
-            <div
-              style={styles.roomCard}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow =
-                  "0 10px 25px rgba(0, 0, 0, 0.1)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 20px rgba(0, 0, 0, 0.08)";
-              }}
-            >
+            )}
+            {rooms.map((room) => (
               <div
-                style={{
-                  ...styles.roomImage,
-                  backgroundImage: `url(${DeluxeBG})`,
+                key={room.id}
+                style={styles.roomCard}
+                onMouseOver={e => {
+                  e.currentTarget.style.transform = "translateY(-5px)";
+                  e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.1)";
                 }}
-              ></div>
-              <div style={styles.roomDetails}>
-                <h3 style={styles.roomTitle}>Deluxe Room</h3>
-                <p style={styles.roomDescription}>
-                  Spacious room with additional amenities and city views.
-                </p>
-                <div style={styles.roomFeatures}>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 1 King Bed
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> Up to 2 Guests
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 450 sq ft
-                  </span>
-                </div>
-                <div style={styles.roomPrice}>
-                  <span style={styles.price}>$180</span> / night
-                </div>
-                <Link
-                  to="/roomdeluxe"
-                  style={styles.viewDetailsButton}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#D09500";
-                  }}
-                >
-                  View Details
-                </Link>
-              </div>
-            </div>
-
-            <div
-              style={styles.roomCard}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = "translateY(-5px)";
-                e.currentTarget.style.boxShadow =
-                  "0 10px 25px rgba(0, 0, 0, 0.1)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = "none";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 20px rgba(0, 0, 0, 0.08)";
-              }}
-            >
-              <div
-                style={{
-                  ...styles.roomImage,
-                  backgroundImage: `url(${ExecutiveBG})`,
+                onMouseOut={e => {
+                  e.currentTarget.style.transform = "none";
+                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)";
                 }}
-              ></div>
-              <div style={styles.roomDetails}>
-                <h3 style={styles.roomTitle}>Executive Suite</h3>
-                <p style={styles.roomDescription}>
-                  Luxury suite with separate living area and premium amenities.
-                </p>
-                <div style={styles.roomFeatures}>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 1 King Bed
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> Up to 4 Guests
-                  </span>
-                  <span style={styles.roomFeature}>
-                    <FaCheck size={12} /> 650 sq ft
-                  </span>
-                </div>
-                <div style={styles.roomPrice}>
-                  <span style={styles.price}>$250</span> / night
-                </div>
-                <Link
-                  to="/roomexecutive"
-                  style={styles.viewDetailsButton}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#D09500";
-                    e.currentTarget.style.color = "white";
+              >
+                <div
+                  style={{
+                    ...styles.roomImage,
+                    backgroundImage: `url(${room.image1
+                      ? room.image1.startsWith("http")
+                        ? room.image1
+                        : `${API_URL}${room.image1}`
+                      : "https://via.placeholder.com/350x200"
+                      })`,
                   }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#D09500";
-                  }}
-                >
-                  View Details
-                </Link>
+                ></div>
+                <div style={{
+                  position: "absolute",
+                  top: "1rem",
+                  right: "1rem",
+                  backgroundColor: "#ffffff",
+                  color: "#D09500",
+                  border: "1px solid #D09500",
+                  padding: "0.25rem 0.75rem",
+                  borderRadius: "12px",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  zIndex: 2
+                }}>
+                  {room.quantity} room left
+                </div>
+                <div style={styles.roomDetails}>
+                  <h3 style={styles.roomTitle}>{room.title}</h3>
+                  <p style={styles.roomDescription}>{room.shortDescription}</p>
+                  <div style={styles.roomFeatures}>
+                    {(room.features?.split(",").slice(0, 3) || []).map((feat, i) => (
+                      <span key={i} style={styles.roomFeature}>
+                        <FaCheck size={12} /> {feat}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={styles.roomPrice}>
+                    <span style={styles.price}>${room.price}</span> / night
+                  </div>
+                  <Link
+                    to={`/room/${room.id}`}
+                    style={styles.viewDetailsButton}
+                    onMouseOver={e => {
+                      e.currentTarget.style.backgroundColor = "#D09500";
+                      e.currentTarget.style.color = "white";
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = "#D09500";
+                    }}
+                  >
+                    View Details
+                  </Link>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
