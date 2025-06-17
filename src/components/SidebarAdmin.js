@@ -71,12 +71,12 @@ const SidebarAdmin = ({ activePage = "" }) => {
   const navigate = useNavigate();
 
   const menu = [
-    { icon: <FaTachometerAlt />, text: "Dashboard", path: "/dashboardadmin" },
-    { icon: <FaBed />, text: "Room Manage", path: "/roommanageadmin" },
-    { icon: <FaUser />, text: "Account", path: "/guestlist" },
-    { icon: <ImEnter />, text: "Check In", path: "/checkinadmin" },
-    { icon: <ImExit />, text: "Check Out", path: "/checkoutadmin" },
-    { icon: <FaClockRotateLeft />, text: "History", path: "/historyadmin" },
+    { icon: <FaTachometerAlt />, text: "Dashboard", path: "/admin/dashboard" },
+    { icon: <FaBed />, text: "Room Manage", path: "/admin/roomManage" },
+    { icon: <FaUser />, text: "Account", path: "/admin/guestList" },
+    { icon: <ImEnter />, text: "Check In", path: "/admin/checkIn" },
+    { icon: <ImExit />, text: "Check Out", path: "/admin/checkOut" },
+    { icon: <FaClockRotateLeft />, text: "History", path: "/admin/history" },
   ];
 
   return (

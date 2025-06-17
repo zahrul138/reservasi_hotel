@@ -1,4 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import Navbar from "./pages/Navbar";
 
 import SignIn from "./pages/SignIn";
@@ -18,8 +21,6 @@ import RoomExecutive from "./pages/RoomExecutive";
 import BookingForm from "./pages/BookingForm";
 import RoomDetail from "./pages/RoomDetail";
 
-
-// Layout dengan Navbar
 const LayoutWithNavbar = ({ children }) => (
   <>
     <Navbar />
@@ -32,60 +33,35 @@ const LayoutWithNavbar = ({ children }) => (
 function App() {
   return (
     <Router>
+      {/* Toast global biar muncul di semua halaman */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+      
       <Routes>
         {/* Route tanpa Navbar */}
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/bookingform" element={<BookingForm />} />
 
-        <Route path="/dashboardadmin" element={<DashboardAdmin />} />
-        <Route path="/roommanageadmin" element={<RoomManage />} />
-        <Route path="/guestlist" element={<GuestList />} />
-        <Route path="/checkinadmin" element={<CheckInAdmin />} />
-        <Route path="/checkoutadmin" element={<CheckOutAdmin />} />
-        <Route path="/historyadmin" element={<HistoryAdmin />} />
+        {/* Admin routes */}
+        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+        <Route path="/admin/roomManage" element={<RoomManage />} />
+        <Route path="/admin/guestList" element={<GuestList />} />
+        <Route path="/admin/checkIn" element={<CheckInAdmin />} />
+        <Route path="/admin/checkOut" element={<CheckOutAdmin />} />
+        <Route path="/admin/history" element={<HistoryAdmin />} />
 
-        {/* Route dengan Navbar */}\
-        <Route path="/home" element={
-          <LayoutWithNavbar>
-            <Homepage />
-          </LayoutWithNavbar>
-        } />
-         <Route path="/roomdeluxe" element={
-          <LayoutWithNavbar>
-            <RoomDeluxe />
-          </LayoutWithNavbar>
-        } />
-        <Route path="/roomsuperior" element={
-          <LayoutWithNavbar>
-            <RoomSuperior />
-          </LayoutWithNavbar>
-        } />
-         <Route path="/room/:id" element={
-          <LayoutWithNavbar>
-            <RoomDetail />
-          </LayoutWithNavbar>
-        } />
-         <Route path="/roomexecutive" element={
-          <LayoutWithNavbar>
-            <RoomExecutive />
-          </LayoutWithNavbar>
-        } />
-        
+        {/* Routes dengan Navbar */}
+        <Route path="/home" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
+        <Route path="/roomdeluxe" element={<LayoutWithNavbar><RoomDeluxe /></LayoutWithNavbar>} />
+        <Route path="/roomsuperior" element={<LayoutWithNavbar><RoomSuperior /></LayoutWithNavbar>} />
+        <Route path="/roomexecutive" element={<LayoutWithNavbar><RoomExecutive /></LayoutWithNavbar>} />
+        <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
 
-        {/* Default route (beranda misalnya) */}
-        <Route path="/" element={
-          <LayoutWithNavbar>
-            <Homepage />
-          </LayoutWithNavbar>
-        } />
+        {/* Default route */}
+        <Route path="/" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
 
         {/* Catch-all route */}
-        <Route path="*" element={
-          <LayoutWithNavbar>
-            <h2>Halaman tidak ditemukan</h2>
-          </LayoutWithNavbar>
-        } />
+        <Route path="*" element={<LayoutWithNavbar><h2>Halaman tidak ditemukan</h2></LayoutWithNavbar>} />
       </Routes>
     </Router>
   );

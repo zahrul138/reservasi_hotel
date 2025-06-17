@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react"
+import axios from "axios";
+import { toast } from "react-toastify";
 import SidebarAdmin from "../components/SidebarAdmin"
 import {
   FaWifi,
@@ -74,6 +76,7 @@ function RoomManage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [modalKey, setModalKey] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   // HAPUS slash di akhir
   const API_URL = "https://localhost:7298";
@@ -104,6 +107,12 @@ function RoomManage() {
   };
 
   useEffect(() => { fetchRoomsFromAPI(); }, []);
+
+  const fetchRooms = async () => {
+    const res = await axios.get("https://localhost:7298/api/Room");
+    setRooms(res.data); // asumsinya kamu pakai setRooms buat update list
+  };
+
 
   // ----------- CRUD -----------
   // ADD Room
@@ -165,43 +174,62 @@ function RoomManage() {
 
 
 
-  // UPDATE Room
-  const handleUpdateRoom = async (id, roomData) => {
-    let uploaded = ["", "", ""];
-    const files = roomData.images.filter(img => img instanceof File);
-    if (files.length) {
+  const handleUpdateRoom = async (roomId, data) => {
+    try {
       const formData = new FormData();
-      files.forEach((img) => formData.append("images", img));
-      const res = await fetch(`${API_URL}/api/upload/multi`, { method: "POST", body: formData });
-      let result = { urls: ["", "", ""] };
-      try {
-        if (res.ok) result = await res.json();
-      } catch (err) {
-        result = { urls: ["", "", ""] };
-      }
-      uploaded = result.urls || ["", "", ""];
+
+      formData.append("Id", roomId);
+      formData.append("Title", data.title);
+      formData.append("ShortDescription", data.shortDescription);
+      formData.append("FullDescription", data.fullDescription);
+      formData.append("Price", data.price);
+      formData.append("Size", data.size);
+      formData.append("Occupancy", data.occupancy);
+      formData.append("Bed", data.bed);
+      formData.append("RoomView", data.roomView);
+      formData.append("Quantity", data.quantity);
+
+      // Append array data
+      data.features.forEach((f, i) => {
+        formData.append(`Features[${i}]`, f);
+      });
+      data.policies.forEach((p, i) => {
+        formData.append(`Policies[${i}]`, p);
+      });
+      data.amenities.forEach((a, i) => {
+        formData.append(`Amenities[${i}].Name`, a.name);
+        formData.append(`Amenities[${i}].Icon`, a.icon);
+      });
+
+      // Gambar
+      data.images.forEach((img, i) => {
+        if (img instanceof File) {
+          formData.append("Images", img); // ASP.NET akan baca semua ini sebagai List<IFormFile>
+        }
+      });
+
+      const res = await axios.put(
+        `https://localhost:7298/api/Room/${roomId}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Room updated:", res.data);
+      setEditingRoom(null);
+      fetchRooms();
+    } catch (err) {
+      console.error("Update failed:", err);
     }
-    const [image1, image2, image3] = uploaded.length > 0 ? uploaded : roomData.images;
-    const payload = {
-      ...roomData,
-      image1: image1 || "",
-      image2: image2 || "",
-      image3: image3 || "",
-      features: roomData.features.join(","),
-      amenities: JSON.stringify(roomData.amenities.map(a => a.name)),
-      policies: roomData.policies.join(","),
-      quantity: parseInt(roomData.quantity, 10) || 1,
-    };
-    await fetch(`${API_URL}/api/room/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    setEditingRoom(null);
-    setShowAddModal(false); // Pastikan semua modal ketutup
-    setModalKey(key => key + 1);
-    fetchRoomsFromAPI();
   };
+
+
+
+
+
 
 
   // DELETE Room
@@ -211,7 +239,6 @@ function RoomManage() {
   };
 
   // --- RoomForm & Picker Handler ---
-
   const RoomForm = ({ initialData, onSubmit }) => {
     const toAmenityObject = (arr) => {
       if (!Array.isArray(arr)) return [];
@@ -224,8 +251,9 @@ function RoomManage() {
     const [showFeaturePicker, setShowFeaturePicker] = useState(false);
     const [showAmenityPicker, setShowAmenityPicker] = useState(false);
     const [showPolicyPicker, setShowPolicyPicker] = useState(false);
-
-
+    const [fileNames, setFileNames] = useState({});
+    const [inputKeys, setInputKeys] = useState(["0", "1", "2"]);
+    const normalizedImages = initialData?.images?.length === 3 ? initialData.images : [null, null, null];
 
     const [formData, setFormData] = useState({
       id: initialData?.id || "",
@@ -237,29 +265,80 @@ function RoomManage() {
       occupancy: initialData?.occupancy || "",
       bed: initialData?.bed || "",
       roomView: initialData?.roomView || "",
-      images: initialData?.images || ["", "", ""],
+      images: normalizedImages,
       features: initialData?.features || [],
       amenities: toAmenityObject(initialData?.amenities) || [],
       policies: initialData?.policies || [],
       quantity: initialData?.quantity || 1,
     });
-    const [fileNames, setFileNames] = useState({});
+
+
+    const [previewImages, setPreviewImages] = useState(["", "", ""]);
+
+    const getImagePreview = (img) => {
+      if (!img) return null;
+      if (img instanceof File) return URL.createObjectURL(img);
+      if (typeof img === "string" && img.startsWith("/uploads")) return `https://localhost:7298${img}`;
+      return img;
+    };
+
+    useEffect(() => {
+      const updatedPreviews = formData.images.map((img) => {
+        if (!img) return "";
+        if (img instanceof File) return URL.createObjectURL(img);
+        if (typeof img === "string" && img.startsWith("/uploads"))
+          return `${API_URL}${img}`;
+        return img;
+      });
+
+      setPreviewImages(updatedPreviews);
+    }, [formData.images]);
+
 
     const handleSubmit = (e) => {
       e.preventDefault();
       const filteredImages = formData.images.slice(0, 3);
       onSubmit({ ...formData, images: filteredImages });
     };
+
     const handleImageUpload = (e, index) => {
       const file = e.target.files[0];
-      if (file) {
-        setFileNames((prev) => ({ ...prev, [index]: file.name }));
-        setFormData((prev) => ({
-          ...prev,
-          images: prev.images.map((img, i) => (i === index ? file : img)),
-        }));
-      }
+      if (!file) return;
+
+      const newImages = [...formData.images];
+      newImages[index] = file;
+
+      const newPreview = [...previewImages];
+      newPreview[index] = URL.createObjectURL(file);
+
+      const newKeys = [...inputKeys];
+      newKeys[index] = Date.now().toString(); // force refresh input
+
+      setFormData((prev) => ({ ...prev, images: newImages }));
+      setPreviewImages(newPreview);
+      setInputKeys(newKeys);
     };
+
+
+
+
+    const handleImageRemove = (index) => {
+      const updatedImages = [...formData.images];
+      updatedImages[index] = null;
+
+      const updatedPreviews = [...previewImages];
+      updatedPreviews[index] = null;
+
+      const updatedKeys = [...inputKeys];
+      updatedKeys[index] = Date.now().toString();
+
+      setFormData((prev) => ({ ...prev, images: updatedImages }));
+      setPreviewImages(updatedPreviews);
+      setInputKeys(updatedKeys);
+    };
+
+
+
 
     // Tambah Feature
     const addFeatureFromPicker = (featureOption) => {
@@ -314,10 +393,6 @@ function RoomManage() {
         policies: prev.policies.filter((_, i) => i !== index)
       }));
     };
-
-
-
-
 
     return (
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -542,6 +617,7 @@ function RoomManage() {
             </div>
           </div>
         </div>
+
         {/* Room Images */}
         <div style={{ marginBottom: "25px" }}>
           <h3
@@ -567,6 +643,7 @@ function RoomManage() {
           >
             {[0, 1, 2].map((index) => (
               <div key={index} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {/* Label */}
                 <label
                   style={{
                     fontSize: "14px",
@@ -599,11 +676,12 @@ function RoomManage() {
                     Upload File
                   </label>
                   <input
-                    id={`image-upload-${index}`}
+                    key={inputKeys[index]}
                     type="file"
                     accept="image/*"
                     onChange={(e) => handleImageUpload(e, index)}
                     style={{ display: "none" }}
+                    id={`image-upload-${index}`}
                   />
 
                   {/* Nama file */}
@@ -636,21 +714,38 @@ function RoomManage() {
                     justifyContent: "center",
                   }}
                 >
-                  {formData.images[index] ? (
-                    <img
-                      src={(() => {
-                        const img = formData.images[index];
-                        if (img instanceof File) return URL.createObjectURL(img);
-                        if (typeof img === "string" && img.startsWith("/uploads/")) return `https://localhost:7298${img}`;
-                        if (typeof img === "string" && img.startsWith("http")) return img;
-                        return "https://via.placeholder.com/150x120";
-                      })()}
-                      alt={`Room preview ${index + 1}`}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={e => {
-                        e.currentTarget.src = "https://via.placeholder.com/150x120";
-                      }}
-                    />
+                  {previewImages[index] ? (
+                    <>
+                      <img
+                        key={previewImages[index]}
+                        src={previewImages[index]}
+                        alt={`Room preview ${index + 1}`}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => {
+                          e.currentTarget.src = "/default-placeholder.png";
+                        }}
+                      />
+                      {/* Tombol Remove */}
+                      <button
+                        type="button"
+                        onClick={() => handleImageRemove(index)}
+                        style={{
+                          position: "absolute",
+                          top: 6,
+                          right: 6,
+                          background: "#ff6868",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "3px",
+                          padding: "3px 10px",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                          zIndex: 2,
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </>
                   ) : (
                     <div
                       style={{
@@ -671,6 +766,7 @@ function RoomManage() {
             ))}
           </div>
         </div>
+
 
 
         {/* Room Features */}
@@ -1088,14 +1184,7 @@ function RoomManage() {
   }
 
 
-
-
-
-
-
-
-
-
+  // Card Romm Grid 
 
   // Component logic
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
@@ -1616,16 +1705,13 @@ function RoomManage() {
                 <img
                   src={
                     room.images && room.images[0]
-                      ? room.images[0].startsWith("http")
-                        ? room.images[0]
-                        : `https://localhost:7298${room.images[0]}`
-                      : "https://via.placeholder.com/400x200"
+                      ? (room.images[0].startsWith('/uploads/')
+                        ? `https://localhost:7298${room.images[0]}`
+                        : room.images[0])
+                      : "https://via.placeholder.com/350x200"
                   }
                   alt={room.title}
-                  className="room-image"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/400x200";
-                  }}
+                  style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
                 />
                 <div className="quantity-badge">{room.quantity} rooms</div>
                 <div className="price-badge">${room.discountedPrice || room.price}/night</div>
@@ -1652,7 +1738,7 @@ function RoomManage() {
                 </div>
 
                 {/* Features Section */}
-                {room.features && room.features.length > 0 && (
+                {Array.isArray(room.features) && room.features.length > 0 && (
                   <div style={{ marginBottom: "15px" }}>
                     <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
                       Features:
@@ -1674,14 +1760,17 @@ function RoomManage() {
                         </span>
                       ))}
                       {room.features.length > 3 && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>+{room.features.length - 3} more</span>
+                        <span style={{ fontSize: "12px", color: "#666" }}>
+                          +{room.features.length - 3} more
+                        </span>
                       )}
                     </div>
                   </div>
                 )}
 
+
                 {/* Amenities Section */}
-                {room.amenities && room.amenities.length > 0 && (
+                {Array.isArray(room.amenities) && room.amenities.length > 0 && (
                   <div style={{ marginBottom: "15px" }}>
                     <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
                       Amenities:
@@ -1691,23 +1780,27 @@ function RoomManage() {
                         <span
                           key={index}
                           style={{
-                            backgroundColor: "#f0f8ff",
+                            backgroundColor: "#e8eaf6",
                             padding: "4px 8px",
                             borderRadius: "4px",
                             fontSize: "12px",
                             color: "#333",
-                            border: "1px solid #d0b375",
+                            border: "1px solid #7986cb",
                           }}
                         >
-                          {amenity.name}
+                          {typeof amenity === "object" && amenity.name ? amenity.name : String(amenity)}
                         </span>
                       ))}
                       {room.amenities.length > 3 && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>+{room.amenities.length - 3} more</span>
+                        <span style={{ fontSize: "12px", color: "#666" }}>
+                          +{room.amenities.length - 3} more
+                        </span>
                       )}
                     </div>
                   </div>
                 )}
+
+
 
                 {/* Policies Section */}
                 {room.policies && room.policies.length > 0 && (
@@ -1770,10 +1863,17 @@ function RoomManage() {
                 </div>
 
                 <div className="room-actions">
-                  <button className="action-btn edit-btn" onClick={() => setEditingRoom(room)}>
+                  <button
+                    className="action-btn edit-btn"
+                    onClick={() => setEditingRoom({
+                      ...room,
+                      images: [room.image1, room.image2, room.image3]
+                    })}
+                  >
                     <FiEdit size={16} />
                     Edit
                   </button>
+
                   <button className="action-btn delete-btn" onClick={() => handleDeleteRoom(room.id)}>
                     <FiTrash2 size={16} />
                     Delete
@@ -1838,12 +1938,20 @@ function RoomManage() {
               {editingRoom && (
                 <RoomForm
                   initialData={editingRoom}
-                  onSubmit={(data) => handleUpdateRoom(editingRoom.id, data)}
+                  onSubmit={(data) => {
+                    if (editingRoom && data) {
+                      handleUpdateRoom(editingRoom.id, data);
+                    } else {
+                      console.error("Editing room or data is undefined", editingRoom, data);
+                    }
+                  }}
                 />
               )}
             </div>
           </div>
         </div>
+
+
 
 
 

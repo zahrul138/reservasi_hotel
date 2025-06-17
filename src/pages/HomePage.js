@@ -1137,12 +1137,17 @@ function Homepage() {
                 <div
                   style={{
                     ...styles.roomImage,
-                    backgroundImage: `url(${room.image1
-                      ? room.image1.startsWith("http")
-                        ? room.image1
-                        : `${API_URL}${room.image1}`
-                      : "https://via.placeholder.com/350x200"
-                      })`,
+                    backgroundImage: (() => {
+                      if (room.image1) {
+                        if (room.image1.startsWith("/uploads/")) {
+                          return `url(${API_URL}${room.image1})`;
+                        }
+                        if (room.image1.startsWith("http")) {
+                          return `url(${room.image1})`;
+                        }
+                      }
+                      return 'url("https://via.placeholder.com/350x200")';
+                    })(),
                   }}
                 ></div>
                 <div style={{
@@ -1191,6 +1196,7 @@ function Homepage() {
                 </div>
               </div>
             ))}
+
           </div>
         </div>
       </section>
