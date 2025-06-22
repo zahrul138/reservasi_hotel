@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
 import axios from "axios";
-import { toast } from "react-toastify";
 import SidebarAdmin from "../components/SidebarAdmin"
 import {
   FaWifi,
@@ -74,9 +73,9 @@ function RoomManage() {
   const [pendingQuantityChange, setPendingQuantityChange] = useState(null);
   const [tempQuantityInputs, setTempQuantityInputs] = useState({});
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [modalKey, setModalKey] = useState(0);
-  const [loading, setLoading] = useState(false);
+  // const [showEditModal, setShowEditModal] = useState(false);
+  // const [modalKey, setModalKey] = useState(0);
+  // const [loading, setLoading] = useState(false);
 
   // HAPUS slash di akhir
   const API_URL = "https://localhost:7298";
@@ -251,7 +250,7 @@ function RoomManage() {
     const [showFeaturePicker, setShowFeaturePicker] = useState(false);
     const [showAmenityPicker, setShowAmenityPicker] = useState(false);
     const [showPolicyPicker, setShowPolicyPicker] = useState(false);
-    const [fileNames, setFileNames] = useState({});
+    // const [fileNames, setFileNames] = useState({});
     const [inputKeys, setInputKeys] = useState(["0", "1", "2"]);
     const normalizedImages = initialData?.images?.length === 3 ? initialData.images : [null, null, null];
 
@@ -275,12 +274,7 @@ function RoomManage() {
 
     const [previewImages, setPreviewImages] = useState(["", "", ""]);
 
-    const getImagePreview = (img) => {
-      if (!img) return null;
-      if (img instanceof File) return URL.createObjectURL(img);
-      if (typeof img === "string" && img.startsWith("/uploads")) return `https://localhost:7298${img}`;
-      return img;
-    };
+ 
 
     useEffect(() => {
       const updatedPreviews = formData.images.map((img) => {
@@ -369,12 +363,12 @@ function RoomManage() {
     };
 
     // Hapus Amenity
-    const removeAmenity = (index) => {
-      setFormData(prev => ({
-        ...prev,
-        amenities: prev.amenities.filter((_, i) => i !== index)
-      }));
-    };
+    // const removeAmenity = (index) => {
+    //   setFormData(prev => ({
+    //     ...prev,
+    //     amenities: prev.amenities.filter((_, i) => i !== index)
+    //   }));
+    // };
 
     // Tambah Policy
     const addPolicyFromPicker = (policyOption) => {
@@ -392,6 +386,11 @@ function RoomManage() {
         ...prev,
         policies: prev.policies.filter((_, i) => i !== index)
       }));
+    };
+
+    const formatRupiah = (value) => {
+      if (!value) return "Rp 0";
+      return "Rp " + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
     return (
@@ -456,12 +455,16 @@ function RoomManage() {
 
             <div>
               <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
-                Price ($) *
+                Price (Rp) *
               </label>
               <input
-                type="number"
-                value={formData.price}
-                onChange={(e) => setFormData((prev) => ({ ...prev, price: Number(e.target.value) }))}
+                type="text"
+                inputMode="numeric"
+                value={formatRupiah(formData.price)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/[^\d]/g, ""); // Hapus semua karakter kecuali angka
+                  setFormData((prev) => ({ ...prev, price: Number(rawValue) }));
+                }}
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -473,6 +476,7 @@ function RoomManage() {
                 required
               />
             </div>
+
 
             <div>
               <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>Size *</label>
@@ -766,8 +770,6 @@ function RoomManage() {
             ))}
           </div>
         </div>
-
-
 
         {/* Room Features */}
         <div style={{ marginBottom: "25px" }}>
@@ -1198,14 +1200,14 @@ function RoomManage() {
     setTempQuantityInputs(tempInputs)
   }
 
-  const handleEditRoom = (roomData) => {
-    if (!editingRoom) return
+  // const handleEditRoom = (roomData) => {
+  //   if (!editingRoom) return
 
-    console.log("Editing room with data:", roomData) // Debug log
-    const updatedRooms = rooms.map((room) => (room.id === editingRoom.id ? { ...roomData, id: editingRoom.id } : room))
-    saveRooms(updatedRooms)
-    setEditingRoom(null)
-  }
+  //   console.log("Editing room with data:", roomData) // Debug log
+  //   const updatedRooms = rooms.map((room) => (room.id === editingRoom.id ? { ...roomData, id: editingRoom.id } : room))
+  //   saveRooms(updatedRooms)
+  //   setEditingRoom(null)
+  // }
 
   const requestQuantityChange = (roomId, newQuantity, changeType) => {
     const room = rooms.find((r) => r.id === roomId)
@@ -1273,6 +1275,14 @@ function RoomManage() {
   }
 
   useEffect(() => { fetchRoomsFromAPI(); }, []);
+
+  const formatRupiah = (angka) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(angka);
+
 
   return (
     <div className="room-manage-page">
@@ -1714,9 +1724,8 @@ function RoomManage() {
                   style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
                 />
                 <div className="quantity-badge">{room.quantity} rooms</div>
-                <div className="price-badge">${room.discountedPrice || room.price}/night</div>
+                <div className="price-badge">{formatRupiah(room.price)} / night</div>
               </div>
-
 
               <div className="room-content">
                 <h3 className="room-title">{room.title}</h3>

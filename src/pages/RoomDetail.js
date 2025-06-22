@@ -63,6 +63,13 @@ function RoomDetail() {
   const incrementChildren = () => setChildren(children + 1);
   const decrementChildren = () => setChildren(children > 0 ? children - 1 : 0);
 
+  const formatRupiah = (number) =>
+    new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+
   const calculateTotalPrice = () => {
     if (!room) return 0;
     const roomPricePerNight = parseFloat(room.price) || 0;
@@ -70,10 +77,9 @@ function RoomDetail() {
       checkIn && checkOut
         ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
         : 0;
-    const subtotal = roomPricePerNight * nights;
-    const taxes = nights > 0 ? 60 : 0;
-    return subtotal + taxes;
+    return roomPricePerNight * nights;
   };
+
 
   const handleBookNow = (e) => {
     e.preventDefault();
@@ -1291,11 +1297,11 @@ function RoomDetail() {
               <div className="booking-card">
                 <div className="price-container">
                   <div className="current-price">
-                    <span className="price">${room.price}</span>
-                    <span className="per-night">per night</span>
+                    <span className="price">{formatRupiah(room.price)}</span>
+                    <span className="per-night">/ night</span>
                   </div>
-                  <div className="price-savings">+ Taxes & fees</div>
                 </div>
+
                 <form onSubmit={handleBookNow} className="booking-form">
                   <div className="form-row">
                     <div className="form-group">
@@ -1365,30 +1371,33 @@ function RoomDetail() {
                   {/* Booking Summary */}
                   <div className="booking-summary">
                     <div className="summary-row">
-                      <span>${room.price} x {
-                        checkIn && checkOut
-                          ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-                          : 0
-                      } nights</span>
-                      <span>${room.price * (checkIn && checkOut
-                        ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-                        : 0)}</span>
+                      <span>
+                        {formatRupiah(room.price)} x {
+                          checkIn && checkOut
+                            ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+                            : 0
+                        }/ night
+                      </span>
+                      <span>
+                        {formatRupiah(
+                          room.price * (checkIn && checkOut
+                            ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+                            : 0)
+                        )}
+                      </span>
                     </div>
-                    <div className="summary-row">
-                      <span>Taxes & fees</span>
-                      <span>$60</span>
-                    </div>
+
                     <div className="summary-total">
                       <span>Total</span>
-                      <span>${calculateTotalPrice()}</span>
+                      <span>{formatRupiah(calculateTotalPrice())}</span>
                     </div>
                   </div>
 
                   <button type="submit" className="book-now-btn">Book Now</button>
 
                   <div className="booking-policies">
-                    <div className="policy-item"><FaCheck className="policy-icon" /><span>Free cancellation before 48 hours of check-in</span></div>
-                    <div className="policy-item"><FaCreditCard className="policy-icon" /><span>No payment needed today</span></div>
+                    <div className="policy-item"><FaCheck className="policy-icon" /><span>Pembatalan gratis sebelum 48 jam dari check-in</span></div>
+                    <div className="policy-item"><FaCreditCard className="policy-icon" /><span>Tidak perlu pembayaran sekarang</span></div>
                   </div>
                 </form>
               </div>

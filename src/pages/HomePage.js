@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Latar1 from "../assets/images/FotoLatar1.png";
-import SuperiorBG from "../assets/images/SuperiorBG.png";
 import DeluxeBG from "../assets/images/DeluxeBG.png";
-import ExecutiveBG from "../assets/images/ExecutiveBG.png";
 import HotelLobby from "../assets/images/HotelLobbyBG.png";
 import Pool from "../assets/images/PoolBG.png";
 import Restaurant from "../assets/images/RestaurantBG.png";
@@ -973,6 +971,7 @@ function Homepage() {
                   type="date"
                   value={checkOut}
                   onChange={(e) => setCheckOut(e.target.value)}
+                  min={checkIn}
                   required
                   style={styles.formInput}
                   onFocus={(e) => {
@@ -1209,7 +1208,7 @@ function Homepage() {
                     ))}
                   </div>
                   <div style={styles.roomPrice}>
-                    <span style={styles.price}>${room.price}</span> / night
+                    <span style={styles.price}>Rp {room.price.toLocaleString("id-ID")}</span>/ night
                   </div>
                   <Link
                     to={`/room/${room.id}`}

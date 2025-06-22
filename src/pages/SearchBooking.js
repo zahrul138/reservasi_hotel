@@ -1,11 +1,136 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
 import { FaCheck } from "react-icons/fa"
 
+function SearchBooking() {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState("price-low");
+  const location = useLocation();
+  const navigate = useNavigate();
 
-// Enhanced CSS with proper responsive design
-const cssStyles = `
+
+  const searchParams = location.state || {
+    checkIn: null,
+    checkOut: null,
+    adults: 1,
+    children: 0,
+    guests: 1,
+  };
+
+  const totalGuests = (searchParams.adults || 0) + (searchParams.children || 0);
+
+  const calculateNights = () => {
+    const start = new Date(searchParams.checkIn);
+    const end = new Date(searchParams.checkOut);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const nights = calculateNights();
+
+  function formatDate(dateString) {
+    if (!dateString) return "Not selected";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const loadRooms = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("https://localhost:7298/api/room");
+        const data = await res.json();
+
+        // Semua room ditampilkan tanpa filter jumlah guest
+        const availableRooms = data.map((room) => ({
+          id: room.id,
+          title: room.title,
+          shortDescription: room.shortDescription,
+          longDescription: room.fullDescription,
+          price: room.price,
+          originalPrice: room.price + 50,
+          quantity: room.quantity,
+          features: room.features ? room.features.split(",") : [],
+          image: room.image1
+            ? `https://localhost:7298${room.image1}`
+            : "https://via.placeholder.com/400x300?text=No+Image",
+          rating: 4.5,
+          reviewCount: 120,
+          size: room.size,
+          bedType: room.bed,
+          maxGuests: parseInt(room.occupancy) || 2,
+          cancellation: "Free cancellation until 48 hours before check-in",
+          breakfast: false,
+          discount: 0,
+        }));
+
+        setRooms(availableRooms);
+      } catch (err) {
+        console.error("Failed to load rooms:", err);
+        setRooms([]);
+      }
+      setLoading(false);
+    };
+
+    loadRooms();
+  }, [location]);
+
+
+
+  const sortRooms = (rooms, sortBy) => {
+    const sorted = [...rooms];
+    switch (sortBy) {
+      case "price-low":
+        return sorted.sort((a, b) => a.price - b.price);
+      case "price-high":
+        return sorted.sort((a, b) => b.price - a.price);
+      case "rating":
+        return sorted.sort((a, b) => b.rating - a.rating);
+      case "popular":
+        return sorted.sort((a, b) => b.reviewCount - a.reviewCount);
+      default:
+        return sorted;
+    }
+  };
+
+  const sortedRooms = sortRooms(rooms, sortBy);
+
+  const handleBookRoom = (room) => {
+    const bookingDetails = {
+      roomId: room.id,
+      roomType: room.title,
+      checkinDate: searchParams.checkIn,
+      checkoutDate: searchParams.checkOut,
+      adultGuests: searchParams.adults,
+      childGuests: searchParams.children,
+      nights: nights,
+      pricePerNight: room.price,
+      totalPrice: room.price * nights,
+      bookingId: "GS-" + Math.floor(100000 + Math.random() * 900000),
+    };
+
+    navigate("/bookingform", { state: { bookingDetails } });
+  };
+
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
+
+  // Enhanced CSS with proper responsive design
+  const cssStyles = `
   * {
     box-sizing: border-box;
   }
@@ -620,130 +745,6 @@ const cssStyles = `
   }
 `
 
-function SearchBooking() {
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState("price-low");
-  const navigate = useNavigate();
-  const location = useLocation(); // <--- Ini penting buat trigger reload data
-
-  const searchParams = location.state || {
-    checkIn: null,
-    checkOut: null,
-    adults: 1,
-    children: 0,
-    guests: 1,
-  };
-
-  const totalGuests = (searchParams.adults || 0) + (searchParams.children || 0);
-
-  const calculateNights = () => {
-    const start = new Date(searchParams.checkIn);
-    const end = new Date(searchParams.checkOut);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const nights = calculateNights();
-
-  function formatDate(dateString) {
-    if (!dateString) return "Not selected";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-
-    const loadRooms = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch("https://localhost:7298/api/room");
-        const data = await res.json();
-
-        // Semua room ditampilkan tanpa filter jumlah guest
-        const availableRooms = data.map((room) => ({
-          id: room.id,
-          title: room.title,
-          shortDescription: room.shortDescription,
-          longDescription: room.fullDescription,
-          price: room.price,
-          originalPrice: room.price + 50,
-          quantity: room.quantity,
-          features: room.features ? room.features.split(",") : [],
-          image: room.image1
-            ? `https://localhost:7298${room.image1}`
-            : "https://via.placeholder.com/400x300?text=No+Image",
-          rating: 4.5,
-          reviewCount: 120,
-          size: room.size,
-          bedType: room.bed,
-          maxGuests: parseInt(room.occupancy) || 2,
-          cancellation: "Free cancellation until 48 hours before check-in",
-          breakfast: false,
-          discount: 0,
-        }));
-
-        setRooms(availableRooms);
-      } catch (err) {
-        console.error("Failed to load rooms:", err);
-        setRooms([]);
-      }
-      setLoading(false);
-    };
-
-    loadRooms();
-  }, [location]);
-
-
-
-  const sortRooms = (rooms, sortBy) => {
-    const sorted = [...rooms];
-    switch (sortBy) {
-      case "price-low":
-        return sorted.sort((a, b) => a.price - b.price);
-      case "price-high":
-        return sorted.sort((a, b) => b.price - a.price);
-      case "rating":
-        return sorted.sort((a, b) => b.rating - a.rating);
-      case "popular":
-        return sorted.sort((a, b) => b.reviewCount - a.reviewCount);
-      default:
-        return sorted;
-    }
-  };
-
-  const sortedRooms = sortRooms(rooms, sortBy);
-
-  const handleBookRoom = (room) => {
-    const bookingDetails = {
-      roomId: room.id,
-      roomType: room.title,
-      checkinDate: searchParams.checkIn,
-      checkoutDate: searchParams.checkOut,
-      adultGuests: searchParams.adults,
-      childGuests: searchParams.children,
-      nights: nights,
-      pricePerNight: room.price,
-      totalPrice: room.price * nights,
-      bookingId: "GS-" + Math.floor(100000 + Math.random() * 900000),
-    };
-
-    console.log("Proceeding to booking:", bookingDetails);
-    alert(
-      `Booking ${room.title} for ${nights} nights. Total: $${bookingDetails.totalPrice}`
-    );
-  };
-
-  const goBackToSearch = () => {
-    navigate(-1);
-  };
-
-
   return (
     <div className="container">
       <style>{cssStyles}</style>
@@ -880,15 +881,16 @@ function SearchBooking() {
                       <div className="pricing-section">
                         <div className="price-info">
                           <div className="price-container">
-                            <span className="price">${room.price}</span>
+                            <span className="price">{formatRupiah(room.price)}</span>
                             <span className="per-night">/ night</span>
                           </div>
                           <div className="total-price">
-                            <span className="total-value">${room.price * nights}</span> total for {nights} nights
+                            <span className="total-value">{formatRupiah(room.price * nights)}</span> for {nights} night
                           </div>
                         </div>
                         <button className="book-button" onClick={() => handleBookRoom(room)}>Book Now</button>
                       </div>
+
                     </div>
                   </div>
                 </div>

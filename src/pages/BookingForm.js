@@ -1,40 +1,25 @@
 import { useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import React, { useEffect } from "react";
 
 const BookingForm = () => {
-  // Form steps: 1 = Guest Info, 2 = Payment, 3 = Confirmation
   const [formStep, setFormStep] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isLoading, setIsLoading] = useState(false);
-   const [bookingConfirmed, setBookingConfirmed] = useState(false);
-
-
-  // Form fields
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("indonesia");
   const [address, setAddress] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("05");
-  const [expiryYear, setExpiryYear] = useState("2025");
-  const [cvv, setCvv] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-
-
-  const location = useLocation();
-  // const bookingState = location.state || {};
-  const { bookingDetails = {} } = location.state || {};
-  // const [checkIn, setCheckIn] = useState(bookingState.check_in_date || "");
-  // const [checkOut, setCheckOut] = useState(bookingState.check_out_date || "");
-  // const [totalGuests, setTotalGuests] = useState(bookingState.guest_count || 1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [isAutoFilledName, setIsAutoFilledName] = useState(false);
   const [isAutoFilledEmail, setIsAutoFilledEmail] = useState(false);
 
+  const location = useLocation();
+  const { bookingDetails = {} } = location.state || {};
 
   useEffect(() => {
     const storedName = localStorage.getItem("fullname") || "";
@@ -58,100 +43,57 @@ const BookingForm = () => {
     }
   }, []);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  // Booking details (would come from previous page in a real app)
-  // const bookingDetails = {
-  //   bookingId: "GS-" + Math.floor(100000 + Math.random() * 900000),
-  //   roomType: "Superior Room",
-  //   checkIn: "2025-05-15",
-  //   checkOut: "2025-05-18",
-  //   guests: 2,
-  //   nights: 3,
-  //   pricePerNight: 160,
-  //   taxes: 60,
-  //   total: 540,
-  // };
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  // Handle form submission
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
+      const response = await fetch("https://localhost:7298/api/Booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: bookingDetails.userId,
+          fullname: fullName,
+          email: email,
+          checkinDate: bookingDetails.checkinDate,
+          checkoutDate: bookingDetails.checkoutDate,
+          roomType: bookingDetails.roomType,
+          adultGuests: bookingDetails.adultGuests,
+          childGuests: bookingDetails.childGuests,
+          specialRequest: specialRequests,
+          totalPrice: bookingDetails.totalPrice,
+          phoneNumber: phone,
+          region: country,
+          address: address,
+        }),
+      });
 
-  try {
-    // Simulasi loading delay selama 3 detik
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const response = await fetch("https://localhost:7298/api/Booking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId: bookingDetails.userId,
-        fullname: fullName,
-        email: email,
-        checkinDate: bookingDetails.checkinDate,
-        checkoutDate: bookingDetails.checkoutDate,
-        roomType: bookingDetails.roomType,
-        adultGuests: bookingDetails.adultGuests,
-        childGuests: bookingDetails.childGuests,
-        specialRequest: specialRequests,
-        totalPrice: bookingDetails.totalPrice,
-        phoneNumber: phone,
-        region: country,
-        address: address,
-        paymentMethod: paymentMethod,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-
-      // Cek jika error dari duplikat booking
-      if (
-        errorData.message &&
-        errorData.message.includes("Pesanan dengan data yang sama")
-      ) {
-        alert("Pesanan dengan data yang sama sudah pernah dibuat.");
-      } else {
-        alert("Gagal menyimpan booking: " + JSON.stringify(errorData));
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (
+          errorData.message &&
+          errorData.message.includes("Pesanan dengan data yang sama")
+        ) {
+          alert("Pesanan dengan data yang sama sudah pernah dibuat.");
+        } else {
+          alert("Gagal menyimpan booking: " + JSON.stringify(errorData));
+        }
+        return;
       }
 
-      return; // hentikan proses
-    }
-
-    setFormStep(3); // Berhasil ke langkah sukses
-  } catch (error) {
-    console.error("Booking error:", error);
-    alert("Terjadi kesalahan saat memproses booking.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-
-  // Format card number to show only last 4 digits
-  const formatCardNumber = (number) => {
-    if (!number) return "";
-    return "•••• •••• •••• " + number.slice(-4);
-  };
-
-  // Get payment method display name
-  const getPaymentMethodName = (method) => {
-    switch (method) {
-      case "credit-card":
-        return "Credit/Debit Card";
-      case "paypal":
-        return "PayPal";
-      case "bank-transfer":
-        return "Bank Transfer";
-      default:
-        return "Credit/Debit Card";
+      setFormStep(2);
+    } catch (error) {
+      console.error("Booking error:", error);
+      alert("Terjadi kesalahan saat memproses booking.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Format country name
   const formatCountryName = (countryCode) => {
     const countries = {
       indonesia: "Indonesia",
@@ -164,42 +106,13 @@ const BookingForm = () => {
     return countries[countryCode] || countryCode;
   };
 
-  // Steps in the booking process
   const steps = [
-    {
-      id: 1,
-      name: "Guest Information",
-      status:
-        formStep >= 1 ? (formStep > 1 ? "complete" : "current") : "upcoming",
-    },
-    {
-      id: 2,
-      name: "Payment",
-      status:
-        formStep >= 2 ? (formStep > 2 ? "complete" : "current") : "upcoming",
-    },
-    {
-      id: 3,
-      name: "Confirmation",
-      status: formStep >= 3 ? "current" : "upcoming",
-    },
+    { id: 1, name: "Guest Info", status: formStep > 1 ? "complete" : "current" },
+    { id: 2, name: "Confirmation", status: formStep === 2 ? "current" : "upcoming" },
   ];
 
-  // Reset form and go back to first step
-  // const resetForm = () => {
-  //   setFormStep(1);
-  //   setPhone("");
-  //   setCountry("indonesia");
-  //   setAddress("");
-  //   setSpecialRequests("");
-  //   setPaymentMethod("credit-card");
-  //   setCardName("");
-  //   setCardNumber("");
-  //   setExpiryMonth("05");
-  //   setExpiryYear("2025");
-  //   setCvv("");
-  //   setTermsAccepted(false);
-  // };
+
+
 
   return (
     <>
@@ -933,16 +846,7 @@ const BookingForm = () => {
             </ol>
           </div>
 
-          {/* Confirmation Success Icon (only on confirmation step) */}
-          {/* {formStep === 3 && (
-            <div className="success-icon">
-              <div className="check-circle">
-                <span className="check">✓</span>
-              </div>
-            </div>
-          )} */}
-
-          <div className={`content-grid ${formStep === 3 ? "centered" : ""}`}>
+          <div className={`content-grid ${formStep !== 1 ? "centered" : ""}`}>
             {/* Main Form Area */}
             <div className="main-content centered-content">
               {/* Guest Information Form */}
@@ -1063,222 +967,8 @@ const BookingForm = () => {
                 </div>
               )}
 
-              {/* Payment Form */}
-              {formStep === 2 && (
-                <div className="card">
-                  <div className="card-header">
-                    <h2 className="card-title">Payment Information</h2>
-                    <p className="card-subtitle">
-                      Please select your preferred payment method
-                    </p>
-                  </div>
-                  <form onSubmit={handleSubmit}>
-                    <div className="payment-methods">
-                      <div className="payment-method">
-                        <input
-                          type="radio"
-                          id="credit-card"
-                          name="paymentMethod"
-                          value="credit-card"
-                          checked={paymentMethod === "credit-card"}
-                          onChange={() => setPaymentMethod("credit-card")}
-                        />
-                        <label htmlFor="credit-card">
-                          <span className="payment-icon">💳</span>
-                          Credit or Debit Card
-                        </label>
-                      </div>
-
-                      <div className="payment-method">
-                        <input
-                          type="radio"
-                          id="paypal"
-                          name="paymentMethod"
-                          value="paypal"
-                          checked={paymentMethod === "paypal"}
-                          onChange={() => setPaymentMethod("paypal")}
-                        />
-                        <label htmlFor="paypal">
-                          <span className="payment-icon">🌐</span>
-                          PayPal
-                        </label>
-                      </div>
-
-                      <div className="payment-method">
-                        <input
-                          type="radio"
-                          id="bank-transfer"
-                          name="paymentMethod"
-                          value="bank-transfer"
-                          checked={paymentMethod === "bank-transfer"}
-                          onChange={() => setPaymentMethod("bank-transfer")}
-                        />
-                        <label htmlFor="bank-transfer">
-                          <span className="payment-icon">💳</span>
-                          Bank Transfer
-                        </label>
-                      </div>
-                    </div>
-
-                    {paymentMethod === "credit-card" && (
-                      <div className="payment-details">
-                        <div className="form-group">
-                          <label htmlFor="cardName">Name on Card</label>
-                          <input
-                            id="cardName"
-                            type="text"
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value)}
-                            placeholder="Enter name as shown on card"
-                            required
-                          />
-                        </div>
-
-                        <div className="form-group">
-                          <label htmlFor="cardNumber">Card Number</label>
-                          <div className="input-with-icon">
-                            <input
-                              id="cardNumber"
-                              type="text"
-                              value={cardNumber}
-                              onChange={(e) => setCardNumber(e.target.value)}
-                              placeholder="1234 5678 9012 3456"
-                              required
-                            />
-                            <span className="input-icon">🔒</span>
-                          </div>
-                        </div>
-
-                        <div className="form-row">
-                          <div className="form-group">
-                            <label htmlFor="expiryMonth">Expiry Month</label>
-                            <select
-                              id="expiryMonth"
-                              value={expiryMonth}
-                              onChange={(e) => setExpiryMonth(e.target.value)}
-                            >
-                              {Array.from({ length: 12 }, (_, i) => {
-                                const month = (i + 1)
-                                  .toString()
-                                  .padStart(2, "0");
-                                return (
-                                  <option key={month} value={month}>
-                                    {month}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-
-                          <div className="form-group">
-                            <label htmlFor="expiryYear">Expiry Year</label>
-                            <select
-                              id="expiryYear"
-                              value={expiryYear}
-                              onChange={(e) => setExpiryYear(e.target.value)}
-                            >
-                              {Array.from({ length: 10 }, (_, i) => {
-                                const year = (2025 + i).toString();
-                                return (
-                                  <option key={year} value={year}>
-                                    {year}
-                                  </option>
-                                );
-                              })}
-                            </select>
-                          </div>
-
-                          <div className="form-group">
-                            <label htmlFor="cvv">CVV</label>
-                            <div className="input-with-icon">
-                              <input
-                                id="cvv"
-                                type="text"
-                                value={cvv}
-                                onChange={(e) => setCvv(e.target.value)}
-                                placeholder="123"
-                                maxLength={4}
-                                required
-                              />
-                              <span className="input-icon">🔒</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentMethod === "paypal" && (
-                      <div className="payment-details">
-                        <p className="payment-info">
-                          You will be redirected to PayPal to complete your
-                          payment securely.
-                        </p>
-                        <div className="paypal-logo">
-                          <div className="paypal-placeholder">PayPal Logo</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentMethod === "bank-transfer" && (
-                      <div className="payment-details">
-                        <p className="payment-info">
-                          Please transfer the total amount to the following bank
-                          account:
-                        </p>
-                        <div className="bank-details">
-                          <p>
-                            <span className="detail-label">Bank Name:</span>{" "}
-                            Golden Bank
-                          </p>
-                          <p>
-                            <span className="detail-label">Account Name:</span>{" "}
-                            GoldenStay Hotels
-                          </p>
-                          <p>
-                            <span className="detail-label">
-                              Account Number:
-                            </span>{" "}
-                            1234567890
-                          </p>
-                          <p>
-                            <span className="detail-label">Swift Code:</span>{" "}
-                            GOLDID12
-                          </p>
-                        </div>
-                        <p className="payment-info">
-                          Please include your booking reference in the transfer
-                          description. Your booking will be confirmed once
-                          payment is received.
-                        </p>
-                      </div>
-                    )}
-
-
-
-                    <div className="form-actions">
-                      <button
-                        type="button"
-                        onClick={() => setFormStep(1)}
-                        className="btn btn-outline"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setFormStep(3)}
-                        className="btn btn-primary"
-                      >
-                        Continue to Confirmation
-                      </button>
-
-
-                    </div>
-                  </form>
-                </div>
-              )}
-
               {/* Confirmation Details */}
-              {formStep === 3 && (
+              {formStep === 2 && (
                 <div className="confirmation-wrapper">
                   <div className="card">
                     <div className="card-header">
@@ -1402,79 +1092,6 @@ const BookingForm = () => {
                         <hr />
                       </div>
 
-                      {/* Payment Information */}
-                      <div className="detail-section">
-                        <h3 className="section-title">Payment Information</h3>
-                        <div className="detail-with-icon payment-method-display">
-                          <span className="detail-icon">
-                            {paymentMethod === "credit-card"
-                              ? "💳"
-                              : paymentMethod === "paypal"
-                                ? "🌐"
-                                : "💳"}
-                          </span>
-                          <span className="detail-label">
-                            Payment Method: {getPaymentMethodName(paymentMethod)}
-                          </span>
-                        </div>
-
-                        {paymentMethod === "credit-card" && (
-                          <div className="payment-details-display">
-                            <div className="detail-row">
-                              <span>Card Holder:</span>
-                              <span>{cardName}</span>
-                            </div>
-                            <div className="detail-row">
-                              <span>Card Number:</span>
-                              <span>{formatCardNumber(cardNumber)}</span>
-                            </div>
-                            <div className="detail-row">
-                              <span>Expiry Date:</span>
-                              <span>
-                                {expiryMonth}/{expiryYear}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-
-                        {paymentMethod === "bank-transfer" && (
-                          <div className="payment-details-display">
-                            <p>
-                              <span className="detail-label">Bank Name:</span>{" "}
-                              Golden Bank
-                            </p>
-                            <p>
-                              <span className="detail-label">Account Name:</span>{" "}
-                              GoldenStay Hotels
-                            </p>
-                            <p>
-                              <span className="detail-label">
-                                Account Number:
-                              </span>{" "}
-                              1234567890
-                            </p>
-                            <p>
-                              <span className="detail-label">Swift Code:</span>{" "}
-                              GOLDID12
-                            </p>
-                            <p className="payment-note">
-                              Please include your booking reference in the
-                              transfer description.
-                            </p>
-                          </div>
-                        )}
-
-                        {paymentMethod === "paypal" && (
-                          <div className="payment-details-display">
-                            <p className="payment-note">
-                              Payment will be processed through PayPal.
-                            </p>
-                          </div>
-                        )}
-
-                        <hr />
-                      </div>
-
                       {/* Price Summary */}
                       <div className="price-summary">
                         <div className="detail-row">
@@ -1546,30 +1163,17 @@ const BookingForm = () => {
                         and{" "}
                         <a href="#" className="link">
                           privacy policy
-                        </a>  
+                        </a>
                       </label>
                     </div>
 
-                    <div className="confirmation-actions">
-                      <button
-                        onClick={handleSubmit}
-                        className={`btn btn-primary btn-block ${!termsAccepted ? "disabled" : ""}`}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Processing..." : "Confirm Booking"}
-                      </button>
-
-                      <p className="confirmation-note">
-                        {/* A copy of your booking confirmation has been sent to your email. */}
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Booking Summary Sidebar */}
-            {formStep !== 3 && (
+            {formStep === 1 && (
               <div className="sidebar">
                 <div className="card">
                   <h2 className="card-title">Booking Summary</h2>
@@ -1669,17 +1273,6 @@ const BookingForm = () => {
                 </div>
               </div>
             )}
-
-
-            {/* Return to Homepage button (only on confirmation step) */}
-            {/* {formStep === 3 && (
-              <div className="return-home">
-                <Link to="/home" className="btn btn-outline btn-with-icon">
-                  <span className="btn-icon">←</span>
-                  Return to Homepage
-                </Link>
-              </div>
-            )} */}
           </div>
         </div>
       </div>
