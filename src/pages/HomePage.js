@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Latar1 from "../assets/images/FotoLatar1.png";
 import SuperiorBG from "../assets/images/SuperiorBG.png";
 import DeluxeBG from "../assets/images/DeluxeBG.png";
@@ -414,6 +414,7 @@ const styles = {
     transition: "all 0.2s",
     cursor: "pointer",
     textDecoration: "none",
+    border: "1px solid #D09500", // << tambahin ini yaa
   },
   testimonialsSection: {
     backgroundColor: "#f8f5f0",
@@ -744,18 +745,21 @@ const styles = {
 const API_URL = "https://localhost:7298";
 
 function Homepage() {
+  const navigate = useNavigate();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [adults, setAdults] = useState(2);
+  const [adults, setAdults] = useState(0);
   const [children, setChildren] = useState(0);
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
+  const featuredRef = useRef(null);
   const guestDropdownRef = useRef(null);
 
   const [rooms, setRooms] = useState([]);
+
   useEffect(() => {
     fetch(`${API_URL}/api/room`)
       .then(res => res.json())
@@ -794,20 +798,16 @@ function Homepage() {
     { id: 5, url: Spa, alt: "Spa" },
   ];
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    // Set initial value
     handleResize();
-
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -825,17 +825,36 @@ function Homepage() {
   }, [guestDropdownRef]);
 
   const handleSearch = (e) => {
-    e.preventDefault();
-    console.log("Search for:", { checkIn, checkOut, adults, children });
-    // Handle search logic
+    e.preventDefault(); // wajib biar nggak error “form not connected”
+
+    if (!checkIn || !checkOut) {
+      alert("Please select both check-in and check-out dates.");
+      return;
+    }
+
+    if (adults + children === 0) {
+      alert("Please select at least 1 guest.");
+      return;
+    }
+
+    navigate("/searchbooking", {
+      state: {
+        checkIn,
+        checkOut,
+        adults,
+        children,
+        guests: adults + children,
+      },
+    });
   };
+
 
   const incrementAdults = () => {
     if (adults < 10) setAdults(adults + 1);
   };
 
   const decrementAdults = () => {
-    if (adults > 1) setAdults(adults - 1);
+    if (adults > 0) setAdults(adults - 1);
   };
 
   const incrementChildren = () => {
@@ -886,6 +905,19 @@ function Homepage() {
       prev === 0 ? galleryImages.length - 1 : prev - 1
     );
   };
+
+  const handleScrollToFeatured = () => {
+    if (featuredRef.current) {
+      const yOffset = -80;
+      const y =
+        featuredRef.current.getBoundingClientRect().top +
+        window.pageYOffset +
+        yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
+
 
   return (
     <div style={styles.page}>
@@ -1085,23 +1117,23 @@ function Homepage() {
                   Search
                 </label>
                 <button
-                  type="submit"
+                  type="submit" // ← Ubah dari "submit" ke "button"
                   style={styles.searchButton}
+                  onClick={handleSearch} // ← Pindahkan ke sini
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = "#87723B";
                     e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 8px rgba(208, 149, 0, 0.25)";
+                    e.currentTarget.style.boxShadow = "0 6px 8px rgba(208, 149, 0, 0.25)";
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.backgroundColor = "#D09500";
                     e.currentTarget.style.transform = "none";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 6px rgba(208, 149, 0, 0.2)";
+                    e.currentTarget.style.boxShadow = "0 4px 6px rgba(208, 149, 0, 0.2)";
                   }}
                 >
                   <FaSearch /> Search
                 </button>
+
               </div>
             </div>
           </form>
@@ -1109,7 +1141,7 @@ function Homepage() {
       </section>
 
       {/* DYNAMIC FEATURED ROOMS */}
-      <section id="rooms" style={styles.roomsSection}>
+      <section id="rooms" ref={featuredRef} style={styles.roomsSection}>
         <div style={styles.container}>
           <h2 style={styles.sectionTitle}>Our Accommodations</h2>
           <p style={styles.sectionDescription}>
@@ -1702,24 +1734,11 @@ function Homepage() {
             Book directly with us for the best rates and personalized service
           </p>
           <div style={styles.ctaButtons}>
-            <Link
-              href="#booking"
-              style={{
-                backgroundColor: "#ffffff",
-                color: "#D09500",
-                fontWeight: "600",
-                padding: "10px 20px",
-                borderRadius: "6px",
-                textDecoration: "none",
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                transition: "all 0.3s ease",
-                display: "inline-block",
-                border: "1px solid #D09500",
-              }}
+            <button
+              onClick={handleScrollToFeatured}
+              style={styles.secondaryButton}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255, 255, 255, 0.9)";
-                e.currentTarget.style.color = "#D09500";
+                e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
                 e.currentTarget.style.transform = "translateY(-2px)";
               }}
               onMouseOut={(e) => {
@@ -1728,26 +1747,31 @@ function Homepage() {
               }}
             >
               Book Now
-            </Link>
+            </button>
 
-            <Link
-              to="/signup"
-              style={styles.secondaryButton}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255, 255, 255, 0.9)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "white";
-                e.currentTarget.style.transform = "none";
-              }}
-            >
-              Create Account
-            </Link>
+            {!localStorage.getItem("user") && (
+              <Link
+                to="/signup"
+                style={styles.secondaryButton}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = "white";
+                  e.currentTarget.style.transform = "none";
+                }}
+              >
+                Create Account
+              </Link>
+            )}
+
+
           </div>
         </div>
       </section>
+
+
 
       {/* Footer */}
       <footer style={styles.footer}>

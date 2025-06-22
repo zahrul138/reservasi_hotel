@@ -20,6 +20,7 @@ import RoomSuperior from "./pages/RoomSuperior";
 import RoomExecutive from "./pages/RoomExecutive";
 import BookingForm from "./pages/BookingForm";
 import RoomDetail from "./pages/RoomDetail";
+import SearchBooking from "./pages/SearchBooking";
 
 const LayoutWithNavbar = ({ children }) => (
   <>
@@ -41,6 +42,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/bookingform" element={<BookingForm />} />
+        
 
         {/* Admin routes */}
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />
@@ -56,6 +58,7 @@ function App() {
         <Route path="/roomsuperior" element={<LayoutWithNavbar><RoomSuperior /></LayoutWithNavbar>} />
         <Route path="/roomexecutive" element={<LayoutWithNavbar><RoomExecutive /></LayoutWithNavbar>} />
         <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
+        <Route path="/searchbooking" element={<LayoutWithNavbar><SearchBooking /></LayoutWithNavbar>} />
 
         {/* Default route */}
         <Route path="/" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
