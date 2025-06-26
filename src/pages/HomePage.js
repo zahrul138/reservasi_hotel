@@ -277,6 +277,8 @@ const styles = {
     border: "1px solid #f0f0f0",
     width: "350px",
     flex: "0 0 auto",
+    display: "flex",
+    flexDirection: "column",
   },
   roomImage: {
     borderRadius: "5px",
@@ -286,6 +288,9 @@ const styles = {
   },
   roomDetails: {
     padding: "1.75rem",
+    display: "flex",
+    flexDirection: "column",
+    flexGrow: 1,
   },
   roomTitle: {
     fontSize: "1.4rem",
@@ -297,12 +302,16 @@ const styles = {
     color: "#666",
     marginBottom: "1.25rem",
     fontSize: "0.95rem",
+    height: "40px", // Ganti dari minHeight
+    overflow: "hidden",
   },
   roomFeatures: {
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
     marginBottom: "1.25rem",
+    height: "80px", // Ganti dari minHeight
+    overflow: "hidden",
   },
   roomFeature: {
     fontSize: "0.875rem",
@@ -339,6 +348,7 @@ const styles = {
     transition: "all 0.2s",
     cursor: "pointer",
     textDecoration: "none",
+    marginTop: "auto",
   },
 
   // Amenities section
