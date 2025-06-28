@@ -80,12 +80,15 @@ function RoomManage() {
   // HAPUS slash di akhir
   const API_URL = "https://localhost:7298";
 
-  const parseSafe = (val) => {
+  const parseSafe = (value) => {
     try {
-      const parsed = JSON.parse(val);
-      return Array.isArray(parsed) ? parsed : [parsed];
+      if (typeof value === "string") {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed.map(i => String(i).replace(/^"+|"+$/g, '')) : [];
+      }
+      return Array.isArray(value) ? value : [];
     } catch {
-      return typeof val === "string" ? [val] : [];
+      return [];
     }
   };
 
@@ -105,9 +108,9 @@ function RoomManage() {
       data = data.map((room) => ({
         ...room,
         images: [room.image1, room.image2, room.image3],
-        features: typeof room.features === "string" ? room.features.split(",") : [],
+        features: parseSafe(room.features),
         amenities: typeof room.amenities === "string" ? JSON.parse(room.amenities) : [],
-        policies: typeof room.policies === "string" ? room.policies.split(",") : [],
+        policies: parseSafe(room.policies),
       }));
 
       setRooms(data);
@@ -117,67 +120,72 @@ function RoomManage() {
     }
   };
 
-
-
   // ----------- CRUD -----------
   // ADD Room
   const handleAddRoom = async (roomData) => {
-    let uploaded = ["", "", ""];
-    // Ambil file saja (bukan string/image lama)
-    const files = roomData.images.filter(img => img instanceof File);
-    if (files.length) {
+    try {
       const formData = new FormData();
-      files.forEach(img => formData.append("images", img));
-      // SLASH-NYA JANGAN DOUBLE!
-      const res = await fetch(`${API_URL}/api/upload/multi`, {
+
+      // Upload gambar terlebih dahulu
+      const files = roomData.images.filter(img => img instanceof File);
+      let uploaded = ["", "", ""];
+      if (files.length) {
+        const imageFormData = new FormData();
+        files.forEach(img => imageFormData.append("images", img));
+
+        const res = await fetch(`${API_URL}/api/upload/multi`, {
+          method: "POST",
+          body: imageFormData
+        });
+
+        if (!res.ok) {
+          alert("Upload gagal!");
+          return;
+        }
+
+        const result = await res.json();
+        uploaded = result.urls || ["", "", ""];
+      } else {
+        uploaded = roomData.images;
+      }
+
+      // Isi FormData untuk Create Room
+      formData.append("Title", roomData.title);
+      formData.append("ShortDescription", roomData.shortDescription);
+      formData.append("FullDescription", roomData.fullDescription);
+      formData.append("Price", parseFloat(roomData.price));
+      formData.append("Size", roomData.size);
+      formData.append("Occupancy", roomData.occupancy);
+      formData.append("Bed", roomData.bed);
+      formData.append("RoomView", roomData.roomView);
+      formData.append("Image1", uploaded[0] || "");
+      formData.append("Image2", uploaded[1] || "");
+      formData.append("Image3", uploaded[2] || "");
+      formData.append("Quantity", parseInt(roomData.quantity, 10) || 1);
+
+      // Format array jadi string atau json
+      formData.append("features", JSON.stringify(roomData.features));
+      formData.append("policies", JSON.stringify(roomData.policies));
+      formData.append("amenities", JSON.stringify(roomData.amenities.map(a => a.name)));
+
+      // Kirim request
+      const resp = await fetch(`${API_URL}/api/room`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
-      if (!res.ok) {
-        alert("Upload gagal! Periksa backend atau endpoint.");
+
+      if (!resp.ok) {
+        alert("Tambah Room gagal! Cek API.");
         return;
       }
-      const result = await res.json();
-      uploaded = result.urls || ["", "", ""];
-    } else {
-      uploaded = roomData.images;
+
+      fetchRoomsFromAPI && fetchRoomsFromAPI();
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Error saat menambahkan room:", err);
+      alert("Terjadi error saat menambahkan room.");
     }
-
-    // Kirim room ke API
-    const [image1, image2, image3] = uploaded;
-    const payload = {
-      title: roomData.title,
-      shortDescription: roomData.shortDescription,
-      fullDescription: roomData.fullDescription,
-      price: parseFloat(roomData.price),
-      size: roomData.size,
-      occupancy: roomData.occupancy,
-      bed: roomData.bed,
-      roomView: roomData.roomView,
-      image1: image1 || "",
-      image2: image2 || "",
-      image3: image3 || "",
-      features: roomData.features.join(","),
-      amenities: JSON.stringify(roomData.amenities.map(a => a.name)),
-      policies: roomData.policies.join(","),
-      quantity: parseInt(roomData.quantity, 10) || 1,
-    };
-
-    const resp = await fetch(`${API_URL}/api/room`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (!resp.ok) {
-      alert("Tambah Room gagal! Cek API/backend.");
-      return;
-    }
-    fetchRoomsFromAPI && fetchRoomsFromAPI();
-    setShowAddModal(false);
   };
-
-
 
   const handleUpdateRoom = async (roomId, data) => {
     try {
@@ -1754,35 +1762,42 @@ function RoomManage() {
                 </div>
 
                 {/* Features Section */}
-                {Array.isArray(room.features) && room.features.length > 0 && (
-                  <div style={{ marginBottom: "15px" }}>
-                    <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
-                      Features:
+                {(() => {
+                  const features = Array.isArray(room.features)
+                    ? room.features
+                    : parseSafe(room.features); // fallback kalau string JSON
+
+                  return features.length > 0 && (
+                    <div style={{ marginBottom: "15px" }}>
+                      <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
+                        Features:
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                        {features.slice(0, 3).map((feature, index) => (
+                          <span
+                            key={index}
+                            style={{
+                              backgroundColor: "#e8f5e8",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              color: "#333",
+                              border: "1px solid #d0b375",
+                            }}
+                          >
+                            {String(feature)}
+                          </span>
+                        ))}
+                        {features.length > 3 && (
+                          <span style={{ fontSize: "12px", color: "#666" }}>
+                            +{features.length - 3} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                      {room.features.slice(0, 3).map((feature, index) => (
-                        <span
-                          key={index}
-                          style={{
-                            backgroundColor: "#e8f5e8",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            color: "#333",
-                            border: "1px solid #d0b375",
-                          }}
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                      {room.features.length > 3 && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>
-                          +{room.features.length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
+
 
 
 
@@ -1819,35 +1834,42 @@ function RoomManage() {
                 )}
 
                 {/* Policies Section */}
-                {Array.isArray(room.policies) && room.policies.length > 0 && (
-                  <div style={{ marginBottom: "15px" }}>
-                    <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
-                      Policies:
+                {(() => {
+                  const policies = Array.isArray(room.policies)
+                    ? room.policies
+                    : parseSafe(room.policies);
+
+                  return policies.length > 0 && (
+                    <div style={{ marginBottom: "15px" }}>
+                      <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
+                        Policies:
+                      </div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                        {policies.slice(0, 2).map((policy, index) => (
+                          <span
+                            key={index}
+                            style={{
+                              backgroundColor: "#fff8e1",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              color: "#333",
+                              border: "1px solid #d0b375",
+                            }}
+                          >
+                            {String(policy)}
+                          </span>
+                        ))}
+                        {policies.length > 2 && (
+                          <span style={{ fontSize: "12px", color: "#666" }}>
+                            +{policies.length - 2} more
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                      {room.policies.slice(0, 2).map((policy, index) => (
-                        <span
-                          key={index}
-                          style={{
-                            backgroundColor: "#fff8e1",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            color: "#333",
-                            border: "1px solid #d0b375",
-                          }}
-                        >
-                          {policy}
-                        </span>
-                      ))}
-                      {room.policies.length > 2 && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>
-                          +{room.policies.length - 2} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
+
 
 
                 {/* Quantity Controls */}

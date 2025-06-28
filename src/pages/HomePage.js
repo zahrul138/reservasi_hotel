@@ -752,6 +752,21 @@ const styles = {
 
 const API_URL = "https://localhost:7298";
 
+function parseSafe(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // fallback ke comma-separated
+      return value.split(",").map(s => s.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
+
 function Homepage() {
   const navigate = useNavigate();
   const [checkIn, setCheckIn] = useState("");
@@ -771,7 +786,14 @@ function Homepage() {
   useEffect(() => {
     fetch(`${API_URL}/api/room`)
       .then(res => res.json())
-      .then(data => setRooms(data));
+      .then(data => {
+        const parsed = data.map(room => ({
+          ...room,
+          features: parseSafe(room.features),
+          policies: parseSafe(room.policies),
+        }));
+        setRooms(parsed);
+      });
   }, []);
 
   const testimonials = [
@@ -924,18 +946,6 @@ function Homepage() {
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
-
-
-  const parseSafe = (value) => {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed;
-      return [parsed];
-    } catch {
-      return [value];
-    }
-  };
-
 
 
   return (
@@ -1177,11 +1187,11 @@ function Homepage() {
               <div
                 key={room.id}
                 style={styles.roomCard}
-                onMouseOver={e => {
+                onMouseOver={(e) => {
                   e.currentTarget.style.transform = "translateY(-5px)";
                   e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.1)";
                 }}
-                onMouseOut={e => {
+                onMouseOut={(e) => {
                   e.currentTarget.style.transform = "none";
                   e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.08)";
                 }}
@@ -1202,43 +1212,48 @@ function Homepage() {
                     })(),
                   }}
                 ></div>
-                <div style={{
-                  position: "absolute",
-                  top: "1rem",
-                  right: "1rem",
-                  backgroundColor: "#ffffff",
-                  color: "#D09500",
-                  border: "1px solid #D09500",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "12px",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  zIndex: 2
-                }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "1rem",
+                    right: "1rem",
+                    backgroundColor: "#ffffff",
+                    color: "#D09500",
+                    border: "1px solid #D09500",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: "12px",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    zIndex: 2,
+                  }}
+                >
                   {room.quantity} room left
                 </div>
                 <div style={styles.roomDetails}>
                   <h3 style={styles.roomTitle}>{room.title}</h3>
                   <p style={styles.roomDescription}>{room.shortDescription}</p>
                   <div style={styles.roomFeatures}>
-                    {(room.features?.split(",").slice(0, 3) || []).map((feat, i) => (
+                    {(room.features || []).slice(0, 3).map((feat, i) => (
                       <span key={i} style={styles.roomFeature}>
                         <FaCheck size={12} /> {feat}
                       </span>
                     ))}
                   </div>
                   <div style={styles.roomPrice}>
-                    <span style={styles.price}>Rp {room.price.toLocaleString("id-ID")}</span>/ night
+                    <span style={styles.price}>
+                      Rp {room.price.toLocaleString("id-ID")}
+                    </span>
+                    / night
                   </div>
                   <Link
                     to={`/room/${room.id}`}
                     style={styles.viewDetailsButton}
-                    onMouseOver={e => {
+                    onMouseOver={(e) => {
                       e.currentTarget.style.backgroundColor = "#D09500";
                       e.currentTarget.style.color = "white";
                     }}
-                    onMouseOut={e => {
+                    onMouseOut={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
                       e.currentTarget.style.color = "#D09500";
                     }}
@@ -1248,10 +1263,10 @@ function Homepage() {
                 </div>
               </div>
             ))}
-
           </div>
         </div>
       </section>
+
 
       {/* Amenities */}
       <section id="amenities" style={styles.amenitiesSection}>

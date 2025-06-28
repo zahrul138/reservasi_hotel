@@ -1,5 +1,3 @@
-"use client"
-
 import { useLocation, useNavigate } from "react-router-dom"
 import { useState, useEffect, useRef } from "react"
 import {
@@ -16,6 +14,20 @@ import {
   FaDog,
   FaShieldAlt,
 } from "react-icons/fa"
+
+const parseSafe = (value) => {
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return typeof value === "string" ? [value.replace(/[[\]"]/g, "")] : [value];
+  }
+};
+
+
+
+
+
 
 function SearchBooking() {
   const [rooms, setRooms] = useState([])
@@ -153,8 +165,8 @@ function SearchBooking() {
         price: room.price,
         originalPrice: room.price + 50,
         quantity: room.quantity,
-        features: room.features ? room.features.split(",") : [],
-        policies: room.policies ? room.policies.split(",") : [],
+        features: parseSafe(room.features),
+        policies: parseSafe(room.policies),
         image: room.image1
           ? `https://localhost:7298${room.image1}`
           : "https://via.placeholder.com/400x300?text=No+Image",
@@ -1586,18 +1598,22 @@ function SearchBooking() {
                         <div className="features-section">
                           <h4 className="features-title">Features:</h4>
                           <div className="features-list">
-                            {room.features.slice(0, 4).map((feature, i) => (
-                              <div key={i} className="feature-badge">
-                                <FaCheck /> {feature}
-                              </div>
-                            ))}
+                            {room.features
+                              .flatMap(parseSafe)
+                              .slice(0, 4)
+                              .map((feature, i) => (
+                                <div key={i} className="feature-badge">
+                                  <FaCheck /> {feature}
+                                </div>
+                              ))}
                           </div>
                         </div>
+
                         {room.policies && room.policies.length > 0 && (
                           <div className="policies-section">
                             <h4 className="policies-title">Policies:</h4>
                             <div className="policies-list">
-                              {room.policies.map((policy, i) => (
+                              {room.policies.flatMap(parseSafe).map((policy, i) => (
                                 <div key={i} className="policy-badge">
                                   {getPolicyIcon(policy)} {policy}
                                 </div>
@@ -1605,6 +1621,7 @@ function SearchBooking() {
                             </div>
                           </div>
                         )}
+
                       </div>
                       <div className="pricing-section">
                         <div className="price-info">

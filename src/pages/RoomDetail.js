@@ -8,6 +8,21 @@ import {
 } from "react-icons/fa";
 
 function RoomDetail() {
+  // Untuk memastikan data yang tampil adalah teks bersih
+  const parseSafe = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+        return value.split(",").map((v) => v.trim()).filter(Boolean);
+      } catch {
+        return value.split(",").map((v) => v.trim()).filter(Boolean);
+      }
+    }
+    return [];
+  };
+
   const { id } = useParams();
   const [room, setRoom] = useState(null);
   const [checkIn, setCheckIn] = useState("");
@@ -32,8 +47,8 @@ function RoomDetail() {
           images: [data.image1, data.image2, data.image3].filter(Boolean).map(img =>
             img.startsWith("http") ? img : `https://localhost:7298${img}`
           ),
-          features: (data.features || "").split(",").filter(Boolean),
-          amenities: (JSON.parse(data.amenities || "[]") || []).map((name) => {
+          features: parseSafe(data.features),
+          amenities: parseSafe(data.amenities).map((name) => {
             let iconObj = {
               "High-speed Wi-Fi": <FaWifi />,
               "Smart TV with streaming": <FaTv />,
@@ -46,9 +61,9 @@ function RoomDetail() {
             };
             return { icon: iconObj[name] || <FaCheck />, name };
           }),
-          policies: (data.policies || "").split(",").filter(Boolean),
-          reviews: [], // No reviews from API, dummy if needed
-          similarRooms: [] // You can fill later from API or custom
+          policies: parseSafe(data.policies),
+          reviews: [],
+          similarRooms: [],
         });
       });
     const user = localStorage.getItem("user");
@@ -146,16 +161,8 @@ function RoomDetail() {
   // Calculate average rating
   const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
 
-  // Untuk memastikan data yang tampil adalah teks bersih
-  const parseSafe = (value) => {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed;
-      return [parsed];
-    } catch {
-      return [value];
-    }
-  };
+  
+
 
 
   // CSS inline (atau import dari RoomSuperior.js)
@@ -1431,15 +1438,20 @@ function RoomDetail() {
               {activeTab === "description" && (
                 <div className="description-content">
                   <p>{room.fullDescription}</p>
-                  <div className="room-features-grid">
-                    {room.features?.flatMap(parseSafe).map((feature, index) => (
-                      <div key={index} className="feature-item">
-                        <FaCheck className="feature-icon" />
-                        <span>{feature}</span>
-                      </div>
-                    ))}
 
-                  </div>
+                  {room.features?.length > 0 && (
+                    <>
+                      <h4 style={{ marginTop: "1rem", marginBottom: "0.5rem", fontSize: "16px" }}>Features:</h4>
+                      <div className="room-features-grid">
+                        {room.features.map((feature, index) => (
+                          <div key={index} className="feature-item">
+                            <FaCheck className="feature-icon" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1452,22 +1464,25 @@ function RoomDetail() {
                         <h3>{amenity.name}</h3>
                       </div>
                     ))}
-
                   </div>
                 </div>
               )}
 
               {activeTab === "policies" && (
                 <div className="policies-content">
-                  <ul className="policies-list">
-                    {room.policies?.flatMap(parseSafe).map((policy, index) => (
-                      <li key={index} className="policy-item">
-                        <FaCheck className="policy-icon" />
-                        <span>{policy}</span>
-                      </li>
-                    ))}
-
-                  </ul>
+                  {room.policies?.length > 0 && (
+                    <>
+                      <h4 style={{ marginBottom: "0.5rem", fontSize: "16px" }}>Policies:</h4>
+                      <ul className="policies-list">
+                        {room.policies.map((policy, index) => (
+                          <li key={index} className="policy-item">
+                            <FaCheck className="policy-icon" />
+                            <span>{policy}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -1506,6 +1521,7 @@ function RoomDetail() {
             </div>
           </div>
         </section>
+
 
         {/* Similar/Other Rooms, isi sendiri kalau ada datanya dari API */}
         {/* ... */}
