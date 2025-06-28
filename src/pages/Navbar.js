@@ -225,7 +225,7 @@ const Navbar = () => {
                             </Box>
 
                             <Box sx={{ display: "flex", gap: 3 }}>
-                                {["Home", "Destination", "About", "Contact"].map((text, index) => (
+                                {["Home", "History", "About", "Contact"].map((text, index) => (
                                     <Button
                                         key={index}
                                         color="inherit"

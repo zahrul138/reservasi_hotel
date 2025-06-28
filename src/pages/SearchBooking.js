@@ -1401,7 +1401,7 @@ function SearchBooking() {
                           >
                             <span>
                               {adults} {adults === 1 ? "Adult" : "Adults"}
-                              {children > 0 && `, ${children} ${children === 1 ? "Child" : "Children"}`}
+                              {children > 0 && `, ${children} ${children === 1 ? "Children" : "Children"}`}
                             </span>
                             <FaChevronDown
                               style={{
@@ -1460,7 +1460,7 @@ function SearchBooking() {
                         <p className="summary-value">
                           {searchParams.adults} Adult{searchParams.adults > 1 ? "s" : ""}
                           {searchParams.children > 0 &&
-                            `, ${searchParams.children} Child${searchParams.children > 1 ? "ren" : ""}`}
+                            `, ${searchParams.children} Children${searchParams.children > 1 ? "ren" : ""}`}
                         </p>
                       )}
                     </div>

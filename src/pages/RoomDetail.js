@@ -141,10 +141,22 @@ function RoomDetail() {
   const reviews = room.reviews.length > 0 ? room.reviews : [
     { id: 1, author: "User 1", rating: 5, date: "2025-06-01", comment: "Mantap, kamar bersih & nyaman!" }
   ];
-  const similarRooms = room.similarRooms.length > 0 ? room.similarRooms : [];
+
 
   // Calculate average rating
   const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
+
+  // Untuk memastikan data yang tampil adalah teks bersih
+  const parseSafe = (value) => {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+      return [parsed];
+    } catch {
+      return [value];
+    }
+  };
+
 
   // CSS inline (atau import dari RoomSuperior.js)
   // ... (pake style dari RoomSuperior.js biar 1:1, atau import kalau udah dipisah file css)
@@ -1420,12 +1432,13 @@ function RoomDetail() {
                 <div className="description-content">
                   <p>{room.fullDescription}</p>
                   <div className="room-features-grid">
-                    {room.features?.map((feature, index) => (
+                    {room.features?.flatMap(parseSafe).map((feature, index) => (
                       <div key={index} className="feature-item">
                         <FaCheck className="feature-icon" />
                         <span>{feature}</span>
                       </div>
                     ))}
+
                   </div>
                 </div>
               )}
@@ -1439,6 +1452,7 @@ function RoomDetail() {
                         <h3>{amenity.name}</h3>
                       </div>
                     ))}
+
                   </div>
                 </div>
               )}
@@ -1446,12 +1460,13 @@ function RoomDetail() {
               {activeTab === "policies" && (
                 <div className="policies-content">
                   <ul className="policies-list">
-                    {room.policies?.map((policy, index) => (
+                    {room.policies?.flatMap(parseSafe).map((policy, index) => (
                       <li key={index} className="policy-item">
                         <FaCheck className="policy-icon" />
                         <span>{policy}</span>
                       </li>
                     ))}
+
                   </ul>
                 </div>
               )}

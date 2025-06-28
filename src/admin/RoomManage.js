@@ -80,6 +80,16 @@ function RoomManage() {
   // HAPUS slash di akhir
   const API_URL = "https://localhost:7298";
 
+  const parseSafe = (val) => {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      return typeof val === "string" ? [val] : [];
+    }
+  };
+
+
   // Fetch Rooms from API
   const fetchRoomsFromAPI = async () => {
     try {
@@ -91,13 +101,15 @@ function RoomManage() {
       }
       let data = await res.json();
       if (!Array.isArray(data)) data = [];
-      data = data.map(room => ({
+
+      data = data.map((room) => ({
         ...room,
         images: [room.image1, room.image2, room.image3],
-        features: room.features ? room.features.split(",") : [],
-        amenities: room.amenities ? JSON.parse(room.amenities) : [],
-        policies: room.policies ? room.policies.split(",") : [],
+        features: typeof room.features === "string" ? room.features.split(",") : [],
+        amenities: typeof room.amenities === "string" ? JSON.parse(room.amenities) : [],
+        policies: typeof room.policies === "string" ? room.policies.split(",") : [],
       }));
+
       setRooms(data);
     } catch (error) {
       setRooms([]);
@@ -105,12 +117,6 @@ function RoomManage() {
     }
   };
 
-  useEffect(() => { fetchRoomsFromAPI(); }, []);
-
-  const fetchRooms = async () => {
-    const res = await axios.get("https://localhost:7298/api/Room");
-    setRooms(res.data); // asumsinya kamu pakai setRooms buat update list
-  };
 
 
   // ----------- CRUD -----------
@@ -177,6 +183,7 @@ function RoomManage() {
     try {
       const formData = new FormData();
 
+      // Data dasar
       formData.append("Id", roomId);
       formData.append("Title", data.title);
       formData.append("ShortDescription", data.shortDescription);
@@ -188,25 +195,26 @@ function RoomManage() {
       formData.append("RoomView", data.roomView);
       formData.append("Quantity", data.quantity);
 
-      // Append array data
-      data.features.forEach((f, i) => {
-        formData.append(`Features[${i}]`, f);
-      });
-      data.policies.forEach((p, i) => {
-        formData.append(`Policies[${i}]`, p);
-      });
-      data.amenities.forEach((a, i) => {
-        formData.append(`Amenities[${i}].Name`, a.name);
-        formData.append(`Amenities[${i}].Icon`, a.icon);
-      });
+      // Ubah array ke format string atau JSON
+      formData.append("features", JSON.stringify(data.features));
+      formData.append("policies", JSON.stringify(data.policies));
+      formData.append("amenities", JSON.stringify(data.amenities.map(a => a.name)));
 
-      // Gambar
-      data.images.forEach((img, i) => {
+
+
+      // Kirim gambar lama (string) agar tidak terhapus
+      formData.append("Image1", typeof data.images[0] === "string" ? data.images[0] : "");
+      formData.append("Image2", typeof data.images[1] === "string" ? data.images[1] : "");
+      formData.append("Image3", typeof data.images[2] === "string" ? data.images[2] : "");
+
+      // Kirim gambar baru (File)
+      data.images.forEach((img) => {
         if (img instanceof File) {
-          formData.append("Images", img); // ASP.NET akan baca semua ini sebagai List<IFormFile>
+          formData.append("Images", img); // ASP.NET expects List<IFormFile>
         }
       });
 
+      // Kirim ke backend
       const res = await axios.put(
         `https://localhost:7298/api/Room/${roomId}`,
         formData,
@@ -218,15 +226,14 @@ function RoomManage() {
       );
 
       console.log("Room updated:", res.data);
+
+      // Refetch data biar policies/amenities/images normal kembali
       setEditingRoom(null);
-      fetchRooms();
+      fetchRoomsFromAPI();
     } catch (err) {
       console.error("Update failed:", err);
     }
   };
-
-
-
 
 
 
@@ -274,7 +281,7 @@ function RoomManage() {
 
     const [previewImages, setPreviewImages] = useState(["", "", ""]);
 
- 
+
 
     useEffect(() => {
       const updatedPreviews = formData.images.map((img) => {
@@ -1778,6 +1785,8 @@ function RoomManage() {
                 )}
 
 
+
+
                 {/* Amenities Section */}
                 {Array.isArray(room.amenities) && room.amenities.length > 0 && (
                   <div style={{ marginBottom: "15px" }}>
@@ -1809,10 +1818,8 @@ function RoomManage() {
                   </div>
                 )}
 
-
-
                 {/* Policies Section */}
-                {room.policies && room.policies.length > 0 && (
+                {Array.isArray(room.policies) && room.policies.length > 0 && (
                   <div style={{ marginBottom: "15px" }}>
                     <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
                       Policies:
@@ -1834,11 +1841,14 @@ function RoomManage() {
                         </span>
                       ))}
                       {room.policies.length > 2 && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>+{room.policies.length - 2} more</span>
+                        <span style={{ fontSize: "12px", color: "#666" }}>
+                          +{room.policies.length - 2} more
+                        </span>
                       )}
                     </div>
                   </div>
                 )}
+
 
                 {/* Quantity Controls */}
                 <div className="quantity-section">
@@ -1959,11 +1969,6 @@ function RoomManage() {
             </div>
           </div>
         </div>
-
-
-
-
-
       </main>
     </div>
   )

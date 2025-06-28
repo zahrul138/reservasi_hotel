@@ -926,6 +926,17 @@ function Homepage() {
   };
 
 
+  const parseSafe = (value) => {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+      return [parsed];
+    } catch {
+      return [value];
+    }
+  };
+
+
 
   return (
     <div style={styles.page}>
