@@ -21,6 +21,7 @@ import RoomExecutive from "./pages/RoomExecutive";
 import BookingForm from "./pages/BookingForm";
 import RoomDetail from "./pages/RoomDetail";
 import SearchBooking from "./pages/SearchBooking";
+import InvoicePage from "./pages/InvoicePage";
 
 const LayoutWithNavbar = ({ children }) => (
   <>
@@ -42,7 +43,7 @@ function App() {
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/bookingform" element={<BookingForm />} />
-        
+        <Route path="/invoice" element={<InvoicePage />} />
 
         {/* Admin routes */}
         <Route path="/admin/dashboard" element={<DashboardAdmin />} />

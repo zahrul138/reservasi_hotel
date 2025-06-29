@@ -116,6 +116,7 @@ function RoomDetail() {
       checkinDate: checkIn,
       checkoutDate: checkOut,
       roomType: room.title,
+      roomId: room.id,
       adultGuests: adults,
       childGuests: children,
       totalPrice: totalPrice,

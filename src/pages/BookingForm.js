@@ -1,61 +1,191 @@
-import { useState } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import React, { useEffect } from "react";
+"use client"
+
+import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
+import { useEffect } from "react"
 
 const BookingForm = () => {
-  const [formStep, setFormStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [bookingConfirmed, setBookingConfirmed] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [country, setCountry] = useState("indonesia");
-  const [address, setAddress] = useState("");
-  const [specialRequests, setSpecialRequests] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [isAutoFilledName, setIsAutoFilledName] = useState(false);
-  const [isAutoFilledEmail, setIsAutoFilledEmail] = useState(false);
+  const [formStep, setFormStep] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [bookingConfirmed, setBookingConfirmed] = useState(false)
+  const [phone, setPhone] = useState("")
+  const [country, setCountry] = useState("indonesia")
+  const [address, setAddress] = useState("")
+  const [specialRequests, setSpecialRequests] = useState("")
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [isAutoFilledName, setIsAutoFilledName] = useState(false)
+  const [isAutoFilledEmail, setIsAutoFilledEmail] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState("cash")
+  const location = useLocation()
+  const { bookingDetails = {} } = location.state || {}
+  const navigate = useNavigate()
 
-  const location = useLocation();
-  const { bookingDetails = {} } = location.state || {};
-
-  useEffect(() => {
-    const storedName = localStorage.getItem("fullname") || "";
-    const storedEmail = localStorage.getItem("email") || "";
-    setFullName(storedName);
-    setEmail(storedEmail);
-  }, []);
+  const [roomData, setRoomData] = useState(null)
 
   useEffect(() => {
-    const storedName = localStorage.getItem("fullname");
-    const storedEmail = localStorage.getItem("email");
+    const fetchRoom = async () => {
+      if (!bookingDetails.roomId) return
+
+      try {
+        const res = await fetch(`https://localhost:7298/api/room/${bookingDetails.roomId}`)
+        const data = await res.json()
+        setRoomData(data)
+      } catch (err) {
+        console.error("Gagal mengambil data room:", err)
+      }
+    }
+
+    fetchRoom()
+  }, [bookingDetails.roomId])
+
+  const calculateNights = () => {
+    const checkIn = new Date(bookingDetails.checkinDate)
+    const checkOut = new Date(bookingDetails.checkoutDate)
+    if (isNaN(checkIn) || isNaN(checkOut)) return 0
+    const diffTime = Math.abs(checkOut - checkIn)
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  }
+
+  const nights = calculateNights()
+  const pricePerNight = roomData?.price || 0
+  const calculatedTotalPrice = pricePerNight * nights
+
+  // Debug log to check booking details
+  console.log("Booking Details:", bookingDetails)
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullname") || ""
+    const storedEmail = localStorage.getItem("email") || ""
+    setFullName(storedName)
+    setEmail(storedEmail)
+  }, [])
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("fullname")
+    const storedEmail = localStorage.getItem("email")
 
     if (storedName) {
-      setFullName(storedName);
-      setIsAutoFilledName(true);
+      setFullName(storedName)
+      setIsAutoFilledName(true)
     }
 
     if (storedEmail) {
-      setEmail(storedEmail);
-      setIsAutoFilledEmail(true);
+      setEmail(storedEmail)
+      setIsAutoFilledEmail(true)
     }
-  }, []);
+  }, [])
+
+  useEffect(() => {
+    // Load Midtrans Snap script
+    const script = document.createElement("script")
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js"
+    script.setAttribute("data-client-key", "YOUR_CLIENT_KEY_HERE") // Replace with your actual client key
+    document.head.appendChild(script)
+
+    return () => {
+      // Cleanup script on unmount
+      if (document.head.contains(script)) {
+        document.head.removeChild(script)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      if (paymentMethod === "midtransfer") {
+        // 1. Request Snap Token from Midtrans
+        const snapRes = await fetch("https://localhost:7298/api/payment/create-transaction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: `ORDER-${bookingDetails.userId}-${Date.now()}`,
+            amount: calculatedTotalPrice,
+            customerName: fullName,
+            customerEmail: email,
+          }),
+        })
 
-      const response = await fetch("https://localhost:7298/api/Booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        if (!snapRes.ok) {
+          throw new Error("Failed to create payment transaction")
+        }
+
+        const snapData = await snapRes.json()
+
+        // 2. Check if Midtrans Snap is loaded
+        if (typeof window.snap === "undefined") {
+          alert("Payment system is loading. Please try again in a moment.")
+          return
+        }
+
+        // 3. Open MidTransfer payment popup
+        window.snap.pay(snapData.token, {
+          onSuccess: async (result) => {
+            console.log("Payment successful:", result)
+
+            // Save booking after successful payment
+            const bookingPayload = {
+              userId: bookingDetails.userId,
+              fullname: fullName,
+              email: email,
+              checkinDate: bookingDetails.checkinDate,
+              checkoutDate: bookingDetails.checkoutDate,
+              roomType: bookingDetails.roomType,
+              adultGuests: bookingDetails.adultGuests,
+              childGuests: bookingDetails.childGuests,
+              specialRequest: specialRequests,
+              totalPrice: calculatedTotalPrice,
+              phoneNumber: phone,
+              region: country,
+              address: address,
+              paymentMethod: paymentMethod,
+              paymentStatus: "paid",
+              transactionId: result.transaction_id,
+            }
+
+            const response = await fetch("https://localhost:7298/api/Booking", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(bookingPayload),
+            })
+
+            if (!response.ok) {
+              const errorData = await response.json()
+              if (errorData.message && errorData.message.includes("Pesanan dengan data yang sama")) {
+                alert("❗Pesanan dengan data yang sama sudah pernah dibuat.")
+              } else {
+                alert("Gagal menyimpan booking: " + JSON.stringify(errorData))
+              }
+              return
+            }
+
+            const bookingResult = await response.json()
+            setBookingConfirmed(true)
+            setFormStep(3) // Move to success step
+          },
+
+          onPending: (result) => {
+            console.log("Payment pending:", result)
+            alert("Transaksi sedang diproses. Silakan tunggu konfirmasi pembayaran.")
+          },
+
+          onError: (result) => {
+            console.log("Payment failed:", result)
+            alert("Gagal memproses pembayaran. Silakan coba lagi.")
+          },
+
+          onClose: () => {
+            console.log("Payment popup closed")
+            alert("Pembayaran dibatalkan.")
+          },
+        })
+      } else if (paymentMethod === "cash") {
+        // Cash payment - save booking and redirect to invoice
+        const bookingPayload = {
           userId: bookingDetails.userId,
           fullname: fullName,
           email: email,
@@ -65,34 +195,56 @@ const BookingForm = () => {
           adultGuests: bookingDetails.adultGuests,
           childGuests: bookingDetails.childGuests,
           specialRequest: specialRequests,
-          totalPrice: bookingDetails.totalPrice,
+          totalPrice: calculatedTotalPrice,
           phoneNumber: phone,
           region: country,
           address: address,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        if (
-          errorData.message &&
-          errorData.message.includes("Pesanan dengan data yang sama")
-        ) {
-          alert("Pesanan dengan data yang sama sudah pernah dibuat.");
-        } else {
-          alert("Gagal menyimpan booking: " + JSON.stringify(errorData));
+          paymentMethod: paymentMethod,
+          paymentStatus: "pending",
+          pricePerNight: pricePerNight,
         }
-        return;
-      }
 
-      setFormStep(2);
-    } catch (error) {
-      console.error("Booking error:", error);
-      alert("Terjadi kesalahan saat memproses booking.");
+        const response = await fetch("https://localhost:7298/api/Booking", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingPayload),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          if (errorData.message && errorData.message.includes("Pesanan dengan data yang sama")) {
+            alert("❗Pesanan dengan data yang sama sudah pernah dibuat.")
+          } else {
+            alert("Gagal menyimpan booking: " + JSON.stringify(errorData))
+          }
+          return
+        }
+
+        const bookingResult = await response.json()
+
+        // Prepare data for invoice page
+        const invoiceData = {
+          ...bookingPayload,
+          bookingId: bookingResult.bookingId || `BK-${Date.now()}`,
+          pricePerNight: pricePerNight,
+          nights: nights,
+          totalAmount: calculatedTotalPrice,
+        }
+
+        // Navigate to invoice page with booking data
+        navigate("/invoice", {
+          state: {
+            bookingData: invoiceData,
+          },
+        })
+      }
+    } catch (err) {
+      console.error("Error handleSubmit:", err)
+      alert("Terjadi kesalahan saat memproses booking. Silakan coba lagi.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const formatCountryName = (countryCode) => {
     const countries = {
@@ -102,17 +254,15 @@ const BookingForm = () => {
       thailand: "Thailand",
       philippines: "Philippines",
       other: "Other",
-    };
-    return countries[countryCode] || countryCode;
-  };
+    }
+    return countries[countryCode] || countryCode
+  }
 
   const steps = [
     { id: 1, name: "Guest Info", status: formStep > 1 ? "complete" : "current" },
-    { id: 2, name: "Confirmation", status: formStep === 2 ? "current" : "upcoming" },
-  ];
-
-
-
+    { id: 2, name: "Confirmation", status: formStep > 2 ? "complete" : formStep === 2 ? "current" : "upcoming" },
+    { id: 3, name: "Success", status: formStep === 3 ? "current" : "upcoming" },
+  ]
 
   return (
     <>
@@ -576,7 +726,7 @@ const BookingForm = () => {
         }
 
         .detail-section {
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem; /* reduced from 1.5rem */
         }
 
         .section-title {
@@ -638,7 +788,20 @@ const BookingForm = () => {
           background-color: var(--bg-color);
           border-radius: 0.25rem;
           padding: 1rem;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem; /* reduced from 1.5rem */
+        }
+
+        .price-summary .detail-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.5rem;
+          font-size: 0.875rem;
+        }
+
+        .price-summary .total {
+          font-size: 1rem;
+          margin-top: 0.5rem;
         }
 
         .total {
@@ -684,11 +847,11 @@ const BookingForm = () => {
         .summary-content {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1rem; /* reduced from 1.5rem */
         }
 
         .benefits {
-          margin-top: 1rem;
+          margin-top: 0.5rem; /* reduced from 1rem */
         }
 
         .benefit-item {
@@ -810,9 +973,7 @@ const BookingForm = () => {
       <div className="booking-process">
         <div className="container">
           <div className="header">
-            <h1 className="title">
-              {formStep < 3 ? "Complete Your Booking" : "Booking Confirmed!"}
-            </h1>
+            <h1 className="title">{formStep < 3 ? "Complete Your Booking" : "Booking Confirmed!"}</h1>
             <p className="subtitle">
               {formStep < 3
                 ? "Please fill in your details to confirm your reservation"
@@ -834,10 +995,7 @@ const BookingForm = () => {
                       )}
                     </span>
                     {stepIdx !== steps.length - 1 && (
-                      <span
-                        className={`step-line ${step.status === "complete" ? "complete" : ""
-                          }`}
-                      ></span>
+                      <span className={`step-line ${step.status === "complete" ? "complete" : ""}`}></span>
                     )}
                     <span className="step-name">{step.name}</span>
                   </div>
@@ -854,9 +1012,7 @@ const BookingForm = () => {
                 <div className="card">
                   <div className="card-header">
                     <h2 className="card-title">Guest Information</h2>
-                    <p className="card-subtitle">
-                      Please provide your personal details
-                    </p>
+                    <p className="card-subtitle">Please provide your personal details</p>
                   </div>
                   <form>
                     <div className="form-row">
@@ -869,8 +1025,8 @@ const BookingForm = () => {
                             value={fullName}
                             readOnly
                             onChange={(e) => {
-                              setFullName(e.target.value);
-                              setIsAutoFilledName(false);
+                              setFullName(e.target.value)
+                              setIsAutoFilledName(false)
                             }}
                             placeholder="Enter your full name"
                             required
@@ -889,7 +1045,6 @@ const BookingForm = () => {
                           type="email"
                           value={email}
                           readOnly
-
                           placeholder="Enter your email address"
                           required
                           className={isAutoFilledEmail ? "autofilled-input" : ""}
@@ -897,7 +1052,6 @@ const BookingForm = () => {
                         <span className="input-icon">📧</span>
                       </div>
                     </div>
-
 
                     <div className="form-group">
                       <label htmlFor="phone">Phone Number</label>
@@ -916,11 +1070,7 @@ const BookingForm = () => {
 
                     <div className="form-group">
                       <label htmlFor="country">Country/Region</label>
-                      <select
-                        id="country"
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                      >
+                      <select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
                         <option value="indonesia">Indonesia</option>
                         <option value="singapore">Singapore</option>
                         <option value="malaysia">Malaysia</option>
@@ -942,9 +1092,7 @@ const BookingForm = () => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="specialRequests">
-                        Special Requests (Optional)
-                      </label>
+                      <label htmlFor="specialRequests">Special Requests (Optional)</label>
                       <textarea
                         id="specialRequests"
                         value={specialRequests}
@@ -955,11 +1103,7 @@ const BookingForm = () => {
                     </div>
 
                     <div className="form-actions" style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <button
-                        type="button"
-                        onClick={() => setFormStep(2)}
-                        className="btn btn-primary"
-                      >
+                      <button type="button" onClick={() => setFormStep(2)} className="btn btn-primary">
                         Continue to Payment
                       </button>
                     </div>
@@ -973,9 +1117,7 @@ const BookingForm = () => {
                   <div className="card">
                     <div className="card-header">
                       <h2 className="card-title">Booking Details</h2>
-                      <p className="card-subtitle">
-                        Booking ID: {bookingDetails.bookingId}
-                      </p>
+                      <p className="card-subtitle">Booking ID: {bookingDetails.bookingId}</p>
                     </div>
 
                     <div className="confirmation-details">
@@ -994,11 +1136,11 @@ const BookingForm = () => {
                           <span>
                             {bookingDetails.checkinDate
                               ? new Date(bookingDetails.checkinDate).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
                               : "-"}
                           </span>
                         </div>
@@ -1010,11 +1152,11 @@ const BookingForm = () => {
                           <span>
                             {bookingDetails.checkoutDate
                               ? new Date(bookingDetails.checkoutDate).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
                               : "-"}
                           </span>
                         </div>
@@ -1024,8 +1166,7 @@ const BookingForm = () => {
                             <span>Guests:</span>
                           </div>
                           <span>
-                            {bookingDetails.adultGuests || 0} Adults,{" "}
-                            {bookingDetails.childGuests || 0} Children
+                            {bookingDetails.adultGuests || 0} Adults, {bookingDetails.childGuests || 0} Children
                           </span>
                         </div>
                         <hr />
@@ -1061,9 +1202,7 @@ const BookingForm = () => {
                               <span className="detail-icon">🌐</span>
                               <span className="detail-label">Country:</span>
                             </div>
-                            <p className="detail-value">
-                              {formatCountryName(country)}
-                            </p>
+                            <p className="detail-value">{formatCountryName(country)}</p>
                           </div>
                         </div>
 
@@ -1072,20 +1211,77 @@ const BookingForm = () => {
                             <span className="detail-icon">📍</span>
                             <span className="detail-label">Address:</span>
                           </div>
-                          <p className="detail-value">
-                            {address || "Not provided"}
-                          </p>
+                          <p className="detail-value">{address || "Not provided"}</p>
                         </div>
 
                         {specialRequests && (
                           <div className="detail-item">
                             <div className="detail-with-icon">
                               <span className="detail-icon">✓</span>
-                              <span className="detail-label">
-                                Special Requests:
-                              </span>
+                              <span className="detail-label">Special Requests:</span>
                             </div>
                             <p className="detail-value">{specialRequests}</p>
+                          </div>
+                        )}
+
+                        <hr />
+                      </div>
+
+                      {/* Payment Method */}
+                      <div className="detail-section">
+                        <h3 className="section-title">Payment Method</h3>
+
+                        <div className="payment-methods">
+                          <div className="payment-method">
+                            <input
+                              type="radio"
+                              id="cash"
+                              name="paymentMethod"
+                              value="cash"
+                              checked={paymentMethod === "cash"}
+                              onChange={(e) => setPaymentMethod(e.target.value)}
+                            />
+                            <label htmlFor="cash">
+                              <span className="payment-icon">💵</span>
+                              <span>Cash Payment</span>
+                            </label>
+                          </div>
+
+                          <div className="payment-method">
+                            <input
+                              type="radio"
+                              id="midtransfer"
+                              name="paymentMethod"
+                              value="midtransfer"
+                              checked={paymentMethod === "midtransfer"}
+                              onChange={(e) => setPaymentMethod(e.target.value)}
+                            />
+                            <label htmlFor="midtransfer">
+                              <span className="payment-icon">💳</span>
+                              <span>MidTransfer</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        {paymentMethod === "midtransfer" && (
+                          <div className="payment-details">
+                            <div className="payment-info">
+                              You will be redirected to MidTransfer's secure payment gateway to complete your
+                              transaction. Multiple payment methods are available including credit cards, bank
+                              transfers, and e-wallets.
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentMethod === "cash" && (
+                          <div className="payment-details">
+                            <div className="payment-info">
+                              You have selected cash payment. Payment will be collected upon check-in at the hotel
+                              reception.
+                            </div>
+                            <div className="payment-note">
+                              Please ensure you have the exact amount ready for a smooth check-in process.
+                            </div>
                           </div>
                         )}
 
@@ -1097,19 +1293,14 @@ const BookingForm = () => {
                         <div className="detail-row">
                           <span>Room Rate:</span>
                           <span>
-                            ${bookingDetails.pricePerNight} ×{" "}
-                            {bookingDetails.nights} nights
+                            Rp {pricePerNight.toLocaleString("id-ID")} × {nights} malam
                           </span>
-                        </div>
-                        <div className="detail-row">
-                          <span>Taxes & Fees:</span>
-                          <span>${bookingDetails.taxes}</span>
                         </div>
                         <hr />
                         <div className="detail-row total">
                           <span>Total Paid:</span>
                           <span className="total-price">
-                            ${bookingDetails.total}
+                            <strong>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</strong>
                           </span>
                         </div>
                       </div>
@@ -1119,30 +1310,21 @@ const BookingForm = () => {
                         <div className="info-item">
                           <span className="info-icon">✓</span>
                           <span>
-                            Check-in time starts at 3:00 PM. If you plan to arrive
-                            after 6:00 PM, please notify the hotel.
+                            Check-in time starts at 3:00 PM. If you plan to arrive after 6:00 PM, please notify the
+                            hotel.
                           </span>
                         </div>
                         <div className="info-item">
                           <span className="info-icon">✓</span>
-                          <span>
-                            Check-out time is 12:00 PM. Late check-out may result
-                            in an additional charge.
-                          </span>
+                          <span>Check-out time is 12:00 PM. Late check-out may result in an additional charge.</span>
                         </div>
                         <div className="info-item">
                           <span className="info-icon">✓</span>
-                          <span>
-                            Please present a valid ID and the credit card used for
-                            booking upon check-in.
-                          </span>
+                          <span>Please present a valid ID and the credit card used for booking upon check-in.</span>
                         </div>
                         <div className="info-item">
                           <span className="info-icon">✓</span>
-                          <span>
-                            Free cancellation is available up to 48 hours before
-                            check-in.
-                          </span>
+                          <span>Free cancellation is available up to 48 hours before check-in.</span>
                         </div>
                       </div>
                     </div>
@@ -1167,6 +1349,63 @@ const BookingForm = () => {
                       </label>
                     </div>
 
+                    <button
+                      type="submit"
+                      onClick={handleSubmit}
+                      disabled={!termsAccepted || isLoading}
+                      className={`btn btn-primary btn-block ${!termsAccepted || isLoading ? "disabled" : ""}`}
+                    >
+                      {isLoading ? "Processing..." : "Confirm Booking"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Confirmation */}
+              {formStep === 3 && (
+                <div className="confirmation-wrapper">
+                  <div className="card">
+                    <div className="success-icon">
+                      <div className="check-circle">
+                        <span className="check">✓</span>
+                      </div>
+                      <h2 className="card-title">Booking Confirmed!</h2>
+                      <p className="card-subtitle">Your reservation has been successfully processed.</p>
+                    </div>
+
+                    <div className="confirmation-details">
+                      <div className="detail-section">
+                        <div className="detail-row">
+                          <span className="detail-label">Booking ID:</span>
+                          <span>{bookingDetails.bookingId || `BK-${Date.now()}`}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="detail-label">Payment Status:</span>
+                          <span style={{ color: "var(--success-color)", fontWeight: "bold" }}>Confirmed</span>
+                        </div>
+                      </div>
+
+                      <div className="important-info">
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>A confirmation email has been sent to {email}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>Please save your booking ID for future reference</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-icon">✓</span>
+                          <span>Check-in starts at 3:00 PM on your arrival date</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="confirmation-actions">
+                      <button onClick={() => navigate("/")} className="btn btn-primary">
+                        Return to Home
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1192,11 +1431,11 @@ const BookingForm = () => {
                         <span>
                           {bookingDetails.checkinDate
                             ? new Date(bookingDetails.checkinDate).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
                             : "-"}
                         </span>
                       </div>
@@ -1208,11 +1447,11 @@ const BookingForm = () => {
                         <span>
                           {bookingDetails.checkoutDate
                             ? new Date(bookingDetails.checkoutDate).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
                             : "-"}
                         </span>
                       </div>
@@ -1222,8 +1461,7 @@ const BookingForm = () => {
                           <span>Guests:</span>
                         </div>
                         <span>
-                          {bookingDetails.adultGuests || 0} Adults,{" "}
-                          {bookingDetails.childGuests || 0} Children
+                          {bookingDetails.adultGuests || 0} Adults, {bookingDetails.childGuests || 0} Children
                         </span>
                       </div>
                       <hr />
@@ -1231,9 +1469,18 @@ const BookingForm = () => {
 
                     <div className="price-summary">
                       <div className="detail-row">
-                        <span>Total Price:</span>
+                        <span>
+                          Rp {pricePerNight.toLocaleString("id-ID")} x {nights} night{nights !== 1 ? "s" : ""}
+                        </span>
+                        <span>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</span>
+                      </div>
+                      <hr />
+                      <div className="detail-row total">
+                        <span>
+                          <strong>Total</strong>
+                        </span>
                         <span className="total-price">
-                          ${bookingDetails.totalPrice || 0}
+                          <strong>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</strong>
                         </span>
                       </div>
                     </div>
@@ -1277,7 +1524,7 @@ const BookingForm = () => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default BookingForm;
+export default BookingForm
