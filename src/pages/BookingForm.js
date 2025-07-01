@@ -23,6 +23,7 @@ const BookingForm = () => {
   const navigate = useNavigate()
 
   const [roomData, setRoomData] = useState(null)
+  const [bookingData, setBookingData] = useState(null)
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -91,6 +92,66 @@ const BookingForm = () => {
       }
     }
   }, [])
+
+  useEffect(() => {
+    // Load html2pdf library for invoice generation
+    const script = document.createElement("script")
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    document.head.appendChild(script)
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script)
+      }
+    }
+  }, [])
+
+  const generateInvoiceNumber = () => {
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0")
+    return `INV-${year}${month}${day}-${random}`
+  }
+
+  const downloadInvoicePDF = async () => {
+    if (!bookingData) {
+      alert("No booking data available for invoice generation.")
+      return
+    }
+
+    if (typeof window !== "undefined" && window.html2pdf) {
+      try {
+        const element = document.getElementById("invoice-content")
+        const invoiceNumber = generateInvoiceNumber()
+        const opt = {
+          margin: 0.2,
+          filename: `invoice-${invoiceNumber}.pdf`,
+          image: { type: "jpeg", quality: 0.9 },
+          html2canvas: {
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+          },
+          jsPDF: {
+            unit: "in",
+            format: "a4",
+            orientation: "portrait",
+          },
+        }
+
+        await window.html2pdf().set(opt).from(element).save()
+      } catch (error) {
+        console.error("PDF generation failed:", error)
+        alert("Failed to generate PDF. Please try again.")
+      }
+    } else {
+      alert("PDF library is still loading. Please try again in a moment.")
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -184,7 +245,7 @@ const BookingForm = () => {
           },
         })
       } else if (paymentMethod === "cash") {
-        // Cash payment - save booking and redirect to invoice
+        // Cash payment - save booking and show success with invoice option
         const bookingPayload = {
           userId: bookingDetails.userId,
           fullname: fullName,
@@ -222,7 +283,7 @@ const BookingForm = () => {
 
         const bookingResult = await response.json()
 
-        // Prepare data for invoice page
+        // Store booking data for invoice generation
         const invoiceData = {
           ...bookingPayload,
           bookingId: bookingResult.bookingId || `BK-${Date.now()}`,
@@ -231,12 +292,9 @@ const BookingForm = () => {
           totalAmount: calculatedTotalPrice,
         }
 
-        // Navigate to invoice page with booking data
-        navigate("/invoice", {
-          state: {
-            bookingData: invoiceData,
-          },
-        })
+        setBookingData(invoiceData)
+        setBookingConfirmed(true)
+        setFormStep(3) // Move to success step
       }
     } catch (err) {
       console.error("Error handleSubmit:", err)
@@ -606,6 +664,42 @@ const BookingForm = () => {
           cursor: not-allowed;
         }
 
+        /* Invoice Button Styles */
+        .btn-invoice {
+          background: linear-gradient(135deg, #d09500 0%, #f4b942 100%);
+          color: white;
+          border: none;
+          padding: 0.875rem 2rem;
+          border-radius: 0.5rem;
+          font-weight: 600;
+          font-size: 1rem;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem;
+          box-shadow: 0 4px 12px rgba(208, 149, 0, 0.3);
+          transition: all 0.3s ease;
+          text-decoration: none;
+          margin-right: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        .btn-invoice:hover {
+          background: linear-gradient(135deg, #b8850a 0%, #e6a73b 100%);
+          box-shadow: 0 6px 16px rgba(208, 149, 0, 0.4);
+          transform: translateY(-2px);
+        }
+
+        .btn-invoice:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 8px rgba(208, 149, 0, 0.3);
+        }
+
+        .btn-icon {
+          font-size: 1.125rem;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+
         .form-actions {
           display: flex;
           justify-content: space-between;
@@ -835,6 +929,17 @@ const BookingForm = () => {
         .confirmation-actions {
           margin-top: 1.5rem;
           text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+          .confirmation-actions {
+            flex-direction: row;
+            justify-content: center;
+          }
         }
 
         .confirmation-note {
@@ -1377,11 +1482,13 @@ const BookingForm = () => {
                       <div className="detail-section">
                         <div className="detail-row">
                           <span className="detail-label">Booking ID:</span>
-                          <span>{bookingDetails.bookingId || `BK-${Date.now()}`}</span>
+                          <span>{bookingData?.bookingId || `BK-${Date.now()}`}</span>
                         </div>
                         <div className="detail-row">
                           <span className="detail-label">Payment Status:</span>
-                          <span style={{ color: "var(--success-color)", fontWeight: "bold" }}>Confirmed</span>
+                          <span style={{ color: "var(--success-color)", fontWeight: "bold" }}>
+                            {paymentMethod === "cash" ? "Pending (Cash on Check-in)" : "Confirmed"}
+                          </span>
                         </div>
                       </div>
 
@@ -1398,15 +1505,365 @@ const BookingForm = () => {
                           <span className="info-icon">✓</span>
                           <span>Check-in starts at 3:00 PM on your arrival date</span>
                         </div>
+                        {paymentMethod === "cash" && (
+                          <div className="info-item">
+                            <span className="info-icon">💵</span>
+                            <span>Payment will be collected upon check-in at the hotel reception</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     <div className="confirmation-actions">
-                      <button onClick={() => navigate("/")} className="btn btn-primary">
+                      <button
+                        onClick={() => {
+                          localStorage.setItem("invoiceData", JSON.stringify(bookingData))
+                          window.open("/invoice", "_blank")
+                        }}
+                        className="btn-invoice"
+                      >
+                        <span className="btn-icon">📄</span>
+                        See Invoice
+                      </button>
+                      <button onClick={() => navigate("/")} className="btn btn-outline">
                         Return to Home
                       </button>
                     </div>
                   </div>
+
+                  {/* Hidden Invoice Content for PDF Generation */}
+                  {bookingData && (
+                    <div id="invoice-content" style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+                      {/* Invoice HTML content here - same as InvoicePage but inline */}
+                      <div
+                        style={{
+                          padding: "1.5rem",
+                          backgroundColor: "white",
+                          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                        }}
+                      >
+                        {/* Header */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+                            <div>
+                              <h1
+                                style={{
+                                  fontSize: "1.5rem",
+                                  fontWeight: "700",
+                                  color: "#1f2937",
+                                  margin: "0 0 0.25rem 0",
+                                }}
+                              >
+                                Golden Stay Hotel
+                              </h1>
+                              <p style={{ fontSize: "1.125rem", color: "#6b7280", margin: "0", fontWeight: "500" }}>
+                                Hotels invoice
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            style={{ textAlign: "right", fontSize: "0.875rem", color: "#6b7280", lineHeight: "1.6" }}
+                          >
+                            <div style={{ fontWeight: "600", color: "#1f2937" }}>Golden Stay</div>
+                            <div>123 Luxury Avenue</div>
+                            <div>Jakarta, Indonesia</div>
+                            <div>12345</div>
+                            <div>Indonesia</div>
+                          </div>
+                        </div>
+
+                        {/* Invoice Details */}
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                            gap: "2rem",
+                            marginBottom: "1rem",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <div>
+                            <h3
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#d09500",
+                                marginBottom: "0.75rem",
+                              }}
+                            >
+                              Billed To
+                            </h3>
+                            <div style={{ fontSize: "0.875rem", lineHeight: "1.6", color: "#374151" }}>
+                              <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>{bookingData.fullname}</div>
+                              <div style={{ marginBottom: "0.25rem" }}>{bookingData.email}</div>
+                              <div style={{ marginBottom: "0.25rem" }}>{bookingData.phoneNumber}</div>
+                              <div style={{ marginBottom: "0.25rem" }}>
+                                {bookingData.address || "Address not provided"}
+                              </div>
+                              <div>{bookingData.region}</div>
+                            </div>
+                          </div>
+                          <div>
+                            <h3
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#d09500",
+                                marginBottom: "0.75rem",
+                              }}
+                            >
+                              Date of Issue
+                            </h3>
+                            <div style={{ fontSize: "0.875rem", color: "#374151" }}>
+                              {new Date().toLocaleDateString("en-GB")}
+                            </div>
+                          </div>
+                          <div>
+                            <h3
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#d09500",
+                                marginBottom: "0.75rem",
+                              }}
+                            >
+                              Invoice Number
+                            </h3>
+                            <div style={{ fontSize: "0.875rem", color: "#374151" }}>
+                              {generateInvoiceNumber().replace("INV-", "")}
+                            </div>
+                          </div>
+                          <div>
+                            <h3
+                              style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#d09500",
+                                marginBottom: "0.75rem",
+                              }}
+                            >
+                              Amount Due (IDR)
+                            </h3>
+                            <div style={{ fontSize: "1.5rem", fontWeight: "700", color: "#1f2937" }}>
+                              Rp{bookingData.totalAmount.toLocaleString("id-ID")}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Payment Status */}
+                        <div style={{ marginBottom: "0.25rem" }}>
+                          <span
+                            style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}
+                          >
+                            Payment Status
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "#374151",
+                              backgroundColor: "#fef3c7",
+                              padding: "0.25rem 0.75rem",
+                              borderRadius: "4px",
+                              border: "1px solid #f59e0b",
+                            }}
+                          >
+                            Cash Payment
+                          </span>
+                        </div>
+
+                        {/* Due Date */}
+                        <div style={{ marginBottom: "1rem" }}>
+                          <span
+                            style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}
+                          >
+                            Due Date
+                          </span>
+                          <span style={{ fontSize: "0.875rem", color: "#374151" }}>Upon Check-in</span>
+                        </div>
+
+                        {/* Separator */}
+                        <div style={{ height: "2px", backgroundColor: "#d09500", marginBottom: "0.5rem" }}></div>
+
+                        {/* Services Table */}
+                        <table
+                          style={{
+                            width: "100%",
+                            borderCollapse: "collapse",
+                            fontSize: "0.875rem",
+                            marginBottom: "1rem",
+                          }}
+                        >
+                          <thead>
+                            <tr>
+                              <th
+                                style={{
+                                  padding: "0.75rem 0",
+                                  textAlign: "left",
+                                  fontWeight: "600",
+                                  color: "#d09500",
+                                  fontSize: "0.875rem",
+                                  borderBottom: "1px solid #e5e7eb",
+                                }}
+                              >
+                                Description
+                              </th>
+                              <th
+                                style={{
+                                  padding: "0.75rem 0",
+                                  textAlign: "right",
+                                  fontWeight: "600",
+                                  color: "#d09500",
+                                  fontSize: "0.875rem",
+                                  borderBottom: "1px solid #e5e7eb",
+                                }}
+                              >
+                                Rate
+                              </th>
+                              <th
+                                style={{
+                                  padding: "0.75rem 0",
+                                  textAlign: "right",
+                                  fontWeight: "600",
+                                  color: "#d09500",
+                                  fontSize: "0.875rem",
+                                  borderBottom: "1px solid #e5e7eb",
+                                }}
+                              >
+                                Nights
+                              </th>
+                              <th
+                                style={{
+                                  padding: "0.75rem 0",
+                                  textAlign: "right",
+                                  fontWeight: "600",
+                                  color: "#d09500",
+                                  fontSize: "0.875rem",
+                                  borderBottom: "1px solid #e5e7eb",
+                                }}
+                              >
+                                Line Total
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td style={{ padding: "1rem 0", color: "#374151", borderBottom: "1px solid #f3f4f6" }}>
+                                <div style={{ fontWeight: "600", marginBottom: "0.5rem" }}>{bookingData.roomType}</div>
+                                <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                                  {new Date(bookingData.checkinDate).toLocaleDateString()} -{" "}
+                                  {new Date(bookingData.checkoutDate).toLocaleDateString()}
+                                </div>
+                                <div style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
+                                  Booking ID: {bookingData.bookingId}
+                                </div>
+                              </td>
+                              <td
+                                style={{
+                                  padding: "1rem 0",
+                                  textAlign: "right",
+                                  color: "#374151",
+                                  borderBottom: "1px solid #f3f4f6",
+                                }}
+                              >
+                                Rp{bookingData.pricePerNight.toLocaleString("id-ID")}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "1rem 0",
+                                  textAlign: "right",
+                                  color: "#374151",
+                                  borderBottom: "1px solid #f3f4f6",
+                                }}
+                              >
+                                {bookingData.nights}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "1rem 0",
+                                  textAlign: "right",
+                                  color: "#374151",
+                                  borderBottom: "1px solid #f3f4f6",
+                                }}
+                              >
+                                Rp{bookingData.totalAmount.toLocaleString("id-ID")}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        {/* Summary */}
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+                          <div style={{ width: "300px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                padding: "0.5rem 0",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                              }}
+                            >
+                              <span>Subtotal</span>
+                              <span>Rp{bookingData.totalAmount.toLocaleString("id-ID")}</span>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                padding: "0.5rem 0",
+                                fontSize: "0.875rem",
+                                color: "#374151",
+                              }}
+                            >
+                              <span>Tax</span>
+                              <span>0.00</span>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                padding: "0.5rem 0",
+                                fontSize: "1rem",
+                                color: "#d09500",
+                                fontWeight: "700",
+                                borderTop: "2px solid #d09500",
+                              }}
+                            >
+                              <span>Amount Due (IDR)</span>
+                              <span>Rp{bookingData.totalAmount.toLocaleString("id-ID")}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Thank You */}
+                        <div
+                          style={{
+                            backgroundColor: "#f9fafb",
+                            border: "1px solid #e5e7eb",
+                            borderRadius: "8px",
+                            padding: "1.5rem",
+                            textAlign: "center",
+                          }}
+                        >
+                          <div style={{ fontSize: "0.875rem", color: "#374151", lineHeight: "1.6" }}>
+                            <div style={{ marginBottom: "0.5rem", fontWeight: "600" }}>
+                              Thank you for choosing Golden Stay Hotel!
+                            </div>
+                            <div>
+                              For any inquiries, please contact us at +62 21 1234 5678 or email info@goldenstay.com
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

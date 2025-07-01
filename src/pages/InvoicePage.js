@@ -6,8 +6,17 @@ import Logo from "../assets/images/LogoRG3.png"
 
 const InvoicePage = () => {
   const location = useLocation()
-  const { bookingData } = location.state || {}
+  const [bookingData, setBookingData] = useState(location.state?.bookingData || null)
   const [currentDate] = useState(new Date())
+
+  useEffect(() => {
+    if (!bookingData) {
+      const stored = localStorage.getItem("invoiceData")
+      if (stored) {
+        setBookingData(JSON.parse(stored))
+      }
+    }
+  }, [bookingData])
 
   useEffect(() => {
     // Load html2pdf library
@@ -46,22 +55,20 @@ const InvoicePage = () => {
       try {
         const element = document.getElementById("invoice-content")
         const opt = {
-          margin: 0.2,
+          margin: 0, // ini penting, jangan ubah!
           filename: `invoice-${invoiceNumber}.pdf`,
-          image: { type: "jpeg", quality: 0.9 },
+          image: { type: "jpeg", quality: 0.98 },
           html2canvas: {
-            scale: 1,
+            scale: 2, // supaya tajam
             useCORS: true,
-            allowTaint: true,
-            height: window.innerHeight,
-            width: window.innerWidth,
           },
           jsPDF: {
-            unit: "in",
+            unit: "pt",
             format: "a4",
             orientation: "portrait",
           },
         }
+
 
         await window.html2pdf().set(opt).from(element).save()
       } catch (error) {
@@ -103,7 +110,7 @@ const InvoicePage = () => {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#f8f9fa",
+        backgroundColor: "#f8f5f0",
         padding: "2rem 1rem",
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
@@ -165,7 +172,24 @@ const InvoicePage = () => {
             overflow: "hidden",
           }}
         >
-          <div id="invoice-content" style={{ padding: "1.5rem", backgroundColor: "white" }}>
+          <div
+            id="invoice-content"
+            style={{
+              width: "794px",
+              height: "1123px",
+              padding: "40px",
+              backgroundColor: "#ffffff",
+              boxSizing: "border-box",
+              fontFamily: "Arial, sans-serif",
+              color: "#000",
+              border: "1px solid #ddd",
+              boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+              overflow: "hidden",
+              margin: "0 auto", // tambahkan agar konten selalu center dan tidak loncat
+            }}
+          >
+
+
             {/* Header */}
             <div
               style={{
