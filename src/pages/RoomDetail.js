@@ -1,114 +1,133 @@
+"use client"
+
 // pages/RoomDetail.js
-import { useState, useRef, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import {
-  FaArrowLeft, FaArrowRight, FaBath, FaBed, FaCalendarAlt, FaCheck, FaChevronDown,
-  FaCoffee, FaCreditCard, FaDoorOpen, FaHotel, FaMapMarkerAlt, FaShower, FaStar,
-  FaTv, FaUserFriends, FaWifi, FaWineGlassAlt
-} from "react-icons/fa";
+  FaArrowLeft,
+  FaArrowRight,
+  FaBath,
+  FaBed,
+  FaCalendarAlt,
+  FaCheck,
+  FaChevronDown,
+  FaCoffee,
+  FaCreditCard,
+  FaDoorOpen,
+  FaHotel,
+  FaMapMarkerAlt,
+  FaShower,
+  FaStar,
+  FaTv,
+  FaUserFriends,
+  FaWifi,
+  FaWineGlassAlt,
+} from "react-icons/fa"
 
 function RoomDetail() {
   // Untuk memastikan data yang tampil adalah teks bersih
   const parseSafe = (value) => {
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) return value
     if (typeof value === "string") {
       try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) return parsed;
-        return value.split(",").map((v) => v.trim()).filter(Boolean);
+        const parsed = JSON.parse(value)
+        if (Array.isArray(parsed)) return parsed
+        return value
+          .split(",")
+          .map((v) => v.trim())
+          .filter(Boolean)
       } catch {
-        return value.split(",").map((v) => v.trim()).filter(Boolean);
+        return value
+          .split(",")
+          .map((v) => v.trim())
+          .filter(Boolean)
       }
     }
-    return [];
-  };
+    return []
+  }
 
-  const { id } = useParams();
-  const [room, setRoom] = useState(null);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [adults, setAdults] = useState(1);
-  const [children, setChildren] = useState(0);
-  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
-  const [currentImage, setCurrentImage] = useState(0);
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("description");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const guestDropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const { id } = useParams()
+  const [room, setRoom] = useState(null)
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [adults, setAdults] = useState(1)
+  const [children, setChildren] = useState(0)
+  const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false)
+  const [currentImage, setCurrentImage] = useState(0)
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("description")
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const guestDropdownRef = useRef(null)
+  const navigate = useNavigate()
 
   // Fetch room data from API
   useEffect(() => {
     fetch(`https://localhost:7298/api/room/${id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setRoom({
           ...data,
-          images: [data.image1, data.image2, data.image3].filter(Boolean).map(img =>
-            img.startsWith("http") ? img : `https://localhost:7298${img}`
-          ),
+          images: [data.image1, data.image2, data.image3]
+            .filter(Boolean)
+            .map((img) => (img.startsWith("http") ? img : `https://localhost:7298${img}`)),
           features: parseSafe(data.features),
           amenities: parseSafe(data.amenities).map((name) => {
-            let iconObj = {
+            const iconObj = {
               "High-speed Wi-Fi": <FaWifi />,
               "Smart TV with streaming": <FaTv />,
               "Coffee machine": <FaCoffee />,
               "Rainfall shower": <FaShower />,
-              "Minibar": <FaWineGlassAlt />,
+              Minibar: <FaWineGlassAlt />,
               "Room service": <FaDoorOpen />,
               "Luxury bathroom": <FaBath />,
               "Premium bedding": <FaBed />,
-            };
-            return { icon: iconObj[name] || <FaCheck />, name };
+            }
+            return { icon: iconObj[name] || <FaCheck />, name }
           }),
           policies: parseSafe(data.policies),
           reviews: [],
           similarRooms: [],
-        });
-      });
-    const user = localStorage.getItem("user");
-    if (user) setIsLoggedIn(true);
-  }, [id]);
+        })
+      })
+    const user = localStorage.getItem("user")
+    if (user) setIsLoggedIn(true)
+  }, [id])
 
   // --- Booking Logic ---
-  const totalGuests = adults + children;
-  const toggleGuestDropdown = () => setIsGuestDropdownOpen(!isGuestDropdownOpen);
-  const incrementAdults = () => setAdults(adults + 1);
-  const decrementAdults = () => setAdults(adults > 1 ? adults - 1 : 1);
-  const incrementChildren = () => setChildren(children + 1);
-  const decrementChildren = () => setChildren(children > 0 ? children - 1 : 0);
+  const totalGuests = adults + children
+  const toggleGuestDropdown = () => setIsGuestDropdownOpen(!isGuestDropdownOpen)
+  const incrementAdults = () => setAdults(adults + 1)
+  const decrementAdults = () => setAdults(adults > 1 ? adults - 1 : 1)
+  const incrementChildren = () => setChildren(children + 1)
+  const decrementChildren = () => setChildren(children > 0 ? children - 1 : 0)
 
   const formatRupiah = (number) =>
     new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(number);
+    }).format(number)
 
   const calculateTotalPrice = () => {
-    if (!room) return 0;
-    const roomPricePerNight = parseFloat(room.price) || 0;
-    const nights =
-      checkIn && checkOut
-        ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-        : 0;
-    return roomPricePerNight * nights;
-  };
-
+    if (!room) return 0
+    const roomPricePerNight = Number.parseFloat(room.price) || 0
+    const nights = checkIn && checkOut ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)) : 0
+    return roomPricePerNight * nights
+  }
 
   const handleBookNow = (e) => {
-    e.preventDefault();
-    const storedUser = localStorage.getItem("user");
+    e.preventDefault()
+    const storedUser = localStorage.getItem("user")
     if (!storedUser) {
-      alert("You must be logged in to make a booking.");
-      return;
+      alert("You must be logged in to make a booking.")
+      return
     }
     if (!checkIn || !checkOut) {
-      alert("Isi tanggal check-in dan check-out!");
-      return;
+      alert("Isi tanggal check-in dan check-out!")
+      return
     }
-    const user = JSON.parse(storedUser);
-    const totalPrice = calculateTotalPrice();
+    const user = JSON.parse(storedUser)
+    const totalPrice = calculateTotalPrice()
     const bookingDetails = {
       userId: user.id,
       fullname: user.fullname,
@@ -120,9 +139,9 @@ function RoomDetail() {
       adultGuests: adults,
       childGuests: children,
       totalPrice: totalPrice,
-    };
-    navigate("/bookingform", { state: { bookingDetails } });
-  };
+    }
+    navigate("/bookingformone", { state: { bookingDetails } })
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -138,37 +157,29 @@ function RoomDetail() {
   }, [guestDropdownRef])
 
   // Gallery Navigation
-  const nextImage = () => setCurrentImage((prev) => (prev === (room?.images?.length || 1) - 1 ? 0 : prev + 1));
-  const prevImage = () => setCurrentImage((prev) => (prev === 0 ? (room?.images?.length || 1) - 1 : prev - 1));
-  const selectImage = (index) => setCurrentImage(index);
+  const nextImage = () => setCurrentImage((prev) => (prev === (room?.images?.length || 1) - 1 ? 0 : prev + 1))
+  const prevImage = () => setCurrentImage((prev) => (prev === 0 ? (room?.images?.length || 1) - 1 : prev - 1))
+  const selectImage = (index) => setCurrentImage(index)
   const openGallery = (idx = 0) => {
-    setCurrentImage(idx);
-    setGalleryOpen(true);
-    document.body.style.overflow = "hidden";
+    setCurrentImage(idx)
+    setGalleryOpen(true)
+    document.body.style.overflow = "hidden"
   }
   const closeGallery = () => {
-    setGalleryOpen(false);
-    document.body.style.overflow = "auto";
+    setGalleryOpen(false)
+    document.body.style.overflow = "auto"
   }
 
-  if (!room) return <div style={{ color: "#D09500", textAlign: "center", marginTop: 100 }}>Loading...</div>;
+  if (!room) return <div style={{ color: "#D09500", textAlign: "center", marginTop: 100 }}>Loading...</div>
 
   // Dummy review & similar rooms (kalau backend-mu belum ready, bisa kamu custom)
-  const reviews = room.reviews.length > 0 ? room.reviews : [
-    { id: 1, author: "User 1", rating: 5, date: "2025-06-01", comment: "Mantap, kamar bersih & nyaman!" }
-  ];
-
+  const reviews =
+    room.reviews.length > 0
+      ? room.reviews
+      : [{ id: 1, author: "User 1", rating: 5, date: "2025-06-01", comment: "Mantap, kamar bersih & nyaman!" }]
 
   // Calculate average rating
-  const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length;
-
-  
-
-
-
-  // CSS inline (atau import dari RoomSuperior.js)
-  // ... (pake style dari RoomSuperior.js biar 1:1, atau import kalau udah dipisah file css)
-
+  const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
 
   return (
     <div className="room-detail-page">
@@ -784,7 +795,7 @@ function RoomDetail() {
         }
 
         .similar-rooms .container {
-          max-width: 600px;  /* atau sesuai kebutuhan */
+          max-width: 600px;
           margin: 0 auto;
         }
 
@@ -1146,89 +1157,13 @@ function RoomDetail() {
             flex: 1 0 100%;
           }
         }
-
-        /* Footer - Light Theme */
-          .footer-light {
-            background-color: #f8f5f0;
-            color: #444;
-            padding-top: 4rem;
-            font-family: inherit;
-          }
-
-          .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem 3rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-          }
-
-          .footer-logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #d09500;
-            margin-bottom: 1rem;
-          }
-
-          .footer-title {
-            color: #87723b;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-          }
-
-          .footer-text {
-            color: #666;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-          }
-
-          .footer-link {
-            color: #666;
-            text-decoration: none;
-            margin-bottom: 0.5rem;
-            display: block;
-            font-size: 0.95rem;
-          }
-
-          .footer-link:hover {
-            color: #d09500;
-          }
-
-          .footer-bottom-light {
-            background-color: #eee;
-            padding: 1.25rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-          }
-
-          .footer-links {
-            display: flex;
-            gap: 1.25rem;
-          }
-
-          .footer-links a {
-            color: #666;
-            text-decoration: none;
-          }
-
-          .footer-links a:hover {
-            color: #d09500;
-          }
-
-
       `}</style>
       <div className="room-detail-page">
         {/* Gallery Hero */}
         <section className="room-gallery-hero">
           <div className="gallery-grid">
             <div className="gallery-main" onClick={() => openGallery(0)}>
-              <img src={room.images[0]} alt={`${room.title} - Main View`} />
+              <img src={room.images[0] || "/placeholder.svg"} alt={`${room.title} - Main View`} />
               <div className="gallery-overlay">
                 <span>View All Photos</span>
               </div>
@@ -1236,7 +1171,7 @@ function RoomDetail() {
             <div className="gallery-secondary">
               {room.images.slice(1, 3).map((img, i) => (
                 <div key={i} className="gallery-item" onClick={() => openGallery(i + 1)}>
-                  <img src={img} alt={`${room.title} - View ${i + 2}`} />
+                  <img src={img || "/placeholder.svg"} alt={`${room.title} - View ${i + 2}`} />
                 </div>
               ))}
             </div>
@@ -1246,17 +1181,31 @@ function RoomDetail() {
         {/* Fullscreen Gallery */}
         {galleryOpen && (
           <div className="gallery-modal" onClick={closeGallery}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <img src={room.images[currentImage] || "/placeholder.svg"} alt={`${room.title} - View ${currentImage + 1}`} className="modal-image" />
-              <button className="modal-close" onClick={closeGallery}>×</button>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <img
+                src={room.images[currentImage] || "/placeholder.svg"}
+                alt={`${room.title} - View ${currentImage + 1}`}
+                className="modal-image"
+              />
+              <button className="modal-close" onClick={closeGallery}>
+                ×
+              </button>
               <div className="modal-caption">{`${room.title} - Image ${currentImage + 1} of ${room.images.length}`}</div>
               <div className="modal-nav">
-                <button className="modal-nav-button" onClick={prevImage}><FaArrowLeft /></button>
-                <button className="modal-nav-button" onClick={nextImage}><FaArrowRight /></button>
+                <button className="modal-nav-button" onClick={prevImage}>
+                  <FaArrowLeft />
+                </button>
+                <button className="modal-nav-button" onClick={nextImage}>
+                  <FaArrowRight />
+                </button>
               </div>
               <div className="modal-thumbnails">
                 {room.images.map((image, index) => (
-                  <div key={index} className={`modal-thumbnail ${currentImage === index ? "active" : ""}`} onClick={() => selectImage(index)}>
+                  <div
+                    key={index}
+                    className={`modal-thumbnail ${currentImage === index ? "active" : ""}`}
+                    onClick={() => selectImage(index)}
+                  >
                     <img src={image || "/placeholder.svg"} alt={`${room.title} - Thumbnail ${index + 1}`} />
                   </div>
                 ))}
@@ -1325,31 +1274,35 @@ function RoomDetail() {
                 <form onSubmit={handleBookNow} className="booking-form">
                   <div className="form-row">
                     <div className="form-group">
-                      <label><FaCalendarAlt /> Check-in</label>
+                      <label>
+                        <FaCalendarAlt /> Check-in
+                      </label>
                       <input
                         type="date"
                         value={checkIn}
-                        onChange={e => {
+                        onChange={(e) => {
                           if (!isLoggedIn) {
-                            alert("Anda harus login terlebih dahulu.");
-                            return;
+                            alert("Anda harus login terlebih dahulu.")
+                            return
                           }
-                          setCheckIn(e.target.value);
+                          setCheckIn(e.target.value)
                         }}
                         required
                       />
                     </div>
                     <div className="form-group">
-                      <label><FaCalendarAlt /> Check-out</label>
+                      <label>
+                        <FaCalendarAlt /> Check-out
+                      </label>
                       <input
                         type="date"
                         value={checkOut}
-                        onChange={e => {
+                        onChange={(e) => {
                           if (!isLoggedIn) {
-                            alert("Anda harus login terlebih dahulu.");
-                            return;
+                            alert("Anda harus login terlebih dahulu.")
+                            return
                           }
-                          setCheckOut(e.target.value);
+                          setCheckOut(e.target.value)
                         }}
                         required
                         min={checkIn}
@@ -1358,31 +1311,51 @@ function RoomDetail() {
                   </div>
 
                   <div className="form-group" ref={guestDropdownRef}>
-                    <label><FaUserFriends /> Guests</label>
+                    <label>
+                      <FaUserFriends /> Guests
+                    </label>
                     <div className="guest-selector">
                       <div className="guest-display" onClick={toggleGuestDropdown}>
-                        <span>{totalGuests} {totalGuests === 1 ? "Guest" : "Guests"}</span>
+                        <span>
+                          {totalGuests} {totalGuests === 1 ? "Guest" : "Guests"}
+                        </span>
                         <FaChevronDown className={isGuestDropdownOpen ? "rotate" : ""} />
                       </div>
                       {isGuestDropdownOpen && (
                         <div className="guest-dropdown">
                           <div className="guest-type-row">
-                            <div className="guest-type-label"><FaUserFriends /><span>Adults</span></div>
+                            <div className="guest-type-label">
+                              <FaUserFriends />
+                              <span>Adults</span>
+                            </div>
                             <div className="guest-counter">
-                              <button type="button" onClick={decrementAdults}>-</button>
+                              <button type="button" onClick={decrementAdults}>
+                                -
+                              </button>
                               <div className="counter-value">{adults}</div>
-                              <button type="button" onClick={incrementAdults}>+</button>
+                              <button type="button" onClick={incrementAdults}>
+                                +
+                              </button>
                             </div>
                           </div>
                           <div className="guest-type-row">
-                            <div className="guest-type-label"><FaUserFriends /><span>Children</span></div>
+                            <div className="guest-type-label">
+                              <FaUserFriends />
+                              <span>Children</span>
+                            </div>
                             <div className="guest-counter">
-                              <button type="button" onClick={decrementChildren}>-</button>
+                              <button type="button" onClick={decrementChildren}>
+                                -
+                              </button>
                               <div className="counter-value">{children}</div>
-                              <button type="button" onClick={incrementChildren}>+</button>
+                              <button type="button" onClick={incrementChildren}>
+                                +
+                              </button>
                             </div>
                           </div>
-                          <button type="button" className="apply-btn" onClick={() => setIsGuestDropdownOpen(false)}>Apply</button>
+                          <button type="button" className="apply-btn" onClick={() => setIsGuestDropdownOpen(false)}>
+                            Apply
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1392,17 +1365,18 @@ function RoomDetail() {
                   <div className="booking-summary">
                     <div className="summary-row">
                       <span>
-                        {formatRupiah(room.price)} x {
-                          checkIn && checkOut
-                            ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-                            : 0
-                        }/ night
+                        {formatRupiah(room.price)} x{" "}
+                        {checkIn && checkOut
+                          ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+                          : 0}
+                        / night
                       </span>
                       <span>
                         {formatRupiah(
-                          room.price * (checkIn && checkOut
-                            ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-                            : 0)
+                          room.price *
+                            (checkIn && checkOut
+                              ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+                              : 0),
                         )}
                       </span>
                     </div>
@@ -1413,11 +1387,19 @@ function RoomDetail() {
                     </div>
                   </div>
 
-                  <button type="submit" className="book-now-btn">Book Now</button>
+                  <button type="submit" className="book-now-btn">
+                    Book Now
+                  </button>
 
                   <div className="booking-policies">
-                    <div className="policy-item"><FaCheck className="policy-icon" /><span>Pembatalan gratis sebelum 48 jam dari check-in</span></div>
-                    <div className="policy-item"><FaCreditCard className="policy-icon" /><span>Tidak perlu pembayaran sekarang</span></div>
+                    <div className="policy-item">
+                      <FaCheck className="policy-icon" />
+                      <span>Pembatalan gratis sebelum 48 jam dari check-in</span>
+                    </div>
+                    <div className="policy-item">
+                      <FaCreditCard className="policy-icon" />
+                      <span>Tidak perlu pembayaran sekarang</span>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -1429,10 +1411,24 @@ function RoomDetail() {
         <section className="room-details">
           <div className="container">
             <div className="details-tabs">
-              <button className={activeTab === "description" ? "tab-active" : ""} onClick={() => setActiveTab("description")}>Description</button>
-              <button className={activeTab === "amenities" ? "tab-active" : ""} onClick={() => setActiveTab("amenities")}>Amenities</button>
-              <button className={activeTab === "policies" ? "tab-active" : ""} onClick={() => setActiveTab("policies")}>Policies</button>
-              <button className={activeTab === "reviews" ? "tab-active" : ""} onClick={() => setActiveTab("reviews")}>Reviews</button>
+              <button
+                className={activeTab === "description" ? "tab-active" : ""}
+                onClick={() => setActiveTab("description")}
+              >
+                Description
+              </button>
+              <button
+                className={activeTab === "amenities" ? "tab-active" : ""}
+                onClick={() => setActiveTab("amenities")}
+              >
+                Amenities
+              </button>
+              <button className={activeTab === "policies" ? "tab-active" : ""} onClick={() => setActiveTab("policies")}>
+                Policies
+              </button>
+              <button className={activeTab === "reviews" ? "tab-active" : ""} onClick={() => setActiveTab("reviews")}>
+                Reviews
+              </button>
             </div>
 
             <div className="details-content">
@@ -1522,15 +1518,9 @@ function RoomDetail() {
             </div>
           </div>
         </section>
-
-
-        {/* Similar/Other Rooms, isi sendiri kalau ada datanya dari API */}
-        {/* ... */}
       </div>
     </div>
   )
-
 }
-
 
 export default RoomDetail

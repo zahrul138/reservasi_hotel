@@ -7,23 +7,17 @@ import Logo from "../assets/images/LogoRG3.png"
 const InvoicePage = () => {
   const location = useLocation()
   const [bookingData, setBookingData] = useState(location.state?.bookingData || null)
+  const [paymentMethod, setPaymentMethod] = useState(location.state?.paymentMethod || "cash")
+  const [pdfReady, setPdfReady] = useState(false)
   const [currentDate] = useState(new Date())
+  const [invoiceNumber] = useState(() => generateInvoiceNumber())
 
+  // 1. Load PDF library
   useEffect(() => {
-    if (!bookingData) {
-      const stored = localStorage.getItem("invoiceData")
-      if (stored) {
-        setBookingData(JSON.parse(stored))
-      }
-    }
-  }, [bookingData])
-
-  useEffect(() => {
-    // Load html2pdf library
     const script = document.createElement("script")
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    script.onload = () => setPdfReady(true)
     document.head.appendChild(script)
-
     return () => {
       if (document.head.contains(script)) {
         document.head.removeChild(script)
@@ -31,17 +25,43 @@ const InvoicePage = () => {
     }
   }, [])
 
-  const generateInvoiceNumber = () => {
+  // 2. Load data dari localStorage jika state tidak tersedia
+  useEffect(() => {
+    if (!location.state?.bookingData) {
+      const stored = localStorage.getItem("invoiceData")
+      if (stored) setBookingData(JSON.parse(stored))
+    }
+
+    if (!location.state?.paymentMethod) {
+      const storedPayment = localStorage.getItem("paymentMethod")
+      if (storedPayment) setPaymentMethod(storedPayment)
+    }
+  }, [location.state])
+
+  // 3. Simpan ulang data ke localStorage (jaga-jaga)
+  useEffect(() => {
+    if (bookingData) {
+      localStorage.setItem("invoiceData", JSON.stringify(bookingData))
+    }
+  }, [bookingData])
+
+  useEffect(() => {
+    if (paymentMethod) {
+      localStorage.setItem("paymentMethod", paymentMethod)
+    }
+  }, [paymentMethod])
+
+  // Utility: generate nomor invoice
+  function generateInvoiceNumber() {
     const date = new Date()
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, "0")
     const day = String(date.getDate()).padStart(2, "0")
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0")
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0")
     return `INV-${year}${month}${day}-${random}`
   }
 
+  // Hitung malam menginap
   const calculateNights = () => {
     if (!bookingData?.checkinDate || !bookingData?.checkoutDate) return 0
     const checkIn = new Date(bookingData.checkinDate)
@@ -55,21 +75,12 @@ const InvoicePage = () => {
       try {
         const element = document.getElementById("invoice-content")
         const opt = {
-          margin: 0, // ini penting, jangan ubah!
+          margin: 0,
           filename: `invoice-${invoiceNumber}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2, // supaya tajam
-            useCORS: true,
-          },
-          jsPDF: {
-            unit: "pt",
-            format: "a4",
-            orientation: "portrait",
-          },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
         }
-
-
         await window.html2pdf().set(opt).from(element).save()
       } catch (error) {
         console.error("PDF generation failed:", error)
@@ -80,22 +91,29 @@ const InvoicePage = () => {
     }
   }
 
+  // Format tampilan payment method
+  const renderPaymentMethod = () => {
+    if (paymentMethod === "cash") return "Cash Payment"
+    if (bookingData?.paymentStatus) return bookingData.paymentStatus
+    return "Midtrans"
+  }
+
+  // Format due date
+  const renderDueDate = () => {
+    return paymentMethod === "cash" ? "Pending (Pay On Check In)" : "Already Paid"
+  }
+
+  // Hitung total
   const nights = calculateNights()
   const pricePerNight = bookingData?.pricePerNight || 0
   const totalAmount = pricePerNight * nights
-  const invoiceNumber = generateInvoiceNumber()
+  const amountPaid = paymentMethod === "midtransfer" ? totalAmount : 0
+  const amountDue = paymentMethod === "midtransfer" ? 0 : totalAmount
 
+  // Kalau gak ada data booking, kasih info
   if (!bookingData) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#f8f9fa",
-        }}
-      >
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8f9fa" }}>
         <div style={{ textAlign: "center" }}>
           <h2 style={{ fontSize: "1.5rem", fontWeight: "600", color: "#2d3748", marginBottom: "1rem" }}>
             No booking data found
@@ -145,6 +163,7 @@ const InvoicePage = () => {
           </a>
           <button
             onClick={downloadPDF}
+            disabled={!pdfReady}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -334,10 +353,10 @@ const InvoicePage = () => {
               </div>
             </div>
 
-            {/* Payment Status */}
+            {/* Payment Method */}
             <div style={{ marginBottom: "0.25rem" }}>
               <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}>
-                Payment Status
+                Payment Method
               </span>
               <span
                 style={{
@@ -349,7 +368,10 @@ const InvoicePage = () => {
                   border: "1px solid #f59e0b",
                 }}
               >
-                Cash Payment
+                {paymentMethod === "cash"
+                  ? "Cash Payment"
+                  : bookingData?.paymentStatus || "Midtrans"}
+
               </span>
             </div>
 
@@ -358,8 +380,13 @@ const InvoicePage = () => {
               <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}>
                 Due Date
               </span>
-              <span style={{ fontSize: "0.875rem", color: "#374151" }}>Upon Check-in</span>
+              <span style={{ fontSize: "0.875rem", color: "#374151" }}>
+                {paymentMethod === "cash"
+                  ? "Pending (Pay On Check-In)"
+                  : "Already Paid"}
+              </span>
             </div>
+
 
             {/* Blue separator line */}
             <div
@@ -516,74 +543,33 @@ const InvoicePage = () => {
             </table>
 
             {/* Summary Section */}
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
-              <div style={{ width: "300px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "0.5rem 0",
-                    fontSize: "0.875rem",
-                    color: "#374151",
-                  }}
-                >
-                  <span>Subtotal</span>
-                  <span>Rp{totalAmount.toLocaleString("id-ID")}</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "0.5rem 0",
-                    fontSize: "0.875rem",
-                    color: "#374151",
-                  }}
-                >
-                  <span>Tax</span>
-                  <span>0.00</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "0.5rem 0",
-                    fontSize: "0.875rem",
-                    color: "#374151",
-                    borderTop: "1px solid #e5e7eb",
-                    fontWeight: "600",
-                  }}
-                >
-                  <span>Total</span>
-                  <span>Rp{totalAmount.toLocaleString("id-ID")}</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "0.5rem 0",
-                    fontSize: "0.875rem",
-                    color: "#374151",
-                  }}
-                >
-                  <span>Amount Paid</span>
-                  <span>0.00</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "0.5rem 0",
-                    fontSize: "1rem",
-                    color: "#d09500",
-                    fontWeight: "700",
-                    borderTop: "2px solid #d09500",
-                  }}
-                >
-                  <span>Amount Due (IDR)</span>
-                  <span>Rp{totalAmount.toLocaleString("id-ID")}</span>
-                </div>
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", fontSize: "0.875rem", color: "#374151" }}>
+              <span>Amount Paid</span>
+              <span>
+                {paymentMethod === "midtransfer"
+                  ? `Rp${totalAmount.toLocaleString("id-ID")}`
+                  : "Rp0"}
+
+              </span>
             </div>
+
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "0.5rem 0",
+              fontSize: "1rem",
+              color: "#d09500",
+              fontWeight: "700",
+              borderTop: "2px solid #d09500",
+            }}>
+              <span>Amount Due (IDR)</span>
+              <span>
+                {paymentMethod === "midtransfer"
+                  ? "Rp0"
+                  : `Rp${totalAmount.toLocaleString("id-ID")}`}
+              </span>
+            </div>
+
 
             {/* Thank You Message */}
             <div

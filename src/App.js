@@ -15,13 +15,12 @@ import CheckOutAdmin from "./admin/CheckOutAdmin";
 import HistoryAdmin from "./admin/HistoryAdmin";
 
 import Homepage from "./pages/HomePage";
-import RoomDeluxe from "./pages/RoomDeluxe";
-import RoomSuperior from "./pages/RoomSuperior";
-import RoomExecutive from "./pages/RoomExecutive";
-import BookingForm from "./pages/BookingForm";
 import RoomDetail from "./pages/RoomDetail";
 import SearchBooking from "./pages/SearchBooking";
 import InvoicePage from "./pages/InvoicePage";
+import BookingFormOne from "./pages/BookingFormOne";
+import BookingFormTwo from "./pages/BookingFormTwo";
+import BookingFormThree from "./pages/BookingFormThree";
 
 const LayoutWithNavbar = ({ children }) => (
   <>
@@ -42,7 +41,9 @@ function App() {
         {/* Route tanpa Navbar */}
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/bookingform" element={<BookingForm />} />
+        <Route path="/bookingformone" element={<BookingFormOne />} />
+        <Route path="/bookingformtwo" element={<BookingFormTwo />} />
+        <Route path="/bookingformthree" element={<BookingFormThree />} />
         <Route path="/invoice" element={<InvoicePage />} />
 
         {/* Admin routes */}
@@ -55,9 +56,6 @@ function App() {
 
         {/* Routes dengan Navbar */}
         <Route path="/home" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
-        <Route path="/roomdeluxe" element={<LayoutWithNavbar><RoomDeluxe /></LayoutWithNavbar>} />
-        <Route path="/roomsuperior" element={<LayoutWithNavbar><RoomSuperior /></LayoutWithNavbar>} />
-        <Route path="/roomexecutive" element={<LayoutWithNavbar><RoomExecutive /></LayoutWithNavbar>} />
         <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
         <Route path="/searchbooking" element={<LayoutWithNavbar><SearchBooking /></LayoutWithNavbar>} />
 
