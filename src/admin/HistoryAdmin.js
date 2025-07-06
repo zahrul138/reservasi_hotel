@@ -258,7 +258,12 @@ const HistoryAdmin = () => {
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Total Payment</span>
-                  <span style={style.value}>${selectedBooking.totalPrice}</span>
+                  <span style={style.value}>
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(selectedBooking.totalPrice)}
+                  </span>
                 </div>
                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                   <span style={style.label}>Special Request</span>

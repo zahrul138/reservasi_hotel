@@ -21,6 +21,7 @@ import InvoicePage from "./pages/InvoicePage";
 import BookingFormOne from "./pages/BookingFormOne";
 import BookingFormTwo from "./pages/BookingFormTwo";
 import BookingFormThree from "./pages/BookingFormThree";
+import HistoryBooking from "./pages/HistoryBooking";
 
 const LayoutWithNavbar = ({ children }) => (
   <>
@@ -58,6 +59,7 @@ function App() {
         <Route path="/home" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
         <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
         <Route path="/searchbooking" element={<LayoutWithNavbar><SearchBooking /></LayoutWithNavbar>} />
+        <Route path="/historybooking" element={<LayoutWithNavbar><HistoryBooking /></LayoutWithNavbar>} />
 
         {/* Default route */}
         <Route path="/" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />

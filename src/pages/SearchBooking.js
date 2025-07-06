@@ -24,11 +24,6 @@ const parseSafe = (value) => {
   }
 };
 
-
-
-
-
-
 function SearchBooking() {
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)

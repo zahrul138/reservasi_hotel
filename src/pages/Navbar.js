@@ -14,7 +14,7 @@ import {
     Tooltip,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../assets/images/LogoRG3.png";
 
 const Navbar = () => {
@@ -24,6 +24,9 @@ const Navbar = () => {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
+    const location = useLocation();
+    const currentPath = location.pathname.toLowerCase();
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -50,7 +53,7 @@ const Navbar = () => {
         setUserFullname("");
         navigate("/signin");
     };
-    
+
 
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
@@ -225,38 +228,47 @@ const Navbar = () => {
                             </Box>
 
                             <Box sx={{ display: "flex", gap: 3 }}>
-                                {["Home", "History", "About", "Contact"].map((text, index) => (
-                                    <Button
-                                        key={index}
-                                        color="inherit"
-                                        component={Link}
-                                        to={`/${text.toLowerCase()}`}
-                                        sx={{
-                                            color: "black",
-                                            textTransform: "none",
-                                            fontSize: "16px",
-                                            fontFamily: "Graphik, sans-serif",
-                                            fontWeight: 400,
-                                            position: "relative",
-                                            "&::after": {
-                                                content: '""',
-                                                position: "absolute",
-                                                width: "100%",
-                                                height: "3px",
-                                                backgroundColor: "#B4881B",
-                                                left: 0,
-                                                bottom: "-4px",
-                                                transform: "scaleX(0)",
-                                                transition: "transform 0.3s ease-in-out",
-                                            },
-                                            "&:hover::after": {
-                                                transform: "scaleX(1)",
-                                            },
-                                        }}
-                                    >
-                                        {text}
-                                    </Button>
-                                ))}
+                                {["Home", "History", "About", "Contact"].map((text, index) => {
+                                    let path;
+                                    if (text === "Home") path = "/home";
+                                    else if (text === "History") path = "/historybooking"; // ← ini yang kita ubah
+                                    else path = `/${text.toLowerCase()}`;
+
+                                    const isActive = currentPath === path || (text === "Home" && currentPath === "/");
+
+                                    return (
+                                        <Button
+                                            key={index}
+                                            color="inherit"
+                                            component={Link}
+                                            to={path}
+                                            sx={{
+                                                color: "black",
+                                                textTransform: "none",
+                                                fontSize: "16px",
+                                                fontFamily: "Graphik, sans-serif",
+                                                fontWeight: 400,
+                                                position: "relative",
+                                                "&::after": {
+                                                    content: '""',
+                                                    position: "absolute",
+                                                    width: "100%",
+                                                    height: "3px",
+                                                    backgroundColor: "#B4881B",
+                                                    left: 0,
+                                                    bottom: "-4px",
+                                                    transform: isActive ? "scaleX(1)" : "scaleX(0)",
+                                                    transition: "transform 0.3s ease-in-out",
+                                                },
+                                                "&:hover::after": {
+                                                    transform: "scaleX(1)",
+                                                },
+                                            }}
+                                        >
+                                            {text}
+                                        </Button>
+                                    );
+                                })}
                             </Box>
                         </Toolbar>
                     </Container>
