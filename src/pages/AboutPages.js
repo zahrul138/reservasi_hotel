@@ -24,7 +24,7 @@ const styles = {
     color: "#333",
     lineHeight: 1.6,
     margin: 0,
-    padding: 0,
+    padding: "10rem",
   },
   container: {
     maxWidth: "1200px",
