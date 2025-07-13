@@ -22,6 +22,8 @@ import BookingFormOne from "./pages/BookingFormOne";
 import BookingFormTwo from "./pages/BookingFormTwo";
 import BookingFormThree from "./pages/BookingFormThree";
 import HistoryBooking from "./pages/HistoryBooking";
+import AboutPage from "./pages/AboutPages";
+import ContactPage from "./pages/ContactPage";
 
 const LayoutWithNavbar = ({ children }) => (
   <>
@@ -60,6 +62,8 @@ function App() {
         <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
         <Route path="/searchbooking" element={<LayoutWithNavbar><SearchBooking /></LayoutWithNavbar>} />
         <Route path="/historybooking" element={<LayoutWithNavbar><HistoryBooking /></LayoutWithNavbar>} />
+        <Route path="/about" element={<LayoutWithNavbar><AboutPage /></LayoutWithNavbar>} />
+        <Route path="/contact" element={<LayoutWithNavbar><ContactPage /></LayoutWithNavbar>} />
 
         {/* Default route */}
         <Route path="/" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
