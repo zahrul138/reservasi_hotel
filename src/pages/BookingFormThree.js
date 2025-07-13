@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Utility function to generate steps based on current step
 const generateSteps = (currentStep) => {
@@ -9,114 +9,194 @@ const generateSteps = (currentStep) => {
     { id: 1, name: "Guest Info" },
     { id: 2, name: "Confirmation" },
     { id: 3, name: "Success" },
-  ]
+  ];
 
   return stepDefinitions.map((step) => ({
     ...step,
-    status: step.id < currentStep ? "complete" : step.id === currentStep ? "current" : "upcoming",
-  }))
-}
+    status:
+      step.id < currentStep
+        ? "complete"
+        : step.id === currentStep
+          ? "current"
+          : "upcoming",
+  }));
+};
 
 const BookingFormThree = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { bookingData: stateBookingData, paymentMethod: statePaymentMethod } = location.state || {}
-  const [bookingData, setBookingData] = useState(stateBookingData || null)
-  const [paymentMethod, setPaymentMethod] = useState(statePaymentMethod || "cash")
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { bookingData: stateBookingData, paymentMethod: statePaymentMethod } =
+    location.state || {};
+  const [bookingData, setBookingData] = useState(stateBookingData || null);
+  const [paymentMethod, setPaymentMethod] = useState(
+    statePaymentMethod || "cash"
+  );
+  const [calculatedTotalPrice, setCalculatedTotalPrice] = useState(0);
+  const [nights, setNights] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Calculate nights and total price
   useEffect(() => {
-    // Load html2pdf library for invoice generation
-    const script = document.createElement("script")
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-    document.head.appendChild(script)
+    if (bookingData) {
+      const calculateNights = () => {
+        if (!bookingData.checkinDate || !bookingData.checkoutDate) return 0;
+        const checkIn = new Date(bookingData.checkinDate);
+        const checkOut = new Date(bookingData.checkoutDate);
+        const diffTime = Math.abs(checkOut - checkIn);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      };
+
+      const nightsCount = calculateNights();
+      setNights(nightsCount);
+      setCalculatedTotalPrice((bookingData.pricePerNight || 0) * nightsCount);
+    }
+  }, [bookingData]);
+
+  // Load data from localStorage if not in state
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const stored = localStorage.getItem("invoiceData");
+        const method = localStorage.getItem("paymentMethod");
+
+        if (stored) {
+          const parsedData = JSON.parse(stored);
+          setBookingData(parsedData);
+
+          // Calculate nights and total for stored data
+          if (parsedData.checkinDate && parsedData.checkoutDate) {
+            const checkIn = new Date(parsedData.checkinDate);
+            const checkOut = new Date(parsedData.checkoutDate);
+            const diffTime = Math.abs(checkOut - checkIn);
+            const nightsCount = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            setNights(nightsCount);
+            setCalculatedTotalPrice(
+              (parsedData.pricePerNight || 0) * nightsCount
+            );
+          }
+        }
+
+        if (method) {
+          setPaymentMethod(method);
+        }
+      } catch (error) {
+        console.error("Error loading booking data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (!stateBookingData) {
+      loadData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [stateBookingData]);
+
+  // Load html2pdf script
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    document.head.appendChild(script);
 
     return () => {
       if (document.head.contains(script)) {
-        document.head.removeChild(script)
+        document.head.removeChild(script);
       }
-    }
-  }, [])
+    };
+  }, []);
 
-  useEffect(() => {
-    // Fallback loader dari localStorage
-    if (!stateBookingData || !statePaymentMethod) {
-      const storedBooking = localStorage.getItem("invoiceData")
-      const storedPayment = localStorage.getItem("paymentMethod")
-
-      if (storedBooking) {
-        setBookingData(JSON.parse(storedBooking))
-      }
-
-      if (storedPayment) {
-        setPaymentMethod(storedPayment)
-      }
-    }
-  }, [stateBookingData, statePaymentMethod])
-
-  useEffect(() => {
-    // ✅ Tambahan: simpan ke localStorage untuk InvoicePage
-    if (bookingData) {
-      localStorage.setItem("invoiceData", JSON.stringify(bookingData))
-      localStorage.setItem("paymentMethod", paymentMethod)
-    }
-  }, [bookingData, paymentMethod])
-
-  useEffect(() => {
-    // Cleanup localStorage saat halaman ini ditinggalkan
-    return () => {
-      localStorage.removeItem("invoiceData")
-      localStorage.removeItem("paymentMethod")
-    }
-  }, [])
-
+  // Generate invoice number
   const generateInvoiceNumber = () => {
-    const date = new Date()
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const day = String(date.getDate()).padStart(2, "0")
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     const random = Math.floor(Math.random() * 1000)
       .toString()
-      .padStart(3, "0")
-    return `INV-${year}${month}${day}-${random}`
-  }
+      .padStart(3, "0");
+    return `INV-${year}${month}${day}-${random}`;
+  };
 
-  const downloadInvoicePDF = async () => {
+  // Handle navigation to invoice page
+  const handleSeeInvoice = () => {
     if (!bookingData) {
-      alert("No booking data available for invoice generation.")
-      return
+      alert(
+        "Booking data is not available. Please complete your booking first."
+      );
+      return;
     }
 
-    if (typeof window !== "undefined" && window.html2pdf) {
-      try {
-        const element = document.getElementById("invoice-content")
-        const invoiceNumber = generateInvoiceNumber()
-        const opt = {
-          margin: 0.2,
-          filename: `invoice-${invoiceNumber}.pdf`,
-          image: { type: "jpeg", quality: 0.9 },
-          html2canvas: {
-            scale: 1,
-            useCORS: true,
-            allowTaint: true,
-          },
-          jsPDF: {
-            unit: "in",
-            format: "a4",
-            orientation: "portrait",
-          },
-        }
+    navigate("/invoice", {
+      state: {
+        bookingData: {
+          ...bookingData,
+          fullName: bookingData.fullname || bookingData.fullName || "Guest",
+          email: bookingData.email || "",
+          phone: bookingData.phoneNumber || "",
+          country: bookingData.region || "",
+          address: bookingData.address || "",
+          specialRequests: bookingData.specialRequest || "",
+          paymentMethod: paymentMethod,
+          paymentStatus: bookingData.paymentStatus || "Pending",
+          pricePerNight: bookingData.pricePerNight || 0,
+          nights: nights,
+          totalAmount: bookingData.totalPrice || calculatedTotalPrice || 0,
+        },
+        paymentMethod: paymentMethod,
+      },
+    });
+  };
 
-        await window.html2pdf().set(opt).from(element).save()
-      } catch (error) {
-        console.error("PDF generation failed:", error)
-        alert("Failed to generate PDF. Please try again.")
-      }
-    } else {
-      alert("PDF library is still loading. Please try again in a moment.")
-    }
+  const steps = generateSteps(3);
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <p>Loading booking details...</p>
+      </div>
+    );
   }
 
-  const steps = generateSteps(3) // Current step is 3
+  if (!bookingData) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          textAlign: "center",
+        }}
+      >
+        <h2>No booking data found</h2>
+        <p>Please complete your booking first</p>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#d09500",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            marginTop: "20px",
+          }}
+        >
+          Return to Home
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -393,7 +473,6 @@ const BookingFormThree = () => {
           transition: all 0.3s ease;
           text-decoration: none;
           margin-right: 1rem;
-          margin-bottom: 1rem;
         }
 
         .btn-invoice:hover {
@@ -523,7 +602,10 @@ const BookingFormThree = () => {
         <div className="container">
           <div className="header">
             <h1 className="title">Booking Confirmed!</h1>
-            <p className="subtitle">Thank you for your reservation. Your booking has been successfully confirmed.</p>
+            <p className="subtitle">
+              Thank you for your reservation. Your booking has been successfully
+              confirmed.
+            </p>
           </div>
 
           {/* Booking Progress Bar */}
@@ -540,7 +622,10 @@ const BookingFormThree = () => {
                       )}
                     </span>
                     {stepIdx !== steps.length - 1 && (
-                      <span className={`step-line ${step.status === "complete" ? "complete" : ""}`}></span>
+                      <span
+                        className={`step-line ${step.status === "complete" ? "complete" : ""
+                          }`}
+                      ></span>
                     )}
                     <span className="step-name">{step.name}</span>
                   </div>
@@ -558,58 +643,75 @@ const BookingFormThree = () => {
                     <span className="check">✓</span>
                   </div>
                   <h2 className="card-title">Booking Confirmed!</h2>
-                  <p className="card-subtitle">Your reservation has been successfully processed.</p>
+                  <p className="card-subtitle">
+                    Your reservation has been successfully processed.
+                  </p>
                 </div>
 
                 <div className="confirmation-details">
                   <div className="detail-section">
                     <div className="detail-row">
                       <span className="detail-label">Booking ID:</span>
-                      <span>{bookingData?.bookingId || `BK-${Date.now()}`}</span>
+                      <span>
+                        {bookingData?.bookingId || `BK-${Date.now()}`}
+                      </span>
                     </div>
                     <div className="detail-row">
                       <span className="detail-label">Payment Status:</span>
-                      <span style={{ color: "var(--success-color)", fontWeight: "bold" }}>
-                        {paymentMethod === "cash" ? "Pending (Cash on Check-in)" : "Confirmed"}
-                      </span>
+                      <div className="detail-row">
+                        <span className="detail-value">
+                          {paymentMethod === "Cash Payment"
+                            ? "Pending (Pay On Check In)"
+                            : "Complete"}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   <div className="important-info">
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>A confirmation email has been sent to {bookingData?.email}</span>
+                      <span>
+                        A confirmation email has been sent to{" "}
+                        {bookingData?.email}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>Please save your booking ID for future reference</span>
+                      <span>
+                        Please save your booking ID for future reference
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>Check-in starts at 3:00 PM on your arrival date</span>
+                      <span>
+                        Check-in starts at 3:00 PM on your arrival date
+                      </span>
                     </div>
                     {paymentMethod === "cash" && (
                       <div className="info-item">
                         <span className="info-icon">💵</span>
-                        <span>Payment will be collected upon check-in at the hotel reception</span>
+                        <span>
+                          Payment will be collected upon check-in at the hotel
+                          reception
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="confirmation-actions">
-                  <button onClick={() => {
-                    navigate("/invoice", {
-                      state: {
-                        bookingData,
-                        paymentMethod,
-                      },
-                    })
-                  }}
-                    className="btn-invoice">
+                  {/* <button
+                    onClick={() => navigate("/invoice", { state: { bookingId: bookingData.bookingId } })}
+                    className="btn-invoice"
+                    disabled={!bookingData}
+                  >
                     📄 See Invoice
-                  </button>
-                  <button onClick={() => navigate("/")} className="btn btn-outline">
+                  </button> */}
+                  <button
+                    onClick={() => navigate("/")}
+                    className="btn btn-outline"
+                  >
                     Return to Home
                   </button>
                 </div>
@@ -617,12 +719,20 @@ const BookingFormThree = () => {
 
               {/* Hidden Invoice Content for PDF Generation */}
               {bookingData && (
-                <div id="invoice-content" style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+                <div
+                  id="invoice-content"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    top: "-9999px",
+                  }}
+                >
                   <div
                     style={{
                       padding: "1.5rem",
                       backgroundColor: "white",
-                      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                      fontFamily:
+                        "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                     }}
                   >
                     {/* Header */}
@@ -634,7 +744,13 @@ const BookingFormThree = () => {
                         marginBottom: "1rem",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: "1rem",
+                        }}
+                      >
                         <div>
                           <h1
                             style={{
@@ -646,13 +762,29 @@ const BookingFormThree = () => {
                           >
                             Golden Stay Hotel
                           </h1>
-                          <p style={{ fontSize: "1.125rem", color: "#6b7280", margin: "0", fontWeight: "500" }}>
+                          <p
+                            style={{
+                              fontSize: "1.125rem",
+                              color: "#6b7280",
+                              margin: "0",
+                              fontWeight: "500",
+                            }}
+                          >
                             Hotels invoice
                           </p>
                         </div>
                       </div>
-                      <div style={{ textAlign: "right", fontSize: "0.875rem", color: "#6b7280", lineHeight: "1.6" }}>
-                        <div style={{ fontWeight: "600", color: "#1f2937" }}>Golden Stay</div>
+                      <div
+                        style={{
+                          textAlign: "right",
+                          fontSize: "0.875rem",
+                          color: "#6b7280",
+                          lineHeight: "1.6",
+                        }}
+                      >
+                        <div style={{ fontWeight: "600", color: "#1f2937" }}>
+                          Golden Stay
+                        </div>
                         <div>123 Luxury Avenue</div>
                         <div>Jakarta, Indonesia</div>
                         <div>12345</div>
@@ -681,11 +813,30 @@ const BookingFormThree = () => {
                         >
                           Billed To
                         </h3>
-                        <div style={{ fontSize: "0.875rem", lineHeight: "1.6", color: "#374151" }}>
-                          <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>{bookingData.fullname}</div>
-                          <div style={{ marginBottom: "0.25rem" }}>{bookingData.email}</div>
-                          <div style={{ marginBottom: "0.25rem" }}>{bookingData.phoneNumber}</div>
-                          <div style={{ marginBottom: "0.25rem" }}>{bookingData.address || "Address not provided"}</div>
+                        <div
+                          style={{
+                            fontSize: "0.875rem",
+                            lineHeight: "1.6",
+                            color: "#374151",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight: "600",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            {bookingData.fullname}
+                          </div>
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            {bookingData.email}
+                          </div>
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            {bookingData.phoneNumber}
+                          </div>
+                          <div style={{ marginBottom: "0.25rem" }}>
+                            {bookingData.address || "Address not provided"}
+                          </div>
                           <div>{bookingData.region}</div>
                         </div>
                       </div>
@@ -761,19 +912,27 @@ const BookingFormThree = () => {
                           <strong>Room Type:</strong> {bookingData.roomType}
                         </div>
                         <div>
-                          <strong>Guests:</strong> {bookingData.adultGuests} Adults, {bookingData.childGuests} Children
+                          <strong>Guests:</strong> {bookingData.adultGuests}{" "}
+                          Adults, {bookingData.childGuests} Children
                         </div>
                         <div>
-                          <strong>Check-in:</strong> {new Date(bookingData.checkinDate).toLocaleDateString("en-GB")}
+                          <strong>Check-in:</strong>{" "}
+                          {new Date(bookingData.checkinDate).toLocaleDateString(
+                            "en-GB"
+                          )}
                         </div>
                         <div>
-                          <strong>Check-out:</strong> {new Date(bookingData.checkoutDate).toLocaleDateString("en-GB")}
+                          <strong>Check-out:</strong>{" "}
+                          {new Date(
+                            bookingData.checkoutDate
+                          ).toLocaleDateString("en-GB")}
                         </div>
                         <div>
                           <strong>Nights:</strong> {bookingData.nights}
                         </div>
                         <div>
-                          <strong>Payment Method:</strong> {bookingData.paymentMethod}
+                          <strong>Payment Method:</strong>{" "}
+                          {bookingData.paymentMethod}
                         </div>
                       </div>
                     </div>
@@ -791,7 +950,9 @@ const BookingFormThree = () => {
                         >
                           Special Requests
                         </h3>
-                        <div style={{ fontSize: "0.875rem", color: "#374151" }}>{bookingData.specialRequest}</div>
+                        <div style={{ fontSize: "0.875rem", color: "#374151" }}>
+                          {bookingData.specialRequest}
+                        </div>
                       </div>
                     )}
 
@@ -881,7 +1042,8 @@ const BookingFormThree = () => {
                               color: "#374151",
                             }}
                           >
-                            Rp {bookingData.pricePerNight?.toLocaleString("id-ID")}
+                            Rp{" "}
+                            {bookingData.pricePerNight?.toLocaleString("id-ID")}
                           </td>
                           <td
                             style={{
@@ -891,7 +1053,8 @@ const BookingFormThree = () => {
                               color: "#374151",
                             }}
                           >
-                            Rp {bookingData.totalAmount?.toLocaleString("id-ID")}
+                            Rp{" "}
+                            {bookingData.totalAmount?.toLocaleString("id-ID")}
                           </td>
                         </tr>
                       </tbody>
@@ -911,7 +1074,8 @@ const BookingFormThree = () => {
                           minWidth: "200px",
                         }}
                       >
-                        Total: Rp {bookingData.totalAmount?.toLocaleString("id-ID")}
+                        Total: Rp{" "}
+                        {bookingData.totalAmount?.toLocaleString("id-ID")}
                       </div>
                     </div>
 
@@ -926,10 +1090,12 @@ const BookingFormThree = () => {
                       }}
                     >
                       <p style={{ margin: "0 0 0.5rem 0" }}>
-                        Thank you for choosing Golden Stay Hotel. We look forward to welcoming you!
+                        Thank you for choosing Golden Stay Hotel. We look
+                        forward to welcoming you!
                       </p>
                       <p style={{ margin: "0" }}>
-                        For any questions, please contact us at booking@goldenstay.com or +62 812 3456 7890
+                        For any questions, please contact us at
+                        booking@goldenstay.com or +62 812 3456 7890
                       </p>
                     </div>
                   </div>
@@ -940,7 +1106,7 @@ const BookingFormThree = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default BookingFormThree
+export default BookingFormThree;

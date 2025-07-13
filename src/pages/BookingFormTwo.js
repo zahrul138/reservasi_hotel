@@ -1,133 +1,236 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-// Utility function to generate steps based on current step
+/* ─────────────────────────── helpers */
 const generateSteps = (currentStep) => {
   const stepDefinitions = [
     { id: 1, name: "Guest Info" },
     { id: 2, name: "Confirmation" },
     { id: 3, name: "Success" },
-  ]
-
+  ];
   return stepDefinitions.map((step) => ({
     ...step,
-    status: step.id < currentStep ? "complete" : step.id === currentStep ? "current" : "upcoming",
-  }))
-}
+    status:
+      step.id < currentStep
+        ? "complete"
+        : step.id === currentStep
+          ? "current"
+          : "upcoming",
+  }));
+};
+
+const formatCountryName = (code) => {
+  const countries = {
+    indonesia: "Indonesia",
+    singapore: "Singapore",
+    malaysia: "Malaysia",
+    thailand: "Thailand",
+    philippines: "Philippines",
+    other: "Other",
+  };
+  return countries[code] || code;
+};
+/* ──────────────────────────────────── */
 
 const BookingFormTwo = () => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("cash")
-  const location = useLocation()
-  const { bookingDetails = {}, formData = {} } = location.state || {}
-  const navigate = useNavigate()
-  const [roomData, setRoomData] = useState(null)
+  /* ───────── state */
+  const [isLoading, setIsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [roomData, setRoomData] = useState(null);
+  const [bookingDetails, setBookingDetails] = useState({});
+  const [formData, setFormData] = useState({});
 
+  // New states for payment flow
+  const [paymentFlow, setPaymentFlow] = useState(null);
+  const [paymentResult, setPaymentResult] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+
+  const steps = generateSteps(2); // Move this line up here
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  /* ───────── Check for returning from Midtrans */
+  useEffect(() => {
+    const paymentMethod = localStorage.getItem("currentPaymentMethod");
+    if (paymentMethod === "midtransfer") {
+      const storedBooking = localStorage.getItem("draftBookingDetails");
+      const storedForm = localStorage.getItem("draftFormData");
+
+      if (storedBooking) setBookingDetails(JSON.parse(storedBooking));
+      if (storedForm) setFormData(JSON.parse(storedForm));
+
+      setPaymentMethod("midtransfer");
+      localStorage.removeItem("currentPaymentMethod");
+    }
+  }, []);
+
+  /* ───────── load state (draft / navigation state) */
+  useEffect(() => {
+    /* bookingDetails */
+    if (location.state?.bookingDetails) {
+      setBookingDetails(location.state.bookingDetails);
+      localStorage.setItem(
+        "draftBookingDetails",
+        JSON.stringify(location.state.bookingDetails),
+      );
+    } else {
+      const stored = localStorage.getItem("draftBookingDetails");
+      if (stored) setBookingDetails(JSON.parse(stored));
+    }
+
+    /* formData */
+    if (location.state?.formData) {
+      setFormData(location.state.formData);
+      localStorage.setItem(
+        "draftFormData",
+        JSON.stringify(location.state.formData),
+      );
+    } else {
+      const stored = localStorage.getItem("draftFormData");
+      if (stored) setFormData(JSON.parse(stored));
+    }
+  }, [location.state]);
+
+  /* ───────── ambil data kamar */
   useEffect(() => {
     const fetchRoom = async () => {
-      if (!bookingDetails.roomId) return
-
+      if (!bookingDetails.roomId) return;
       try {
-        const res = await fetch(`https://localhost:7298/api/room/${bookingDetails.roomId}`)
-        const data = await res.json()
-        setRoomData(data)
+        const res = await fetch(`https://localhost:7298/api/room/${bookingDetails.roomId}`);
+        const data = await res.json();
+        setRoomData(data);
       } catch (err) {
-        console.error("Gagal mengambil data room:", err)
+        console.error("Gagal mengambil data room:", err);
       }
-    }
+    };
+    fetchRoom();
+  }, [bookingDetails.roomId]);
 
-    fetchRoom()
-  }, [bookingDetails.roomId])
-
+  /* ───────── hitung malam & total */
   const calculateNights = () => {
-    const checkIn = new Date(bookingDetails.checkinDate)
-    const checkOut = new Date(bookingDetails.checkoutDate)
-    if (isNaN(checkIn) || isNaN(checkOut)) return 0
-    const diffTime = Math.abs(checkOut - checkIn)
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  }
+    const checkIn = new Date(bookingDetails.checkinDate);
+    const checkOut = new Date(bookingDetails.checkoutDate);
+    if (isNaN(checkIn) || isNaN(checkOut)) return 0;
+    return Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+  };
+  const nights = calculateNights();
+  const pricePerNight = roomData?.price || 0;
+  const calculatedTotalPrice = pricePerNight * nights;
 
-  const nights = calculateNights()
-  const pricePerNight = roomData?.price || 0
-  const calculatedTotalPrice = pricePerNight * nights
-
+  /* ───────── inject script Midtrans Snap sekali saja */
   useEffect(() => {
-    // Load Midtrans Snap script
-    const script = document.createElement("script")
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js"
-    script.setAttribute("data-client-key", "SB-Mid-client-ZrpuCE7yEUyWxexK")
-    document.head.appendChild(script)
-
+    const script = document.createElement("script");
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", "SB-Mid-client-ZrpuCE7yEUyWxexK");
+    document.head.appendChild(script);
     return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script)
-      }
-    }
-  }, [])
+      if (document.head.contains(script)) document.head.removeChild(script);
+    };
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
+  /* ──────── Payment Handlers ──────── */
+  const handlePaymentSuccess = async (result) => {
+    setPaymentCompleted(true);
 
-    if (!termsAccepted) {
-      alert("Please accept the terms and conditions")
-      setIsLoading(false)
-      return
+    let paymentStatus = "Complete";
+    const paymentType = result.payment_type;
+
+    if (paymentType === "bank_transfer") {
+      const bank = result?.va_numbers?.[0]?.bank?.toUpperCase();
+      paymentStatus = bank ? `Complete via Virtual Account - ${bank}` : "Complete via Bank Transfer";
+    } else if (result.permata_va_number) {
+      paymentStatus = "Complete via Permata Virtual Account";
+    } else if (paymentType === "qris") {
+      paymentStatus = "Complete via QRIS";
+    } else if (paymentType === "gopay") {
+      paymentStatus = "Complete via GoPay";
+    } else if (paymentType === "shopeepay") {
+      paymentStatus = "Complete via ShopeePay";
+    } else if (result.transaction_status === "settlement") {
+      paymentStatus = "Complete via " + (paymentType || "Midtrans");
     }
+
+    // Standardize the booking payload structure
+    const bookingPayload = {
+      bookingId: `BK-${Date.now()}`,
+      userId: bookingDetails.userId,
+      fullName: formData.fullName, 
+      fullname: formData.fullName, 
+      email: formData.email,
+      phone: formData.phone,
+      phoneNumber: formData.phone, 
+      country: formData.country,
+      region: formData.country, 
+      address: formData.address,
+      checkinDate: bookingDetails.checkinDate,
+      checkoutDate: bookingDetails.checkoutDate,
+      roomType: bookingDetails.roomType,
+      adultGuests: bookingDetails.adultGuests,
+      childGuests: bookingDetails.childGuests,
+      specialRequests: formData.specialRequests,
+      specialRequest: formData.specialRequests, 
+      paymentMethod: `Midtrans (${paymentType})`,
+      paymentStatus: paymentStatus,
+      pricePerNight: pricePerNight,
+      nights: nights,
+      totalPrice: calculatedTotalPrice,
+      totalAmount: calculatedTotalPrice 
+    };
 
     try {
-      const bookingPayload = {
-        userId: bookingDetails.userId,
-        fullname: formData.fullName,
-        email: formData.email,
-        checkinDate: bookingDetails.checkinDate,
-        checkoutDate: bookingDetails.checkoutDate,
-        roomType: bookingDetails.roomType,
-        adultGuests: bookingDetails.adultGuests,
-        childGuests: bookingDetails.childGuests,
-        specialRequest: formData.specialRequests,
-        totalPrice: calculatedTotalPrice,
-        phoneNumber: formData.phone,
-        region: formData.country,
-        address: formData.address,
-        paymentMethod: paymentMethod,
-        paymentStatus: paymentMethod === "cash" ? "Cash Payment" : "unpaid",
-        pricePerNight: pricePerNight,
-      }
+      const res = await fetch("https://localhost:7298/api/Booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
 
-      // 🟠 CASH PAYMENT
-      if (paymentMethod === "cash") {
-        const response = await fetch("https://localhost:7298/api/Booking", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookingPayload),
-        })
+      const resultBooking = await res.json();
 
-        const bookingResult = await response.json()
-        if (!response.ok) throw new Error(JSON.stringify(bookingResult))
+      if (!res.ok) throw new Error(resultBooking.message || "Failed to save booking");
 
-        const invoiceData = {
-          ...bookingPayload,
-          bookingId: bookingResult.id,
-          totalAmount: calculatedTotalPrice,
-          nights: nights,
-        }
+      // Simpan data yang sudah distandardisasi
+      const invoiceData = {
+        ...bookingPayload,
+        bookingId: resultBooking.id || bookingPayload.bookingId
+      };
 
-        navigate("/bookingformthree", {
-          state: {
-            bookingData: invoiceData,
-            paymentMethod: "cash",
-          },
-        })
-        return
-      }
+      // Simpan ke localStorage dengan format yang konsisten
+      localStorage.setItem("invoiceData", JSON.stringify(invoiceData));
+      localStorage.setItem("paymentMethod", "midtransfer");
 
-      // 🔵 MIDTRANS PAYMENT
-      if (paymentMethod === "midtransfer") {
-        const snapRes = await fetch("https://localhost:7298/api/payment/create-transaction", {
+      // Hapus data draft
+      localStorage.removeItem("draftBookingDetails");
+      localStorage.removeItem("draftFormData");
+      localStorage.removeItem("currentPaymentMethod");
+
+      // Navigate ke halaman sukses
+      navigate("/bookingformthree", {
+        state: {
+          bookingData: invoiceData,
+          paymentMethod: "midtransfer"
+        },
+        replace: true
+      });
+    } catch (error) {
+      console.error("Error saving booking:", error);
+      alert("Pembayaran berhasil tetapi gagal menyimpan data booking. Silakan hubungi customer service.");
+    }
+  };
+
+  const handleMidtransPayment = async () => {
+    setIsLoading(true);
+    setPaymentFlow('initiated');
+
+    try {
+      const snapRes = await fetch(
+        "https://localhost:7298/api/payment/create-transaction",
+        {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -136,109 +239,147 @@ const BookingFormTwo = () => {
             customerName: formData.fullName,
             customerEmail: formData.email,
           }),
-        })
-
-        const { token } = await snapRes.json()
-        if (!snapRes.ok) throw new Error("Gagal mendapatkan token Midtrans")
-
-        if (!window.snap || !window.snap.pay) {
-          alert("Midtrans Snap belum siap. Silakan refresh halaman.")
-          return
         }
+      );
+      const { token } = await snapRes.json();
+      if (!snapRes.ok || !token) throw new Error("Gagal mendapatkan token");
 
-        window.snap.pay(token, {
-          onSuccess: async (result) => {
-            try {
-              let paymentStatus = "Midtrans"
-
-              if (result.payment_type === "bank_transfer") {
-                if (result.va_numbers?.length > 0) {
-                  paymentStatus = `MidTransfer - ${result.va_numbers[0].bank.toUpperCase()} Virtual Account`
-                } else if (result.permata_va_number) {
-                  paymentStatus = "MidTransfer - Permata Virtual Account"
-                }
-              } else if (result.payment_type === "qris") {
-                paymentStatus = "QRIS"
-              } else if (result.payment_type === "gopay") {
-                paymentStatus = "GoPay"
-              } else if (result.payment_type === "shopeepay") {
-                paymentStatus = "ShopeePay"
-              } else {
-                paymentStatus = result.payment_type
-              }
-
-              const finalBooking = {
-                ...bookingPayload,
-                paymentStatus,
-              }
-
-              const response = await fetch("https://localhost:7298/api/Booking", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(finalBooking),
-              })
-
-              const bookingResult = await response.json()
-              if (!response.ok) throw new Error(JSON.stringify(bookingResult))
-
-              const invoiceData = {
-                ...finalBooking,
-                bookingId: bookingResult.id,
-                totalAmount: calculatedTotalPrice,
-                nights: nights,
-              }
-
-              // ✅ Simpan ke localStorage sebelum redirect
-              localStorage.setItem("invoiceData", JSON.stringify(invoiceData))
-              localStorage.setItem("paymentMethod", "midtransfer")
-
-              // ✅ Redirect manual ke BookingFormThree
-              navigate("/bookingformthree", {
-                state: {
-                  bookingData: invoiceData,
-                  paymentMethod: paymentStatus,
-                },
-              })
-            } catch (error) {
-              console.error("Error saving booking after Midtrans success:", error)
-              alert("Pembayaran berhasil, tapi gagal menyimpan booking.")
-            }
-          },
-
-          // ❌ Kalau Snap gagal
-          onError: (err) => {
-            console.error("Midtrans Snap Error:", err)
-            alert("Pembayaran gagal atau terjadi kesalahan.")
-          },
-
-          // ❌ Kalau user tutup popup sebelum bayar
-          onClose: () => {
-            alert("Kamu menutup pembayaran sebelum menyelesaikan transaksi.")
-          },
-        })
-
+      if (!window.snap || !window.snap.pay) {
+        throw new Error("Midtrans Snap belum siap");
       }
-    } catch (err) {
-      console.error("Booking error:", err)
-      alert("Terjadi kesalahan saat melakukan booking.")
+
+      // Store form data before opening Midtrans popup
+      localStorage.setItem("draftBookingDetails", JSON.stringify(bookingDetails));
+      localStorage.setItem("draftFormData", JSON.stringify(formData));
+
+      window.snap.pay(token, {
+        onSuccess: (result) => {
+          handlePaymentSuccess(result);
+        },
+        onPending: (result) => {
+          setPaymentResult(result);
+          setPaymentStatus('pending');
+          setPaymentFlow('instructions');
+          setShowPaymentModal(true);
+          setIsLoading(false);
+        },
+        onError: (error) => {
+          console.error("Payment error:", error);
+          setPaymentStatus('failed');
+          setPaymentFlow(null);
+          setIsLoading(false);
+          alert("Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.");
+        },
+        onClose: () => {
+          // Hanya reset state, tidak navigate ke halaman lain
+          setIsLoading(false);
+          setPaymentFlow(null);
+
+          // Hapus currentPaymentMethod dari localStorage karena pembayaran dibatalkan
+          localStorage.removeItem("currentPaymentMethod");
+
+          // Tampilkan pesan bahwa pembayaran dibatalkan
+          alert("Pembayaran dibatalkan. Anda dapat mencoba lagi nanti.");
+        }
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      setPaymentStatus('failed');
+      setPaymentFlow(null);
+      setIsLoading(false);
+      alert("Gagal memproses pembayaran. Silakan coba lagi.");
+    }
+  };
+
+  const handleCashPayment = async () => {
+    setIsLoading(true);
+
+    const bookingPayload = {
+      userId: bookingDetails.userId,
+      fullname: formData.fullName,
+      email: formData.email,
+      checkinDate: bookingDetails.checkinDate,
+      checkoutDate: bookingDetails.checkoutDate,
+      roomType: bookingDetails.roomType,
+      adultGuests: bookingDetails.adultGuests,
+      childGuests: bookingDetails.childGuests,
+      specialRequest: formData.specialRequests,
+      totalPrice: calculatedTotalPrice,
+      phoneNumber: formData.phone,
+      region: formData.country,
+      address: formData.address,
+      paymentMethod: "Cash Payment",
+      paymentStatus: "Pending (Pay On Check In)",
+      pricePerNight,
+    };
+
+    try {
+      const res = await fetch("https://localhost:7298/api/Booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.message || "Failed to save booking");
+
+      localStorage.removeItem("draftBookingDetails");
+      localStorage.removeItem("draftFormData");
+
+      navigate("/bookingformthree", {
+        state: {
+          bookingData: {
+            ...bookingPayload,
+            bookingId: result.id,
+            nights,
+            totalAmount: calculatedTotalPrice,
+          },
+          paymentMethod: "cash",
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const formatCountryName = (countryCode) => {
-    const countries = {
-      indonesia: "Indonesia",
-      singapore: "Singapore",
-      malaysia: "Malaysia",
-      thailand: "Thailand",
-      philippines: "Philippines",
-      other: "Other",
+  const checkPaymentStatus = async (orderId) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://localhost:7298/api/payment/status?orderId=${orderId}`);
+      const data = await response.json();
+
+      if (data.status === 'settlement') {
+        setPaymentCompleted(true); // Set payment completed
+        handlePaymentSuccess(data);
+      } else {
+        alert('Pembayaran belum terkonfirmasi. Silakan tunggu beberapa saat.');
+      }
+    } catch (error) {
+      console.error('Error checking payment:', error);
+      alert('Gagal memeriksa status pembayaran. Silakan coba lagi nanti.');
+    } finally {
+      setIsLoading(false);
     }
-    return countries[countryCode] || countryCode
-  }
+  };
 
-  const steps = generateSteps(2) // Current step is 2
+  /* ───────── submit / confirm */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!termsAccepted) {
+      alert("Harap setujui syarat dan ketentuan");
+      return;
+    }
+
+    if (paymentMethod === "cash") {
+      await handleCashPayment();
+    } else {
+      await handleMidtransPayment();
+    }
+  };
 
   return (
     <>
@@ -721,7 +862,9 @@ const BookingFormTwo = () => {
         <div className="container">
           <div className="header">
             <h1 className="title">Complete Your Booking</h1>
-            <p className="subtitle">Please fill in your details to confirm your reservation</p>
+            <p className="subtitle">
+              Please fill in your details to confirm your reservation
+            </p>
           </div>
 
           {/* Booking Progress Bar */}
@@ -738,7 +881,10 @@ const BookingFormTwo = () => {
                       )}
                     </span>
                     {stepIdx !== steps.length - 1 && (
-                      <span className={`step-line ${step.status === "complete" ? "complete" : ""}`}></span>
+                      <span
+                        className={`step-line ${step.status === "complete" ? "complete" : ""
+                          }`}
+                      ></span>
                     )}
                     <span className="step-name">{step.name}</span>
                   </div>
@@ -753,7 +899,9 @@ const BookingFormTwo = () => {
               <div className="card">
                 <div className="card-header">
                   <h2 className="card-title">Booking Details</h2>
-                  <p className="card-subtitle">Booking ID: {bookingDetails.bookingId}</p>
+                  <p className="card-subtitle">
+                    Booking ID: {bookingDetails.bookingId}
+                  </p>
                 </div>
 
                 <div className="confirmation-details">
@@ -771,7 +919,9 @@ const BookingFormTwo = () => {
                       </div>
                       <span>
                         {bookingDetails.checkinDate
-                          ? new Date(bookingDetails.checkinDate).toLocaleDateString("en-US", {
+                          ? new Date(
+                            bookingDetails.checkinDate
+                          ).toLocaleDateString("en-US", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
@@ -787,7 +937,9 @@ const BookingFormTwo = () => {
                       </div>
                       <span>
                         {bookingDetails.checkoutDate
-                          ? new Date(bookingDetails.checkoutDate).toLocaleDateString("en-US", {
+                          ? new Date(
+                            bookingDetails.checkoutDate
+                          ).toLocaleDateString("en-US", {
                             weekday: "short",
                             month: "short",
                             day: "numeric",
@@ -802,7 +954,8 @@ const BookingFormTwo = () => {
                         <span>Guests:</span>
                       </div>
                       <span>
-                        {bookingDetails.adultGuests || 0} Adults, {bookingDetails.childGuests || 0} Children
+                        {bookingDetails.adultGuests || 0} Adults,{" "}
+                        {bookingDetails.childGuests || 0} Children
                       </span>
                     </div>
                     <hr />
@@ -838,7 +991,9 @@ const BookingFormTwo = () => {
                           <span className="detail-icon">🌐</span>
                           <span className="detail-label">Country:</span>
                         </div>
-                        <p className="detail-value">{formatCountryName(formData.country)}</p>
+                        <p className="detail-value">
+                          {formatCountryName(formData.country)}
+                        </p>
                       </div>
                     </div>
 
@@ -847,16 +1002,22 @@ const BookingFormTwo = () => {
                         <span className="detail-icon">📍</span>
                         <span className="detail-label">Address:</span>
                       </div>
-                      <p className="detail-value">{formData.address || "Not provided"}</p>
+                      <p className="detail-value">
+                        {formData.address || "Not provided"}
+                      </p>
                     </div>
 
                     {formData.specialRequests && (
                       <div className="detail-item">
                         <div className="detail-with-icon">
                           <span className="detail-icon">✓</span>
-                          <span className="detail-label">Special Requests:</span>
+                          <span className="detail-label">
+                            Special Requests:
+                          </span>
                         </div>
-                        <p className="detail-value">{formData.specialRequests}</p>
+                        <p className="detail-value">
+                          {formData.specialRequests}
+                        </p>
                       </div>
                     )}
 
@@ -902,8 +1063,10 @@ const BookingFormTwo = () => {
                     {paymentMethod === "midtransfer" && (
                       <div className="payment-details">
                         <div className="payment-info">
-                          You will be redirected to MidTransfer's secure payment gateway to complete your transaction.
-                          Multiple payment methods are available including credit cards, bank transfers, and e-wallets.
+                          You will be redirected to MidTransfer's secure payment
+                          gateway to complete your transaction. Multiple payment
+                          methods are available including credit cards, bank
+                          transfers, and e-wallets.
                         </div>
                       </div>
                     )}
@@ -911,11 +1074,12 @@ const BookingFormTwo = () => {
                     {paymentMethod === "cash" && (
                       <div className="payment-details">
                         <div className="payment-info">
-                          You have selected cash payment. Payment will be collected upon check-in at the hotel
-                          reception.
+                          You have selected cash payment. Payment will be
+                          collected upon check-in at the hotel reception.
                         </div>
                         <div className="payment-note">
-                          Please ensure you have the exact amount ready for a smooth check-in process.
+                          Please ensure you have the exact amount ready for a
+                          smooth check-in process.
                         </div>
                       </div>
                     )}
@@ -928,14 +1092,17 @@ const BookingFormTwo = () => {
                     <div className="detail-row">
                       <span>Room Rate:</span>
                       <span>
-                        Rp {pricePerNight.toLocaleString("id-ID")} × {nights} malam
+                        Rp {pricePerNight.toLocaleString("id-ID")} × {nights}{" "}
+                        nights
                       </span>
                     </div>
                     <hr />
                     <div className="detail-row total">
                       <span>Total Paid:</span>
                       <span className="total-price">
-                        <strong>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</strong>
+                        <strong>
+                          Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                        </strong>
                       </span>
                     </div>
                   </div>
@@ -945,20 +1112,30 @@ const BookingFormTwo = () => {
                     <div className="info-item">
                       <span className="info-icon">✓</span>
                       <span>
-                        Check-in time starts at 3:00 PM. If you plan to arrive after 6:00 PM, please notify the hotel.
+                        Check-in time starts at 3:00 PM. If you plan to arrive
+                        after 6:00 PM, please notify the hotel.
                       </span>
                     </div>
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>Check-out time is 12:00 PM. Late check-out may result in an additional charge.</span>
+                      <span>
+                        Check-out time is 12:00 PM. Late check-out may result in
+                        an additional charge.
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>Please present a valid ID and the credit card used for booking upon check-in.</span>
+                      <span>
+                        Please present a valid ID and the credit card used for
+                        booking upon check-in.
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-icon">✓</span>
-                      <span>Free cancellation is available up to 48 hours before check-in.</span>
+                      <span>
+                        Free cancellation is available up to 48 hours before
+                        check-in.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -987,7 +1164,8 @@ const BookingFormTwo = () => {
                   type="submit"
                   onClick={handleSubmit}
                   disabled={!termsAccepted || isLoading}
-                  className={`btn btn-primary btn-block ${!termsAccepted || isLoading ? "disabled" : ""}`}
+                  className={`btn btn-primary btn-block ${!termsAccepted || isLoading ? "disabled" : ""
+                    }`}
                 >
                   {isLoading ? "Processing..." : "Confirm Booking"}
                 </button>
@@ -996,9 +1174,138 @@ const BookingFormTwo = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Instructions Modal */}
+      {showPaymentModal && paymentResult && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button
+              className="modal-close"
+              onClick={() => setShowPaymentModal(false)}
+            >
+              ×
+            </button>
+            <h3 className="modal-title">Payment Instructions</h3>
+
+            <div className="payment-instructions">
+              {paymentResult.payment_type === "bank_transfer" && (
+                <>
+                  <p>Please complete your payment via bank transfer using the details below:</p>
+
+                  <div className="va-details">
+                    <div className="detail-label">Bank Name:</div>
+                    <div className="va-number">
+                      {paymentResult.va_numbers?.[0]?.bank?.toUpperCase() || 'Permata'}
+                    </div>
+
+                    <div className="detail-label">Virtual Account Number:</div>
+                    <div className="va-number">
+                      {paymentResult.va_numbers?.[0]?.va_number || paymentResult.permata_va_number}
+                    </div>
+
+                    <div className="detail-row">
+                      <span>Amount:</span>
+                      <span>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</span>
+                    </div>
+
+                    <button
+                      className="copy-btn"
+                      onClick={() => {
+                        navigator.clipboard.writeText(paymentResult.va_numbers?.[0]?.va_number || paymentResult.permata_va_number);
+                        alert('Virtual account number copied to clipboard!');
+                      }}
+                    >
+                      Copy VA Number
+                    </button>
+                  </div>
+
+                  <div className="instruction-step">
+                    <div className="instruction-number">1</div>
+                    <div>
+                      Open your mobile banking app or visit the nearest ATM
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">2</div>
+                    <div>
+                      Select "Transfer" and choose "{paymentResult.va_numbers?.[0]?.bank || 'Permata'}" as the destination bank
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">3</div>
+                    <div>
+                      Enter the virtual account number above
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">4</div>
+                    <div>
+                      Enter the exact amount: Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">5</div>
+                    <div>
+                      Complete the transaction and wait for confirmation
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {paymentResult.payment_type === "qris" && (
+                <>
+                  <p>Please complete your payment by scanning the QR code below:</p>
+                  <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+                    <img
+                      src={paymentResult.qr_code_url}
+                      alt="QRIS Payment Code"
+                      style={{ maxWidth: '200px', margin: '0 auto' }}
+                    />
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">1</div>
+                    <div>
+                      Open your mobile banking or e-wallet app with QRIS support
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">2</div>
+                    <div>
+                      Scan the QR code above
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">3</div>
+                    <div>
+                      Confirm the amount: Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                    </div>
+                  </div>
+                  <div className="instruction-step">
+                    <div className="instruction-number">4</div>
+                    <div>
+                      Complete the payment
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="payment-note" style={{ marginTop: '1.5rem' }}>
+                Your booking will be confirmed automatically once payment is received.
+                This may take a few minutes. You'll receive a confirmation email.
+              </div>
+            </div>
+
+            <button
+              className="btn btn-primary btn-block"
+              onClick={() => checkPaymentStatus(paymentResult.order_id)}
+            >
+              I've Completed Payment
+            </button>
+          </div>
+        </div>
+      )}
     </>
-  )
-}
+  );
+};
 
-export default BookingFormTwo
-
+export default BookingFormTwo;

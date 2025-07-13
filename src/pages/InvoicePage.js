@@ -6,13 +6,11 @@ import Logo from "../assets/images/LogoRG3.png"
 
 const InvoicePage = () => {
   const location = useLocation()
-  const [bookingData, setBookingData] = useState(location.state?.bookingData || null)
-  const [paymentMethod, setPaymentMethod] = useState(location.state?.paymentMethod || "cash")
+  const [bookingData, setBookingData] = useState(null)
   const [pdfReady, setPdfReady] = useState(false)
   const [currentDate] = useState(new Date())
   const [invoiceNumber] = useState(() => generateInvoiceNumber())
 
-  // 1. Load PDF library
   useEffect(() => {
     const script = document.createElement("script")
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
@@ -25,104 +23,96 @@ const InvoicePage = () => {
     }
   }, [])
 
-  // 2. Load data dari localStorage jika state tidak tersedia
   useEffect(() => {
-    if (!location.state?.bookingData) {
-      const stored = localStorage.getItem("invoiceData")
-      if (stored) setBookingData(JSON.parse(stored))
-    }
+    const fetchBookingData = async () => {
+      const id = location.state?.bookingId
+      if (!id) {
+        // Mock data for demonstration
+        const mockData = {
+          fullName: "FaznYajid",
+          fullname: "FaznYajid",
+          email: "fazn123@gmail.com",
+          phone: "081293077025",
+          phoneNumber: "081293077025",
+          address:
+            "Jln. Abdulfattah, Perumahan Taman Valencia Blok C No 13, RT 01, RW 25, Kelurahan Belian, Kecamatan Batam Kota, Kota Batam, Batam Centre",
+          country: "Indonesia",
+          checkinDate: "2025-07-06T00:00:00",
+          checkoutDate: "2025-07-08T00:00:00",
+          roomType: "Superior Room",
+          totalPrice: 300000,
+          paymentMethod: "Online Payment",
+          paymentStatus: "Completed",
+          bookingId: "1333",
+          specialRequests: null,
+        }
+        setBookingData(mockData)
+        return
+      }
 
-    if (!location.state?.paymentMethod) {
-      const storedPayment = localStorage.getItem("paymentMethod")
-      if (storedPayment) setPaymentMethod(storedPayment)
+      try {
+        const res = await fetch(`https://localhost:7298/api/Booking/${id}`)
+        const data = await res.json()
+        setBookingData(data)
+      } catch (err) {
+        console.error("Failed to fetch booking:", err)
+      }
     }
+    fetchBookingData()
   }, [location.state])
 
-  // 3. Simpan ulang data ke localStorage (jaga-jaga)
-  useEffect(() => {
-    if (bookingData) {
-      localStorage.setItem("invoiceData", JSON.stringify(bookingData))
-    }
-  }, [bookingData])
-
-  useEffect(() => {
-    if (paymentMethod) {
-      localStorage.setItem("paymentMethod", paymentMethod)
-    }
-  }, [paymentMethod])
-
-  // Utility: generate nomor invoice
   function generateInvoiceNumber() {
     const date = new Date()
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const day = String(date.getDate()).padStart(2, "0")
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0")
-    return `INV-${year}${month}${day}-${random}`
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0")
+    return `INV-${date.getFullYear()}${(date.getMonth() + 1).toString().padStart(2, "0")}${date
+      .getDate()
+      .toString()
+      .padStart(2, "0")}-${random}`
   }
 
-  // Hitung malam menginap
   const calculateNights = () => {
     if (!bookingData?.checkinDate || !bookingData?.checkoutDate) return 0
     const checkIn = new Date(bookingData.checkinDate)
     const checkOut = new Date(bookingData.checkoutDate)
-    const diffTime = Math.abs(checkOut - checkIn)
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24))
   }
 
   const downloadPDF = async () => {
     if (typeof window !== "undefined" && window.html2pdf) {
-      try {
-        const element = document.getElementById("invoice-content")
-        const opt = {
-          margin: 0,
-          filename: `invoice-${invoiceNumber}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
-        }
-        await window.html2pdf().set(opt).from(element).save()
-      } catch (error) {
-        console.error("PDF generation failed:", error)
-        alert("Failed to generate PDF. Please try again.")
+      const element = document.getElementById("invoice-content")
+      const opt = {
+        margin: 10,
+        filename: `invoice-${invoiceNumber}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
       }
-    } else {
-      alert("PDF library is still loading. Please try again in a moment.")
+      await window.html2pdf().set(opt).from(element).save()
     }
   }
 
-  // Format tampilan payment method
-  const renderPaymentMethod = () => {
-    if (paymentMethod === "cash") return "Cash Payment"
-    if (bookingData?.paymentStatus) return bookingData.paymentStatus
-    return "Midtrans"
-  }
-
-  // Format due date
-  const renderDueDate = () => {
-    return paymentMethod === "cash" ? "Pending (Pay On Check In)" : "Already Paid"
-  }
-
-  // Hitung total
   const nights = calculateNights()
-  const pricePerNight = bookingData?.pricePerNight || 0
-  const totalAmount = pricePerNight * nights
-  const amountPaid = paymentMethod === "midtransfer" ? totalAmount : 0
-  const amountDue = paymentMethod === "midtransfer" ? 0 : totalAmount
+  const totalAmount = bookingData?.totalPrice || 0
+  const pricePerNight = nights > 0 ? totalAmount / nights : totalAmount
+  const paymentMethod = bookingData?.paymentMethod?.toLowerCase() || ""
 
-  // Kalau gak ada data booking, kasih info
-  if (!bookingData) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8f9fa" }}>
-        <div style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "600", color: "#2d3748", marginBottom: "1rem" }}>
-            No booking data found
-          </h2>
-          <p style={{ color: "#718096" }}>Please return to the booking form to complete your reservation.</p>
-        </div>
-      </div>
-    )
-  }
+  const renderPaymentMethod = () => {
+    if (paymentMethod.includes("cash")) {
+      return "Cash Payment (Pending)";
+    }
+    return `${bookingData.paymentMethod} (${bookingData.paymentStatus})`;
+  };
+
+  const renderDueDate = () => {
+    if (paymentMethod.includes("cash")) {
+      return "Pending (Pay On Arrive)";
+    }
+    return `Paid on ${currentDate.toLocaleDateString("en-GB")}`;
+  };
+
+  if (!bookingData) return <p style={{ textAlign: "center" }}>Loading invoice...</p>
 
   return (
     <div
@@ -181,7 +171,6 @@ const InvoicePage = () => {
             📄 Download PDF
           </button>
         </div>
-
         {/* Invoice Card */}
         <div
           style={{
@@ -204,11 +193,9 @@ const InvoicePage = () => {
               border: "1px solid #ddd",
               boxShadow: "0 0 10px rgba(0,0,0,0.1)",
               overflow: "hidden",
-              margin: "0 auto", // tambahkan agar konten selalu center dan tidak loncat
+              margin: "0 auto",
             }}
           >
-
-
             {/* Header */}
             <div
               style={{
@@ -219,7 +206,13 @@ const InvoicePage = () => {
               }}
             >
               {/* Company Info with Logo */}
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "1rem",
+                }}
+              >
                 <img
                   src={Logo || "/placeholder.svg"}
                   alt="Golden Stay Hotel"
@@ -253,9 +246,15 @@ const InvoicePage = () => {
                   </p>
                 </div>
               </div>
-
               {/* Company Address */}
-              <div style={{ textAlign: "right", fontSize: "0.875rem", color: "#6b7280", lineHeight: "1.6" }}>
+              <div
+                style={{
+                  textAlign: "right",
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  lineHeight: "1.6",
+                }}
+              >
                 <div style={{ fontWeight: "600", color: "#1f2937" }}>Golden Stay</div>
                 <div>123 Luxury Avenue</div>
                 <div>Jakarta, Indonesia</div>
@@ -263,7 +262,6 @@ const InvoicePage = () => {
                 <div>Indonesia</div>
               </div>
             </div>
-
             {/* Invoice Details Row */}
             <div
               style={{
@@ -287,15 +285,22 @@ const InvoicePage = () => {
                 >
                   Billed To
                 </h3>
-                <div style={{ fontSize: "0.875rem", lineHeight: "1.6", color: "#374151" }}>
-                  <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>{bookingData.fullName}</div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    lineHeight: "1.6",
+                    color: "#374151",
+                  }}
+                >
+                  <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>
+                    {bookingData.fullName || bookingData.fullname}
+                  </div>
                   <div style={{ marginBottom: "0.25rem" }}>{bookingData.email}</div>
-                  <div style={{ marginBottom: "0.25rem" }}>{bookingData.phone}</div>
+                  <div style={{ marginBottom: "0.25rem" }}>{bookingData.phone || bookingData.phoneNumber}</div>
                   <div style={{ marginBottom: "0.25rem" }}>{bookingData.address || "Address not provided"}</div>
                   <div>{bookingData.country}</div>
                 </div>
               </div>
-
               {/* Date of Issue */}
               <div>
                 <h3
@@ -311,7 +316,6 @@ const InvoicePage = () => {
                 </h3>
                 <div style={{ fontSize: "0.875rem", color: "#374151" }}>{currentDate.toLocaleDateString("en-GB")}</div>
               </div>
-
               {/* Invoice Number */}
               <div>
                 <h3
@@ -327,7 +331,6 @@ const InvoicePage = () => {
                 </h3>
                 <div style={{ fontSize: "0.875rem", color: "#374151" }}>{invoiceNumber.replace("INV-", "")}</div>
               </div>
-
               {/* Amount Due */}
               <div>
                 <h3
@@ -352,10 +355,16 @@ const InvoicePage = () => {
                 </div>
               </div>
             </div>
-
             {/* Payment Method */}
             <div style={{ marginBottom: "0.25rem" }}>
-              <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}>
+              <span
+                style={{
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  color: "#d09500",
+                  marginRight: "1rem",
+                }}
+              >
                 Payment Method
               </span>
               <span
@@ -368,26 +377,23 @@ const InvoicePage = () => {
                   border: "1px solid #f59e0b",
                 }}
               >
-                {paymentMethod === "cash"
-                  ? "Cash Payment"
-                  : bookingData?.paymentStatus || "Midtrans"}
-
+                {renderPaymentMethod()}
               </span>
             </div>
-
             {/* Due Date */}
             <div style={{ marginBottom: "1rem" }}>
-              <span style={{ fontSize: "0.875rem", fontWeight: "600", color: "#d09500", marginRight: "1rem" }}>
+              <span
+                style={{
+                  fontSize: "0.875rem",
+                  fontWeight: "600",
+                  color: "#d09500",
+                  marginRight: "1rem",
+                }}
+              >
                 Due Date
               </span>
-              <span style={{ fontSize: "0.875rem", color: "#374151" }}>
-                {paymentMethod === "cash"
-                  ? "Pending (Pay On Check-In)"
-                  : "Already Paid"}
-              </span>
+              <span style={{ fontSize: "0.875rem", color: "#374151" }}>{renderDueDate()}</span>
             </div>
-
-
             {/* Blue separator line */}
             <div
               style={{
@@ -396,7 +402,6 @@ const InvoicePage = () => {
                 marginBottom: "0.5rem",
               }}
             ></div>
-
             {/* Services Table */}
             <table
               style={{
@@ -460,13 +465,25 @@ const InvoicePage = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ padding: "1rem 0", color: "#374151", borderBottom: "1px solid #f3f4f6" }}>
+                  <td
+                    style={{
+                      padding: "1rem 0",
+                      color: "#374151",
+                      borderBottom: "1px solid #f3f4f6",
+                    }}
+                  >
                     <div style={{ fontWeight: "600", marginBottom: "0.5rem" }}>{bookingData.roomType}</div>
                     <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>
                       {new Date(bookingData.checkinDate).toLocaleDateString()} -{" "}
                       {new Date(bookingData.checkoutDate).toLocaleDateString()}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6b7280",
+                        marginTop: "0.25rem",
+                      }}
+                    >
                       Booking ID: {bookingData.bookingId}
                     </div>
                   </td>
@@ -503,7 +520,13 @@ const InvoicePage = () => {
                 </tr>
                 {bookingData.specialRequests && (
                   <tr>
-                    <td style={{ padding: "1rem 0", color: "#374151", borderBottom: "1px solid #f3f4f6" }}>
+                    <td
+                      style={{
+                        padding: "1rem 0",
+                        color: "#374151",
+                        borderBottom: "1px solid #f3f4f6",
+                      }}
+                    >
                       <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>Special Requests</div>
                       <div style={{ fontSize: "0.75rem", color: "#6b7280" }}>{bookingData.specialRequests}</div>
                     </td>
@@ -541,36 +564,33 @@ const InvoicePage = () => {
                 )}
               </tbody>
             </table>
-
             {/* Summary Section */}
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", fontSize: "0.875rem", color: "#374151" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "0.5rem 0",
+                fontSize: "0.875rem",
+                color: "#374151",
+              }}
+            >
               <span>Amount Paid</span>
-              <span>
-                {paymentMethod === "midtransfer"
-                  ? `Rp${totalAmount.toLocaleString("id-ID")}`
-                  : "Rp0"}
-
-              </span>
+              <span>{paymentMethod === "midtransfer" ? `Rp${totalAmount.toLocaleString("id-ID")}` : "Rp0"}</span>
             </div>
-
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "0.5rem 0",
-              fontSize: "1rem",
-              color: "#d09500",
-              fontWeight: "700",
-              borderTop: "2px solid #d09500",
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "0.5rem 0",
+                fontSize: "1rem",
+                color: "#d09500",
+                fontWeight: "700",
+                borderTop: "2px solid #d09500",
+              }}
+            >
               <span>Amount Due (IDR)</span>
-              <span>
-                {paymentMethod === "midtransfer"
-                  ? "Rp0"
-                  : `Rp${totalAmount.toLocaleString("id-ID")}`}
-              </span>
+              <span>{paymentMethod === "midtransfer" ? "Rp0" : `Rp${totalAmount.toLocaleString("id-ID")}`}</span>
             </div>
-
-
             {/* Thank You Message */}
             <div
               style={{
@@ -582,7 +602,13 @@ const InvoicePage = () => {
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "0.875rem", color: "#374151", lineHeight: "1.6" }}>
+              <div
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#374151",
+                  lineHeight: "1.6",
+                }}
+              >
                 <div style={{ marginBottom: "0.5rem", fontWeight: "600" }}>
                   Thank you for choosing Golden Stay Hotel!
                 </div>

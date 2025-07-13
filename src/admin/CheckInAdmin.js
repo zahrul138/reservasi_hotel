@@ -142,6 +142,7 @@ const CheckInAdmin = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const navigate = useNavigate();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -200,8 +201,6 @@ const CheckInAdmin = () => {
     }
   };
 
-
-
   const handleReject = async (id) => {
     try {
       await axios.delete(`https://localhost:7298/api/Booking/${id}`);
@@ -217,8 +216,6 @@ const CheckInAdmin = () => {
       alert("Failed to reject booking.");
     }
   };
-
-
 
   return (
     <div style={style.container}>
@@ -327,12 +324,31 @@ const CheckInAdmin = () => {
                     }).format(selectedBooking.totalPrice)}
                   </span>
                 </div>
+                <div style={style.field}>
+                  <span style={style.label}>Payment Method</span>
+                  <span style={style.value}>{selectedBooking.paymentMethod}</span>
+                </div>
+                <div style={style.field}>
+                  <span style={style.label}>Payment Status</span>
+                  <span style={style.value}>{selectedBooking.paymentStatus}</span>
+                </div>
+                <div style={style.field}>
+                  <span style={style.label}>Address</span>
+                  <span style={style.value}>{selectedBooking.address}</span>
+                </div>
                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                   <span style={style.label}>Special Request</span>
                   <span style={style.value}>{selectedBooking.specialRequest || "-"}</span>
                 </div>
               </div>
               <div style={style.modalActions}>
+                <button
+                  style={{ ...style.actionBtn, ...style.detailBtn }}
+                  onClick={() => navigate("/invoice", { state: { bookingId: selectedBooking.id } })}
+                >
+                  Lihat Invoice
+                </button>
+
                 <button
                   style={{ ...style.actionBtn, ...style.approveBtn }}
                   onClick={() => handleApprove(selectedBooking.id)}
