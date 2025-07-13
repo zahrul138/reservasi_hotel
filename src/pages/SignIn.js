@@ -2,6 +2,7 @@ import { useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { FaLock, FaEnvelope, FaEyeSlash, FaEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Logo from "../assets/images/LogoRG3.png";
 
 const Container = styled.div`
@@ -13,7 +14,7 @@ const Container = styled.div`
   font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 `;
 
-const Card = styled.div`
+const Card = motion(styled.div`
   width: 100%;
   max-width: 400px;
   background-color: white;
@@ -21,7 +22,7 @@ const Card = styled.div`
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   padding: 2.5rem;
   text-align: center;
-`;
+`);
 
 const Title = styled.h1`
   font-size: 1.7rem;
@@ -213,92 +214,87 @@ function SignIn() {
   return (
     <Container>
       <GlobalStyle />
-      <Card>
-        <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px", marginBottom: "1rem" }} />
-        <Title>Welcome Back</Title>
-        <Subtitle>Sign in to your account</Subtitle>
-        <form onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label htmlFor="email">Email Address</label>
-            <div className="input-wrapper">
-              <div className="field-icon">
-                <FaEnvelope />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+      <Card
+  initial={{ y: -40, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ duration: 0.6, ease: "easeOut" }}
+>
+  <img
+    src={Logo}
+    alt="Logo"
+    style={{ width: "70px", height: "70px", marginBottom: "1rem" }}
+  />
+  <Title>Welcome Back</Title>
+  <Subtitle>Sign in to your account</Subtitle>
 
-          <div className="form-field">
-            <label htmlFor="password">Password</label>
-            <div className="input-wrapper">
-              <span className="field-icon">
-                <FaLock />
-              </span>
-              <input
-                id="password"
-                name="password"
-                type={passwordVisible ? "text" : "password"}
-                required
-                value={formData.password}
-                onChange={handleChange}
-                style={{ paddingRight: "2.5rem" }}
-              />
-              {formData.password && (
-                <span
-                  className="toggle-password"
-                  onClick={() => setPasswordVisible(!passwordVisible)}
-                  style={{
-                    position: "absolute",
-                    right: "0.75rem",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    cursor: "pointer",
-                    color: "#b8860b",
-                  }}
-                >
-                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* <div className="signin-options">
-            <label>
-              <input
-                type="checkbox"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-              />
-              Remember me
-            </label>
-            <a href="/forgot-password" className="forgot-password">
-              Forgot password?
-            </a>
-          </div> */}
-
-          {errorMessage && (
-            <div style={{ color: "red", marginBottom: "1rem", fontSize: "0.9rem" }}>
-              {errorMessage}
-            </div>
-          )}
-
-          <button type="submit" disabled={isLoading} className="signin-button">
-            {isLoading ? "Login..." : "Login"}
-          </button>
-        </form>
-
-        <div className="signin-link">
-          <span>Don't have an account?</span> <a href="/signup">Create a new account</a>
+  <form onSubmit={handleSubmit}>
+    <div className="form-field">
+      <label htmlFor="email">Email Address</label>
+      <div className="input-wrapper">
+        <div className="field-icon">
+          <FaEnvelope />
         </div>
-      </Card>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          value={formData.email}
+          onChange={handleChange}
+        />
+      </div>
+    </div>
+
+    <div className="form-field">
+      <label htmlFor="password">Password</label>
+      <div className="input-wrapper">
+        <span className="field-icon">
+          <FaLock />
+        </span>
+        <input
+          id="password"
+          name="password"
+          type={passwordVisible ? "text" : "password"}
+          required
+          value={formData.password}
+          onChange={handleChange}
+          style={{ paddingRight: "2.5rem" }}
+        />
+        {formData.password && (
+          <span
+            className="toggle-password"
+            onClick={() => setPasswordVisible(!passwordVisible)}
+            style={{
+              position: "absolute",
+              right: "0.75rem",
+              top: "50%",
+              transform: "translateY(-50%)",
+              cursor: "pointer",
+              color: "#b8860b",
+            }}
+          >
+            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+          </span>
+        )}
+      </div>
+    </div>
+
+    {errorMessage && (
+      <div style={{ color: "red", marginBottom: "1rem", fontSize: "0.9rem" }}>
+        {errorMessage}
+      </div>
+    )}
+
+    <button type="submit" disabled={isLoading} className="signin-button">
+      {isLoading ? "Login..." : "Login"}
+    </button>
+  </form>
+
+  <div className="signin-link">
+    <span>Don't have an account?</span>{" "}
+    <a href="/signup">Create a new account</a>
+  </div>
+</Card>
     </Container>
   );
 }

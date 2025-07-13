@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import styled, { createGlobalStyle } from "styled-components";
 import { useNavigate } from 'react-router-dom';
 import { FaLock, FaEnvelope, FaUser, FaEyeSlash, FaEye } from "react-icons/fa"
+import { motion } from "framer-motion";
 import Logo from "../assets/images/LogoRG3.png";
 
 const Container = styled.div`
@@ -401,179 +402,191 @@ function SignUp() {
     <Container>
       <GlobalStyle />
       <Card>
-        <div className="signup-form">
-          <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px", display: "block", margin: "0 auto" }} />
-          <Title>Create Your Account</Title>
-          <Subtitle>Sign up for a better booking experience</Subtitle>
-          <form onSubmit={handleSubmit}>
-            <div className="name-fields">
-              <div className="form-field">
-                <label htmlFor="fullname">Full Name</label>
-                <div className="input-wrapper">
-                  <div className="field-icon">
-                    <FaUser />
-                  </div>
-                  <input
-                    id="fullname"
-                    name="fullname"
-                    type="text"
-                    required
-                    value={formData.fullname}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
+  <motion.div
+    className="signup-form"
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+  >
+    <img src={Logo} alt="Logo" style={{ width: "70px", height: "70px", display: "block", margin: "0 auto" }} />
+    <Title>Create Your Account</Title>
+    <Subtitle>Sign up for a better booking experience</Subtitle>
 
-            <div className="form-field">
-              <label htmlFor="email">Email Address</label>
-              <div className="input-wrapper">
-                <div className="field-icon">
-                  <FaEnvelope />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
+    <form onSubmit={handleSubmit}>
+      <div className="name-fields">
+        <div className="form-field">
+          <label htmlFor="fullname">Full Name</label>
+          <div className="input-wrapper">
+            <div className="field-icon">
+              <FaUser />
             </div>
-
-            <div className="form-field">
-              <label htmlFor="password">Create Password</label>
-              <div className="input-wrapper">
-                <span className="field-icon">
-                  <FaLock />
-                </span>
-                <input
-                  id="password"
-                  name="password"
-                  type={passwordVisible ? "text" : "password"}
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  style={{ paddingRight: "2.5rem" }}
-                />
-                {formData.password && (
-                  <span
-                    className="toggle-password"
-                    onClick={() => setPasswordVisible(!passwordVisible)}
-                    style={{
-                      position: "absolute",
-                      right: "0.75rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      cursor: "pointer",
-                      color: "#b8860b",
-                      zIndex: 5,
-                    }}
-                  >
-                    {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="form-field">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <div className="input-wrapper">
-                <span className="field-icon">
-                  <FaLock />
-                </span>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={confirmPasswordVisible ? "text" : "password"}
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  onBlur={() => setShowError(true)} 
-                  className={!passwordMatch && showError ? "input-error" : ""}
-                  style={{ paddingRight: "2.5rem" }}
-                />
-                {formData.confirmPassword && (
-                  <span
-                    className="toggle-password"
-                    onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-                    style={{
-                      position: "absolute",
-                      right: "0.75rem",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      cursor: "pointer",
-                      color: "#b8860b",
-                      zIndex: 5,
-                    }}
-                  >
-                    {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                )}
-              </div>
-              {!passwordMatch && showError && (
-                <p className="error-text" style={{ color: "red", fontSize: "14px" }}>
-                  Passwords do not match
-                </p>
-              )}
-            </div>
-
-            <div className="consent-checkbox required">
-              <input id="terms" name="terms" type="checkbox" required />
-              <label htmlFor="terms">
-                I agree to the <a href="/">Terms of Service</a> and <a href="/">Privacy Policy</a>
-              </label>
-            </div>
-
-            <button type="submit" disabled={isLoading || !passwordMatch} className="signup-button">
-              {isLoading ? (
-                <span className="button-loading">
-                  <svg className="loading-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="loading-circle"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="loading-path"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Creating your account...
-                </span>
-              ) : (
-                "Create Account"
-              )}
-            </button>
-
-            <div className="signin-link">
-              <span>Already have an account?</span> <a href="/signin">Sign in to your account</a>
-            </div>
-          </form>
+            <input
+              id="fullname"
+              name="fullname"
+              type="text"
+              required
+              value={formData.fullname}
+              onChange={handleChange}
+            />
+          </div>
         </div>
+      </div>
 
-        <div className="benefits-panel">
-          <h2>Why Create an Account ?</h2>
-            <PromoBox>
-              <h4><i className="bi bi-wifi" style={{ marginRight: "8px" }}></i>Free WiFi</h4>
-              <p>Get a free Wifi, and stay connected anytime, anywhere with our internet access.</p>
-            </PromoBox>
-            <PromoBox>
-              <h4><i class="bi bi-brightness-alt-high-fill" style={{ marginRight: "8px" }}></i>Complimentary Breakfast</h4>
-              <p>Start your day with a free delicious breakfast, freshly prepared in morning.</p>
-            </PromoBox>
-            <PromoBox>
-              <h4><i class="bi bi-gift" style={{ marginRight: "8px" }}></i>Exclusive Offer</h4>
-              <p>Get more exclusive offers and exciting features in our hotel website </p>
-            </PromoBox>
+      <div className="form-field">
+        <label htmlFor="email">Email Address</label>
+        <div className="input-wrapper">
+          <div className="field-icon">
+            <FaEnvelope />
+          </div>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={formData.email}
+            onChange={handleChange}
+          />
         </div>
-      </Card>
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="password">Create Password</label>
+        <div className="input-wrapper">
+          <span className="field-icon">
+            <FaLock />
+          </span>
+          <input
+            id="password"
+            name="password"
+            type={passwordVisible ? "text" : "password"}
+            value={formData.password}
+            onChange={handleChange}
+            required
+            style={{ paddingRight: "2.5rem" }}
+          />
+          {formData.password && (
+            <span
+              className="toggle-password"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+              style={{
+                position: "absolute",
+                right: "0.75rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#b8860b",
+                zIndex: 5,
+              }}
+            >
+              {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="confirmPassword">Confirm Password</label>
+        <div className="input-wrapper">
+          <span className="field-icon">
+            <FaLock />
+          </span>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type={confirmPasswordVisible ? "text" : "password"}
+            required
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            onBlur={() => setShowError(true)}
+            className={!passwordMatch && showError ? "input-error" : ""}
+            style={{ paddingRight: "2.5rem" }}
+          />
+          {formData.confirmPassword && (
+            <span
+              className="toggle-password"
+              onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+              style={{
+                position: "absolute",
+                right: "0.75rem",
+                top: "50%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#b8860b",
+                zIndex: 5,
+              }}
+            >
+              {confirmPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+            </span>
+          )}
+        </div>
+        {!passwordMatch && showError && (
+          <p className="error-text" style={{ color: "red", fontSize: "14px" }}>
+            Passwords do not match
+          </p>
+        )}
+      </div>
+
+      <div className="consent-checkbox required">
+        <input id="terms" name="terms" type="checkbox" required />
+        <label htmlFor="terms">
+          I agree to the <a href="/">Terms of Service</a> and <a href="/">Privacy Policy</a>
+        </label>
+      </div>
+
+      <button type="submit" disabled={isLoading || !passwordMatch} className="signup-button">
+        {isLoading ? (
+          <span className="button-loading">
+            <svg className="loading-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle
+                className="loading-circle"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="loading-path"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Creating your account...
+          </span>
+        ) : (
+          "Create Account"
+        )}
+      </button>
+
+      <div className="signin-link">
+        <span>Already have an account?</span> <a href="/signin">Sign in to your account</a>
+      </div>
+    </form>
+  </motion.div>
+
+  <motion.div
+    className="benefits-panel"
+    initial={{ opacity: 0, y: -50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+  >
+    <h2>Why Create an Account ?</h2>
+    <PromoBox>
+      <h4><i className="bi bi-wifi" style={{ marginRight: "8px" }}></i>Free WiFi</h4>
+      <p>Get a free Wifi, and stay connected anytime, anywhere with our internet access.</p>
+    </PromoBox>
+    <PromoBox>
+      <h4><i className="bi bi-brightness-alt-high-fill" style={{ marginRight: "8px" }}></i>Complimentary Breakfast</h4>
+      <p>Start your day with a free delicious breakfast, freshly prepared in morning.</p>
+    </PromoBox>
+    <PromoBox>
+      <h4><i className="bi bi-gift" style={{ marginRight: "8px" }}></i>Exclusive Offer</h4>
+      <p>Get more exclusive offers and exciting features in our hotel website</p>
+    </PromoBox>
+  </motion.div>
+</Card>
+
        {/* Tambahkan ini untuk pop-up */}
     {showPopup && (
       <PopUpOverlay>
