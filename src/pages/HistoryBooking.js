@@ -3,18 +3,21 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { IoIosLock } from "react-icons/io"
-import { FaBuilding, FaBed, FaRulerCombined, FaEye } from "react-icons/fa"
+import { FaBuilding, FaBed, FaRulerCombined, FaEye, FaSearch } from "react-icons/fa"
+import { Slide } from "@mui/material"
 
 const HistoryBooking = () => {
   // State management
   const [bookings, setBookings] = useState([])
-  const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState(null)
   const [noUser, setNoUser] = useState(false)
   const [filter, setFilter] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
   const [isMobile, setIsMobile] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showControls, setShowControls] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const navigate = useNavigate()
 
   // Fetch user data from localStorage
@@ -42,8 +45,6 @@ const HistoryBooking = () => {
 
         const bookingsData = await bookingsRes.json()
         const roomsData = await roomsRes.json()
-
-        setRooms(roomsData)
 
         const userBookings = bookingsData
           .filter((b) => b.userId === userId)
@@ -86,6 +87,21 @@ const HistoryBooking = () => {
     fetchData()
   }, [userId])
 
+  // Scroll effect like navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY) {
+        setShowControls(false)
+      } else {
+        setShowControls(true)
+      }
+      setLastScrollY(window.scrollY)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [lastScrollY])
+
   // Responsive design handler
   useEffect(() => {
     const handleResize = () => {
@@ -97,47 +113,106 @@ const HistoryBooking = () => {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  // Helper functions
   const getBookingStatus = (booking) => {
-    const today = new Date()
-    const checkinDate = new Date(booking.checkinDate)
-    const checkoutDate = new Date(booking.checkoutDate)
+    // 1. Priority - cancelled status
+    if (booking.paymentStatus.toLowerCase() === "cancelled" ||
+      booking.status?.toLowerCase() === "cancelled") {
+      return "cancelled";
+    }
 
-    if (booking.paymentStatus === "cancelled") return "cancelled"
-    if (today < checkinDate) return "upcoming"
-    if (today >= checkinDate && today <= checkoutDate) return "active"
-    return "completed"
-  }
+    // 2. If status is completed
+    if (booking.status?.toLowerCase() === "completed") {
+      return "completed";
+    }
+
+    // 3. For active status (set by admin approval)
+    if (booking.status?.toLowerCase() === "active") {
+      return "active";
+    }
+
+    // 4. Payment status logic
+    if (booking.paymentMethod.toLowerCase().includes("cash")) {
+      return booking.status?.toLowerCase() === "pending"
+        ? "pending"
+        : "paid";
+    }
+
+    // 5. For non-cash (Midtrans)
+    if (booking.paymentMethod.toLowerCase().includes("midtrans")) {
+      return "paid";
+    }
+
+    // Default completed if past checkout date
+    return "completed";
+  };
+
+  // ... rest of the code remains the same ...
 
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return {
+          backgroundColor: "#fff",
+          color: "#f59e0b",
+          borderColor: "#f59e0b"
+        };
+      case "paid":
+        return {
+          backgroundColor: "#fff",
+          color: "#10b981",
+          borderColor: "#10b981"
+        };
       case "upcoming":
-        return "#2563eb"
+        return {
+          backgroundColor: "#fff",
+          color: "#2563eb",
+          borderColor: "#2563eb"
+        };
       case "active":
-        return "#059669"
+        return {
+          backgroundColor: "#fff",
+          color: "#059669",
+          borderColor: "#059669"
+        };
       case "completed":
-        return "#6b7280"
+        return {
+          backgroundColor: "#fff",
+          color: "#6b7280",
+          borderColor: "#6b7280"
+        };
       case "cancelled":
-        return "#dc2626"
+        return {
+          backgroundColor: "#fff",
+          color: "#dc2626",
+          borderColor: "#dc2626"
+        };
       default:
-        return "#6b7280"
+        return {
+          backgroundColor: "#fff",
+          color: "#6b7280",
+          borderColor: "#6b7280"
+        };
     }
-  }
+  };
 
   const getStatusText = (status) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "Pending";
+      case "paid":
+        return "Paid";
       case "upcoming":
-        return "Upcoming"
+        return "Upcoming";
       case "active":
-        return "Active"
+        return "Active";
       case "completed":
-        return "Completed"
+        return "Completed";
       case "cancelled":
-        return "Cancelled"
+        return "Cancelled";
       default:
-        return "Unknown"
+        return status;
     }
-  }
+  };
 
   const getPaymentStatusColor = (status) => {
     switch (status) {
@@ -152,11 +227,25 @@ const HistoryBooking = () => {
     }
   }
 
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value.toLowerCase())
+  }
+
   const filteredAndSortedBookings = () => {
     let filtered = bookings
 
     if (filter !== "all") {
       filtered = bookings.filter((booking) => getBookingStatus(booking) === filter)
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (booking) =>
+          booking.roomType.toLowerCase().includes(searchQuery) ||
+          booking.bookingId.toLowerCase().includes(searchQuery) ||
+          (booking.roomDetails?.bed?.toLowerCase().includes(searchQuery)) ||
+          (booking.roomDetails?.roomView?.toLowerCase().includes(searchQuery))
+      )
     }
 
     filtered.sort((a, b) => {
@@ -228,7 +317,8 @@ const HistoryBooking = () => {
     container: {
       maxWidth: "1200px",
       margin: "0 auto",
-      padding: "10rem",
+      padding: "2rem",
+      paddingTop: "18rem",
     },
     header: {
       background: "linear-gradient(135deg, #B4881B 0%, #d09500 100%)",
@@ -252,7 +342,7 @@ const HistoryBooking = () => {
     controlsCard: {
       backgroundColor: "white",
       borderRadius: "12px",
-      padding: "1.5rem",
+      padding: "2rem",
       marginBottom: "2rem",
       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
       display: "flex",
@@ -260,6 +350,14 @@ const HistoryBooking = () => {
       alignItems: "center",
       flexWrap: "wrap",
       gap: "1rem",
+      position: "fixed",
+      top: "10rem",
+      right: "22rem",
+      zIndex: 90,
+      width: "100%",
+      maxWidth: "1130px",
+      margin: "0 auto",
+      transition: "transform 0.3s ease",
     },
     filterGroup: {
       display: "flex",
@@ -542,48 +640,77 @@ const HistoryBooking = () => {
     roomDetailText: {
       fontWeight: "500",
     },
+    searchContainer: {
+      width: "15%",
+      marginRight: "4rem",
+      position: "relative",
+    },
+    searchInput: {
+      width: "100%",
+      padding: "0.75rem 1rem 0.75rem 2.5rem",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
+      fontSize: "0.95rem",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+      transition: "all 0.2s ease",
+      "&:focus": {
+        outline: "none",
+        borderColor: "#d09500",
+        boxShadow: "0 0 0 3px rgba(208, 149, 0, 0.2)",
+      },
+    },
+    searchIcon: {
+      position: "absolute",
+      left: "1rem",
+      top: "50%",
+      transform: "translateY(-50%)",
+      color: "#6b7280",
+      fontSize: "0.9rem",
+    },
+
   }
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        {/* Controls Section - Tetap Dipertahankan */}
-        <div style={styles.controlsCard}>
-          <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
-            <div style={styles.filterGroup}>
-              <label style={styles.label}>Filter:</label>
-              <select style={styles.select} value={filter} onChange={(e) => setFilter(e.target.value)}>
-                <option value="all">All Bookings</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <div style={styles.filterGroup}>
-              <label style={styles.label}>Sort by:</label>
-              <select style={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="checkin">Check-in Date</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={styles.statsContainer}>
-            <div style={styles.statItem}>
-              <div style={styles.statNumber}>{bookings.length}</div>
-              <div style={styles.statLabel}>Total</div>
-            </div>
-            <div style={styles.statItem}>
-              <div style={{ ...styles.statNumber, color: "#2563eb" }}>
-                {bookings.filter((b) => getBookingStatus(b) === "upcoming").length}
+        {/* Controls Section with Slide effect */}
+        <Slide direction="down" in={showControls}>
+          <div style={styles.controlsCard}>
+            <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
+              <div style={styles.filterGroup}>
+                <label style={styles.label}>Filter:</label>
+                <select style={styles.select} value={filter} onChange={(e) => setFilter(e.target.value)}>
+                  <option value="all">All Bookings</option>
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
               </div>
-              <div style={styles.statLabel}>Upcoming</div>
+
+              <div style={styles.filterGroup}>
+                <label style={styles.label}>Sort by:</label>
+                <select style={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="checkin">Check-in Date</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={styles.searchContainer}>
+              <FaSearch style={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search"
+                style={styles.searchInput}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
+              />
             </div>
           </div>
-        </div>
+        </Slide>
 
         {/* Loading State */}
         {loading && (
@@ -704,11 +831,20 @@ const HistoryBooking = () => {
                       />
                       <div
                         style={{
-                          ...styles.statusBadge,
-                          backgroundColor: getStatusColor(status) + "20",
-                          color: getStatusColor(status),
                           position: "absolute",
-                          zIndex: 1,  // Pastikan badge di atas gambar
+                          top: "0.75rem",
+                          right: "0.75rem",
+                          padding: "0.25rem 0.75rem",
+                          borderRadius: "12px",
+                          fontSize: "0.75rem",
+                          fontWeight: "600",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.025em",
+                          backgroundColor: getStatusColor(status).backgroundColor,
+                          color: getStatusColor(status).color,
+                          border: `1px solid ${getStatusColor(status).borderColor}`,
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          zIndex: 2,
                         }}
                       >
                         {getStatusText(status)}

@@ -660,9 +660,10 @@ const BookingFormThree = () => {
                       <span className="detail-label">Payment Status:</span>
                       <div className="detail-row">
                         <span className="detail-value">
-                          {paymentMethod === "Cash Payment"
-                            ? "Pending (Pay On Check In)"
-                            : "Complete"}
+                          {bookingData?.paymentStatus ||
+                            (paymentMethod.toLowerCase().includes("cash")
+                              ? "Pending (Pay On Arrive)"
+                              : "Complete")}
                         </span>
                       </div>
                     </div>
@@ -688,7 +689,7 @@ const BookingFormThree = () => {
                         Check-in starts at 3:00 PM on your arrival date
                       </span>
                     </div>
-                    {paymentMethod === "cash" && (
+                    {paymentMethod.toLowerCase().includes("cash") && (
                       <div className="info-item">
                         <span className="info-icon">💵</span>
                         <span>

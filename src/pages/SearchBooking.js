@@ -1560,7 +1560,19 @@ function SearchBooking() {
                             )}
 
                             <div className="badge-container">
-                              <div className="quantity-badge">{room.quantity} units available</div>
+                              <div style={{
+                                backgroundColor: "#ffffff",
+                                color: "#D09500",
+                                border: "1px solid #D09500",
+                                padding: "0.25rem 0.75rem",
+                                borderRadius: "12px",
+                                fontSize: "0.875rem",
+                                fontWeight: "500",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                zIndex: 2,
+                              }}>
+                                {room.quantity} room left
+                              </div>
                             </div>
                             <div className="rating-badge">
                               <span className="rating-value">{room.rating}</span>

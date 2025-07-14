@@ -186,31 +186,30 @@ const CheckInAdmin = () => {
   const handleApprove = async (id) => {
     try {
       await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
-        status: "waiting-checkout",
+        status: "active", // Changed from "waiting-checkout" to "active"
         checkInApprovedDate: new Date().toISOString(),
       });
 
-      alert(`Booking approved.`);
-
-      // Hilangkan booking dari daftar tampilan (tanpa fetch ulang)
+      alert(`Booking approved and now active.`);
       setBookings((prev) => prev.filter((b) => b.id !== id));
       setSelectedBooking(null);
     } catch (err) {
       console.error(err);
-      alert("Gagal menyetujui booking.");
+      alert("Failed to approve booking.");
     }
   };
 
   const handleReject = async (id) => {
     try {
-      await axios.delete(`https://localhost:7298/api/Booking/${id}`);
-      alert(`Booking rejected and removed.`);
-      setSelectedBooking(null);
+      // Update status menjadi cancelled bukan delete
+      await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
+        status: "cancelled",
+        paymentStatus: "cancelled"
+      });
 
-      // ✅ Fetch ulang booking dan filter hanya yang status 'pending'
-      const res = await axios.get("https://localhost:7298/api/Booking");
-      const filtered = res.data.filter(b => b.status === "pending");
-      setBookings(filtered);
+      alert(`Booking rejected.`);
+      setBookings((prev) => prev.filter((b) => b.id !== id));
+      setSelectedBooking(null);
     } catch (err) {
       console.error(err);
       alert("Failed to reject booking.");

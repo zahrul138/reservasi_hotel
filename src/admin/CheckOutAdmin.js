@@ -139,10 +139,9 @@ const style = {
         borderRadius: "4px",
         fontWeight: "bold",
         fontSize: "12px",
-        backgroundColor: "#ffc107",
-        color: "#333",
+        color: "#fff",
     },
-}
+};
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -171,7 +170,7 @@ const CheckOutAdmin = () => {
 
     const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-    // ✅ Fetch booking data dari API
+    // Fetch booking data from API
     const fetchBookings = async () => {
         try {
             const response = await axios.get("https://localhost:7298/api/Booking");
@@ -185,7 +184,7 @@ const CheckOutAdmin = () => {
         fetchBookings();
     }, []);
 
-    // ✅ Approve Check-out
+    // Approve Check-out
     const handleApprove = async (id) => {
         const confirm = window.confirm("Are you sure you want to approve this check-out?");
         if (!confirm) return;
@@ -193,22 +192,35 @@ const CheckOutAdmin = () => {
         try {
             await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
                 status: "completed",
+                paymentStatus: "completed",
+                checkOutApprovedDate: new Date().toISOString() // Add checkout approved date
             });
+
             alert(`Check-out approved for booking ID: ${id}`);
+
+            // Update state without refetching
+            setBookings(prev => prev.map(booking =>
+                booking.id === id
+                    ? { 
+                        ...booking, 
+                        status: "completed", 
+                        paymentStatus: "completed",
+                        checkOutApprovedDate: new Date().toISOString()
+                    }
+                    : booking
+            ));
+
             setSelectedBooking(null);
-            fetchBookings();
         } catch (error) {
             console.error("Error approving checkout:", error);
             alert("Failed to approve check-out.");
         }
     };
 
-
-    // ✅ Filter booking dengan status "waiting-checkout"
-    const waitingCheckoutBookings = bookings.filter(
-        (b) => b.status?.toLowerCase() === "waiting-checkout"
+    // Filter bookings with status "active"
+    const activeBookings = bookings.filter(
+        (b) => b.status?.toLowerCase() === "active"
     );
-
 
     return (
         <div style={style.container}>
@@ -235,8 +247,8 @@ const CheckOutAdmin = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {waitingCheckoutBookings.length > 0 ? (
-                                waitingCheckoutBookings.map((booking, index) => (
+                            {activeBookings.length > 0 ? (
+                                activeBookings.map((booking, index) => (
                                     <tr key={booking.id}>
                                         <td style={style.td}>{index + 1}</td>
                                         <td style={style.td}>{booking.fullname}</td>
@@ -245,9 +257,12 @@ const CheckOutAdmin = () => {
                                         <td style={style.td}>{formatDate(booking.checkoutDate)}</td>
                                         <td style={style.td}>
                                             <span
-                                                style={{ ...style.badge, backgroundColor: "#ffc107" }}
+                                                style={{ 
+                                                    ...style.badge, 
+                                                    backgroundColor: "#4caf50" // Green for active
+                                                }}
                                             >
-                                                Waiting for Check-out
+                                                Active
                                             </span>
                                         </td>
                                         <td style={style.td}>
@@ -256,6 +271,7 @@ const CheckOutAdmin = () => {
                                                 onClick={() => handleApprove(booking.id)}
                                             >
                                                 <Check size={16} color="#fff" /> &nbsp;
+                                                Check Out
                                             </button>
                                         </td>
                                         <td style={style.td}>
@@ -271,7 +287,7 @@ const CheckOutAdmin = () => {
                             ) : (
                                 <tr>
                                     <td colSpan={8} style={{ ...style.td, textAlign: "center", padding: "30px" }}>
-                                        No guests waiting for check-out approval
+                                        No active guests currently staying
                                     </td>
                                 </tr>
                             )}
@@ -313,6 +329,14 @@ const CheckOutAdmin = () => {
                                     <span style={style.value}>{formatDate(selectedBooking.checkoutDate)}</span>
                                 </div>
                                 <div style={style.field}>
+                                    <span style={style.label}>Check-in Approved At</span>
+                                    <span style={style.value}>
+                                        {selectedBooking.checkInApprovedDate 
+                                            ? formatDate(selectedBooking.checkInApprovedDate) 
+                                            : "-"}
+                                    </span>
+                                </div>
+                                <div style={style.field}>
                                     <span style={style.label}>Guest</span>
                                     <span style={style.value}>
                                         {selectedBooking.adultGuests} Adult, {selectedBooking.childGuests} Child
@@ -339,7 +363,7 @@ const CheckOutAdmin = () => {
                                     style={{ ...style.actionBtn, ...style.approveBtn }}
                                     onClick={() => handleApprove(selectedBooking.id)}
                                 >
-                                    <Check size={16} color="#fff" /> &nbsp; Approve
+                                    <Check size={16} color="#fff" /> &nbsp; Approve Check Out
                                 </button>
                             </div>
                         </div>
@@ -350,4 +374,4 @@ const CheckOutAdmin = () => {
     );
 };
 
-export default CheckOutAdmin
+export default CheckOutAdmin;

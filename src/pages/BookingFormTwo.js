@@ -309,7 +309,7 @@ const BookingFormTwo = () => {
       region: formData.country,
       address: formData.address,
       paymentMethod: "Cash Payment",
-      paymentStatus: "Pending (Pay On Check In)",
+      paymentStatus: "Pending (Pay On Arrive)",
       pricePerNight,
     };
 
