@@ -32,6 +32,7 @@ const Navbar = () => {
         const handleScroll = () => {
             if (window.scrollY > lastScrollY) {
                 setShowNavbar(false);
+                setAnchorEl(null);
             } else {
                 setShowNavbar(true);
             }
