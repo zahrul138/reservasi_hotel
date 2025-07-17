@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-/* ─────────────────────────── helpers */
 const generateSteps = (currentStep) => {
   const stepDefinitions = [
     { id: 1, name: "Guest Info" },
@@ -16,8 +15,8 @@ const generateSteps = (currentStep) => {
       step.id < currentStep
         ? "complete"
         : step.id === currentStep
-          ? "current"
-          : "upcoming",
+        ? "current"
+        : "upcoming",
   }));
 };
 
@@ -32,30 +31,23 @@ const formatCountryName = (code) => {
   };
   return countries[code] || code;
 };
-/* ──────────────────────────────────── */
 
 const BookingFormTwo = () => {
-  /* ───────── state */
   const [isLoading, setIsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [roomData, setRoomData] = useState(null);
   const [bookingDetails, setBookingDetails] = useState({});
   const [formData, setFormData] = useState({});
-
-  // New states for payment flow
   const [paymentFlow, setPaymentFlow] = useState(null);
   const [paymentResult, setPaymentResult] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(null);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-
-  const steps = generateSteps(2); // Move this line up here
-
+  const steps = generateSteps(2); 
   const location = useLocation();
   const navigate = useNavigate();
 
-  /* ───────── Check for returning from Midtrans */
   useEffect(() => {
     const paymentMethod = localStorage.getItem("currentPaymentMethod");
     if (paymentMethod === "midtransfer") {
@@ -70,26 +62,23 @@ const BookingFormTwo = () => {
     }
   }, []);
 
-  /* ───────── load state (draft / navigation state) */
   useEffect(() => {
-    /* bookingDetails */
     if (location.state?.bookingDetails) {
       setBookingDetails(location.state.bookingDetails);
       localStorage.setItem(
         "draftBookingDetails",
-        JSON.stringify(location.state.bookingDetails),
+        JSON.stringify(location.state.bookingDetails)
       );
     } else {
       const stored = localStorage.getItem("draftBookingDetails");
       if (stored) setBookingDetails(JSON.parse(stored));
     }
 
-    /* formData */
     if (location.state?.formData) {
       setFormData(location.state.formData);
       localStorage.setItem(
         "draftFormData",
-        JSON.stringify(location.state.formData),
+        JSON.stringify(location.state.formData)
       );
     } else {
       const stored = localStorage.getItem("draftFormData");
@@ -97,12 +86,13 @@ const BookingFormTwo = () => {
     }
   }, [location.state]);
 
-  /* ───────── ambil data kamar */
   useEffect(() => {
     const fetchRoom = async () => {
       if (!bookingDetails.roomId) return;
       try {
-        const res = await fetch(`https://localhost:7298/api/room/${bookingDetails.roomId}`);
+        const res = await fetch(
+          `https://localhost:7298/api/room/${bookingDetails.roomId}`
+        );
         const data = await res.json();
         setRoomData(data);
       } catch (err) {
@@ -112,7 +102,6 @@ const BookingFormTwo = () => {
     fetchRoom();
   }, [bookingDetails.roomId]);
 
-  /* ───────── hitung malam & total */
   const calculateNights = () => {
     const checkIn = new Date(bookingDetails.checkinDate);
     const checkOut = new Date(bookingDetails.checkoutDate);
@@ -123,7 +112,6 @@ const BookingFormTwo = () => {
   const pricePerNight = roomData?.price || 0;
   const calculatedTotalPrice = pricePerNight * nights;
 
-  /* ───────── inject script Midtrans Snap sekali saja */
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
@@ -134,7 +122,6 @@ const BookingFormTwo = () => {
     };
   }, []);
 
-  /* ──────── Payment Handlers ──────── */
   const handlePaymentSuccess = async (result) => {
     setPaymentCompleted(true);
 
@@ -143,7 +130,9 @@ const BookingFormTwo = () => {
 
     if (paymentType === "bank_transfer") {
       const bank = result?.va_numbers?.[0]?.bank?.toUpperCase();
-      paymentStatus = bank ? `Complete via Virtual Account - ${bank}` : "Complete via Bank Transfer";
+      paymentStatus = bank
+        ? `Complete via Virtual Account - ${bank}`
+        : "Complete via Bank Transfer";
     } else if (result.permata_va_number) {
       paymentStatus = "Complete via Permata Virtual Account";
     } else if (paymentType === "qris") {
@@ -156,17 +145,16 @@ const BookingFormTwo = () => {
       paymentStatus = "Complete via " + (paymentType || "Midtrans");
     }
 
-    // Standardize the booking payload structure
     const bookingPayload = {
       bookingId: `BK-${Date.now()}`,
       userId: bookingDetails.userId,
-      fullName: formData.fullName, 
-      fullname: formData.fullName, 
+      fullName: formData.fullName,
+      fullname: formData.fullName,
       email: formData.email,
       phone: formData.phone,
-      phoneNumber: formData.phone, 
+      phoneNumber: formData.phone,
       country: formData.country,
-      region: formData.country, 
+      region: formData.country,
       address: formData.address,
       checkinDate: bookingDetails.checkinDate,
       checkoutDate: bookingDetails.checkoutDate,
@@ -174,13 +162,13 @@ const BookingFormTwo = () => {
       adultGuests: bookingDetails.adultGuests,
       childGuests: bookingDetails.childGuests,
       specialRequests: formData.specialRequests,
-      specialRequest: formData.specialRequests, 
+      specialRequest: formData.specialRequests,
       paymentMethod: `Midtrans (${paymentType})`,
       paymentStatus: paymentStatus,
       pricePerNight: pricePerNight,
       nights: nights,
       totalPrice: calculatedTotalPrice,
-      totalAmount: calculatedTotalPrice 
+      totalAmount: calculatedTotalPrice,
     };
 
     try {
@@ -192,42 +180,48 @@ const BookingFormTwo = () => {
 
       const resultBooking = await res.json();
 
-      if (!res.ok) throw new Error(resultBooking.message || "Failed to save booking");
+      if (!res.ok)
+        throw new Error(resultBooking.message || "Failed to save booking");
 
-      // Simpan data yang sudah distandardisasi
       const invoiceData = {
         ...bookingPayload,
-        bookingId: resultBooking.id || bookingPayload.bookingId
+        bookingId: resultBooking.id || bookingPayload.bookingId,
       };
 
-      // Simpan ke localStorage dengan format yang konsisten
       localStorage.setItem("invoiceData", JSON.stringify(invoiceData));
       localStorage.setItem("paymentMethod", "midtransfer");
-
-      // Hapus data draft
       localStorage.removeItem("draftBookingDetails");
       localStorage.removeItem("draftFormData");
       localStorage.removeItem("currentPaymentMethod");
 
-      // Navigate ke halaman sukses
       navigate("/bookingformthree", {
         state: {
           bookingData: invoiceData,
-          paymentMethod: "midtransfer"
+          paymentMethod: "midtransfer",
+          fromPayment: true, 
         },
-        replace: true
+        replace: true,
       });
     } catch (error) {
       console.error("Error saving booking:", error);
-      alert("Pembayaran berhasil tetapi gagal menyimpan data booking. Silakan hubungi customer service.");
+      alert(
+        "Pembayaran berhasil tetapi gagal menyimpan data booking. Silakan hubungi customer service."
+      );
     }
   };
 
   const handleMidtransPayment = async () => {
     setIsLoading(true);
-    setPaymentFlow('initiated');
+    setPaymentFlow("initiated");
 
     try {
+      localStorage.setItem(
+        "draftBookingDetails",
+        JSON.stringify(bookingDetails)
+      );
+      localStorage.setItem("draftFormData", JSON.stringify(formData));
+      localStorage.setItem("currentPaymentMethod", "midtransfer");
+
       const snapRes = await fetch(
         "https://localhost:7298/api/payment/create-transaction",
         {
@@ -248,43 +242,36 @@ const BookingFormTwo = () => {
         throw new Error("Midtrans Snap belum siap");
       }
 
-      // Store form data before opening Midtrans popup
-      localStorage.setItem("draftBookingDetails", JSON.stringify(bookingDetails));
-      localStorage.setItem("draftFormData", JSON.stringify(formData));
-
       window.snap.pay(token, {
         onSuccess: (result) => {
           handlePaymentSuccess(result);
         },
         onPending: (result) => {
           setPaymentResult(result);
-          setPaymentStatus('pending');
-          setPaymentFlow('instructions');
+          setPaymentStatus("pending");
+          setPaymentFlow("instructions");
           setShowPaymentModal(true);
           setIsLoading(false);
         },
         onError: (error) => {
           console.error("Payment error:", error);
-          setPaymentStatus('failed');
+          setPaymentStatus("failed");
           setPaymentFlow(null);
           setIsLoading(false);
-          alert("Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi.");
+          alert(
+            "Terjadi kesalahan saat memproses pembayaran. Silakan coba lagi."
+          );
         },
         onClose: () => {
-          // Hanya reset state, tidak navigate ke halaman lain
           setIsLoading(false);
           setPaymentFlow(null);
-
-          // Hapus currentPaymentMethod dari localStorage karena pembayaran dibatalkan
           localStorage.removeItem("currentPaymentMethod");
-
-          // Tampilkan pesan bahwa pembayaran dibatalkan
           alert("Pembayaran dibatalkan. Anda dapat mencoba lagi nanti.");
-        }
+        },
       });
     } catch (error) {
       console.error("Error:", error);
-      setPaymentStatus('failed');
+      setPaymentStatus("failed");
       setPaymentFlow(null);
       setIsLoading(false);
       alert("Gagal memproses pembayaran. Silakan coba lagi.");
@@ -348,24 +335,25 @@ const BookingFormTwo = () => {
   const checkPaymentStatus = async (orderId) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://localhost:7298/api/payment/status?orderId=${orderId}`);
+      const response = await fetch(
+        `https://localhost:7298/api/payment/status?orderId=${orderId}`
+      );
       const data = await response.json();
 
-      if (data.status === 'settlement') {
-        setPaymentCompleted(true); // Set payment completed
+      if (data.status === "settlement") {
+        setPaymentCompleted(true);
         handlePaymentSuccess(data);
       } else {
-        alert('Pembayaran belum terkonfirmasi. Silakan tunggu beberapa saat.');
+        alert("Pembayaran belum terkonfirmasi. Silakan tunggu beberapa saat.");
       }
     } catch (error) {
-      console.error('Error checking payment:', error);
-      alert('Gagal memeriksa status pembayaran. Silakan coba lagi nanti.');
+      console.error("Error checking payment:", error);
+      alert("Gagal memeriksa status pembayaran. Silakan coba lagi nanti.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  /* ───────── submit / confirm */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -882,8 +870,9 @@ const BookingFormTwo = () => {
                     </span>
                     {stepIdx !== steps.length - 1 && (
                       <span
-                        className={`step-line ${step.status === "complete" ? "complete" : ""
-                          }`}
+                        className={`step-line ${
+                          step.status === "complete" ? "complete" : ""
+                        }`}
                       ></span>
                     )}
                     <span className="step-name">{step.name}</span>
@@ -920,13 +909,13 @@ const BookingFormTwo = () => {
                       <span>
                         {bookingDetails.checkinDate
                           ? new Date(
-                            bookingDetails.checkinDate
-                          ).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                              bookingDetails.checkinDate
+                            ).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
                           : "-"}
                       </span>
                     </div>
@@ -938,13 +927,13 @@ const BookingFormTwo = () => {
                       <span>
                         {bookingDetails.checkoutDate
                           ? new Date(
-                            bookingDetails.checkoutDate
-                          ).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                              bookingDetails.checkoutDate
+                            ).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
                           : "-"}
                       </span>
                     </div>
@@ -1164,8 +1153,9 @@ const BookingFormTwo = () => {
                   type="submit"
                   onClick={handleSubmit}
                   disabled={!termsAccepted || isLoading}
-                  className={`btn btn-primary btn-block ${!termsAccepted || isLoading ? "disabled" : ""
-                    }`}
+                  className={`btn btn-primary btn-block ${
+                    !termsAccepted || isLoading ? "disabled" : ""
+                  }`}
                 >
                   {isLoading ? "Processing..." : "Confirm Booking"}
                 </button>
@@ -1190,29 +1180,39 @@ const BookingFormTwo = () => {
             <div className="payment-instructions">
               {paymentResult.payment_type === "bank_transfer" && (
                 <>
-                  <p>Please complete your payment via bank transfer using the details below:</p>
+                  <p>
+                    Please complete your payment via bank transfer using the
+                    details below:
+                  </p>
 
                   <div className="va-details">
                     <div className="detail-label">Bank Name:</div>
                     <div className="va-number">
-                      {paymentResult.va_numbers?.[0]?.bank?.toUpperCase() || 'Permata'}
+                      {paymentResult.va_numbers?.[0]?.bank?.toUpperCase() ||
+                        "Permata"}
                     </div>
 
                     <div className="detail-label">Virtual Account Number:</div>
                     <div className="va-number">
-                      {paymentResult.va_numbers?.[0]?.va_number || paymentResult.permata_va_number}
+                      {paymentResult.va_numbers?.[0]?.va_number ||
+                        paymentResult.permata_va_number}
                     </div>
 
                     <div className="detail-row">
                       <span>Amount:</span>
-                      <span>Rp {calculatedTotalPrice.toLocaleString("id-ID")}</span>
+                      <span>
+                        Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                      </span>
                     </div>
 
                     <button
                       className="copy-btn"
                       onClick={() => {
-                        navigator.clipboard.writeText(paymentResult.va_numbers?.[0]?.va_number || paymentResult.permata_va_number);
-                        alert('Virtual account number copied to clipboard!');
+                        navigator.clipboard.writeText(
+                          paymentResult.va_numbers?.[0]?.va_number ||
+                            paymentResult.permata_va_number
+                        );
+                        alert("Virtual account number copied to clipboard!");
                       }}
                     >
                       Copy VA Number
@@ -1228,19 +1228,20 @@ const BookingFormTwo = () => {
                   <div className="instruction-step">
                     <div className="instruction-number">2</div>
                     <div>
-                      Select "Transfer" and choose "{paymentResult.va_numbers?.[0]?.bank || 'Permata'}" as the destination bank
+                      Select "Transfer" and choose "
+                      {paymentResult.va_numbers?.[0]?.bank || "Permata"}" as the
+                      destination bank
                     </div>
                   </div>
                   <div className="instruction-step">
                     <div className="instruction-number">3</div>
-                    <div>
-                      Enter the virtual account number above
-                    </div>
+                    <div>Enter the virtual account number above</div>
                   </div>
                   <div className="instruction-step">
                     <div className="instruction-number">4</div>
                     <div>
-                      Enter the exact amount: Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                      Enter the exact amount: Rp{" "}
+                      {calculatedTotalPrice.toLocaleString("id-ID")}
                     </div>
                   </div>
                   <div className="instruction-step">
@@ -1254,12 +1255,14 @@ const BookingFormTwo = () => {
 
               {paymentResult.payment_type === "qris" && (
                 <>
-                  <p>Please complete your payment by scanning the QR code below:</p>
-                  <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+                  <p>
+                    Please complete your payment by scanning the QR code below:
+                  </p>
+                  <div style={{ textAlign: "center", margin: "1.5rem 0" }}>
                     <img
                       src={paymentResult.qr_code_url}
                       alt="QRIS Payment Code"
-                      style={{ maxWidth: '200px', margin: '0 auto' }}
+                      style={{ maxWidth: "200px", margin: "0 auto" }}
                     />
                   </div>
                   <div className="instruction-step">
@@ -1270,28 +1273,26 @@ const BookingFormTwo = () => {
                   </div>
                   <div className="instruction-step">
                     <div className="instruction-number">2</div>
-                    <div>
-                      Scan the QR code above
-                    </div>
+                    <div>Scan the QR code above</div>
                   </div>
                   <div className="instruction-step">
                     <div className="instruction-number">3</div>
                     <div>
-                      Confirm the amount: Rp {calculatedTotalPrice.toLocaleString("id-ID")}
+                      Confirm the amount: Rp{" "}
+                      {calculatedTotalPrice.toLocaleString("id-ID")}
                     </div>
                   </div>
                   <div className="instruction-step">
                     <div className="instruction-number">4</div>
-                    <div>
-                      Complete the payment
-                    </div>
+                    <div>Complete the payment</div>
                   </div>
                 </>
               )}
 
-              <div className="payment-note" style={{ marginTop: '1.5rem' }}>
-                Your booking will be confirmed automatically once payment is received.
-                This may take a few minutes. You'll receive a confirmation email.
+              <div className="payment-note" style={{ marginTop: "1.5rem" }}>
+                Your booking will be confirmed automatically once payment is
+                received. This may take a few minutes. You'll receive a
+                confirmation email.
               </div>
             </div>
 

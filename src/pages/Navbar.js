@@ -155,7 +155,7 @@ const Navbar = () => {
                                             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                                         >
                                             <MenuItem onClick={handleLogout}>
-                                                <Typography textAlign="center">Keluar</Typography>
+                                                <Typography textAlign="center">Exit</Typography>
                                             </MenuItem>
                                         </Menu>
                                     </Box>

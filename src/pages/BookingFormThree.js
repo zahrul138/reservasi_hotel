@@ -17,8 +17,8 @@ const generateSteps = (currentStep) => {
       step.id < currentStep
         ? "complete"
         : step.id === currentStep
-          ? "current"
-          : "upcoming",
+        ? "current"
+        : "upcoming",
   }));
 };
 
@@ -52,32 +52,46 @@ const BookingFormThree = () => {
     }
   }, [bookingData]);
 
-  // Load data from localStorage if not in state
   useEffect(() => {
     const loadData = async () => {
       try {
-        const stored = localStorage.getItem("invoiceData");
-        const method = localStorage.getItem("paymentMethod");
+        // Cek URL untuk parameter dari Midtrans
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get("order_id");
+        const statusCode = urlParams.get("status_code");
 
-        if (stored) {
-          const parsedData = JSON.parse(stored);
-          setBookingData(parsedData);
+        // Jika datang dari redirect Midtrans
+        if (orderId && statusCode === "200") {
+          const storedBooking = localStorage.getItem("draftBookingDetails");
+          const storedForm = localStorage.getItem("draftFormData");
 
-          // Calculate nights and total for stored data
-          if (parsedData.checkinDate && parsedData.checkoutDate) {
-            const checkIn = new Date(parsedData.checkinDate);
-            const checkOut = new Date(parsedData.checkoutDate);
-            const diffTime = Math.abs(checkOut - checkIn);
-            const nightsCount = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            setNights(nightsCount);
-            setCalculatedTotalPrice(
-              (parsedData.pricePerNight || 0) * nightsCount
-            );
+          if (storedBooking && storedForm) {
+            const bookingPayload = {
+              ...JSON.parse(storedBooking),
+              ...JSON.parse(storedForm),
+              paymentMethod: "Midtrans",
+              paymentStatus: "Completed",
+              bookingId: `BK-${Date.now()}`,
+            };
+
+            // Simpan ke state
+            setBookingData(bookingPayload);
+            // Simpan ke localStorage untuk konsistensi
+            localStorage.setItem("invoiceData", JSON.stringify(bookingPayload));
+            return;
           }
         }
 
-        if (method) {
-          setPaymentMethod(method);
+        // Jika tidak dari Midtrans, cek state atau localStorage biasa
+        if (location.state?.bookingData) {
+          setBookingData(location.state.bookingData);
+          localStorage.setItem(
+            "invoiceData",
+            JSON.stringify(location.state.bookingData)
+          );
+        } else {
+          const stored = localStorage.getItem("invoiceData");
+          if (stored) setBookingData(JSON.parse(stored));
         }
       } catch (error) {
         console.error("Error loading booking data:", error);
@@ -86,14 +100,9 @@ const BookingFormThree = () => {
       }
     };
 
-    if (!stateBookingData) {
-      loadData();
-    } else {
-      setIsLoading(false);
-    }
-  }, [stateBookingData]);
+    loadData();
+  }, [location.state]);
 
-  // Load html2pdf script
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -162,6 +171,23 @@ const BookingFormThree = () => {
         }}
       >
         <p>Loading booking details...</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div>Loading booking details...</div>;
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const fromMidtrans = urlParams.get("from_midtrans");
+
+  if (!bookingData && fromMidtrans) {
+    return (
+      <div>
+        <h2>Processing your payment...</h2>
+        <p>Please wait while we verify your payment.</p>
+        <button onClick={() => window.location.reload()}>Refresh</button>
       </div>
     );
   }
@@ -623,8 +649,9 @@ const BookingFormThree = () => {
                     </span>
                     {stepIdx !== steps.length - 1 && (
                       <span
-                        className={`step-line ${step.status === "complete" ? "complete" : ""
-                          }`}
+                        className={`step-line ${
+                          step.status === "complete" ? "complete" : ""
+                        }`}
                       ></span>
                     )}
                     <span className="step-name">{step.name}</span>

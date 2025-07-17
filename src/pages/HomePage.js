@@ -256,7 +256,6 @@ const styles = {
     height: "57px",
   },
 
-  // Rooms section
   roomsSection: {
     backgroundColor: "#f8f5f0",
   },
@@ -351,7 +350,6 @@ const styles = {
     marginTop: "auto",
   },
 
-  // Amenities section
   amenitiesSection: {
     backgroundColor: "#ffffff",
   },
@@ -422,7 +420,7 @@ const styles = {
     transition: "all 0.2s",
     cursor: "pointer",
     textDecoration: "none",
-    border: "1px solid #D09500", // << tambahin ini yaa
+    border: "1px solid #D09500", 
   },
   testimonialsSection: {
     backgroundColor: "#f8f5f0",
@@ -691,7 +689,6 @@ const styles = {
     textDecoration: "none",
   },
 
-  // Footer
   footer: {
     backgroundColor: "#222",
     color: "#f8f5f0",
@@ -1266,7 +1263,6 @@ function Homepage() {
           </div>
         </div>
       </section>
-
 
       {/* Amenities */}
       <section id="amenities" style={styles.amenitiesSection}>

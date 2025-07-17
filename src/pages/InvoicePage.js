@@ -102,7 +102,7 @@ const InvoicePage = () => {
     if (paymentMethod.includes("cash")) {
       return "Cash Payment (Pending)";
     }
-    return `${bookingData.paymentMethod} (${bookingData.paymentStatus})`;
+    return `Midtrans (${bookingData.paymentStatus})`;
   };
 
   const renderDueDate = () => {

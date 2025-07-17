@@ -201,13 +201,26 @@ const CheckInAdmin = () => {
 
   const handleReject = async (id) => {
     try {
-      // Update status menjadi cancelled bukan delete
+      // Pertama, dapatkan data booking yang akan di-reject
+      const bookingToReject = bookings.find(b => b.id === id);
+
+      if (!bookingToReject) {
+        alert("Booking not found.");
+        return;
+      }
+
+      // Update status booking menjadi cancelled
       await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
         status: "cancelled",
         paymentStatus: "cancelled"
       });
 
-      alert(`Booking rejected.`);
+      // Kembalikan jumlah kamar yang tersedia
+      await axios.patch(`https://localhost:7298/api/Room/restore-quantity`, {
+        roomType: bookingToReject.roomType
+      });
+
+      alert(`Booking rejected and room quantity restored.`);
       setBookings((prev) => prev.filter((b) => b.id !== id));
       setSelectedBooking(null);
     } catch (err) {

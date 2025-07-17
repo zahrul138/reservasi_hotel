@@ -318,7 +318,7 @@ const HistoryBooking = () => {
       maxWidth: "1200px",
       margin: "0 auto",
       padding: "2rem",
-      paddingTop: "18rem",
+      paddingTop: "2rem",
     },
     header: {
       background: "linear-gradient(135deg, #B4881B 0%, #d09500 100%)",
@@ -350,7 +350,7 @@ const HistoryBooking = () => {
       alignItems: "center",
       flexWrap: "wrap",
       gap: "1rem",
-      position: "fixed",
+      position: "sticky",
       top: "10rem",
       right: "22rem",
       zIndex: 90,
@@ -404,6 +404,7 @@ const HistoryBooking = () => {
       display: "flex",
       flexDirection: "column",
       gap: "1.25rem",
+      marginTop: "150px"
     },
     bookingCard: {
       backgroundColor: "white",
@@ -571,6 +572,7 @@ const HistoryBooking = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+      marginTop: "10rem"
     },
     emptyIcon: {
       fontSize: "3rem",
@@ -735,7 +737,7 @@ const HistoryBooking = () => {
               backgroundColor: "#fff",
               borderRadius: "12px",
               padding: "5rem",
-              marginTop: "2rem",
+              marginTop: "10rem",
               boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
               display: "flex",
               flexDirection: "column",
