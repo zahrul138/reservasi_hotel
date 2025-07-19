@@ -173,35 +173,52 @@ function SignIn() {
     setErrorMessage("");
 
     try {
-      const response = await fetch("https://localhost:7298/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      if (
+        formData.email === "admin@gmail.com" &&
+        formData.password === "admin123"
+      ) {
+        const adminUser = {
+          id: 1,
+          email: "admin@gmailx`.com",
+          fullname: "Administrator",
+          role: "admin",
+          avatar: "",
+        };
 
-      const result = await response.json();
+        localStorage.setItem("user", JSON.stringify(adminUser));
+        localStorage.setItem("fullname", adminUser.fullname);
+        localStorage.setItem("avatar", adminUser.avatar || "");
+        localStorage.setItem("email", adminUser.email);
+        localStorage.setItem("role", adminUser.role); 
 
-      if (response.ok) {
-        const user = result.user;
-
-        // Simpan data user ke localStorage
-        localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("fullname", user.fullname || "");
-        localStorage.setItem("avatar", user.avatar || "");
-        localStorage.setItem("email", user.email || "");
-        
-
-        // (Opsional) trigger event ke komponen lain jika perlu tahu perubahan user
-        window.dispatchEvent(new Event("storage"));
-
-        navigate("/home");
+        navigate("/admin/dashboard");
       } else {
-        setErrorMessage(result.message || "Email atau password salah");
+        // Original API call for regular users
+        const response = await fetch("https://localhost:7298/api/user/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          const user = result.user;
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("fullname", user.fullname || "");
+          localStorage.setItem("avatar", user.avatar || "");
+          localStorage.setItem("email", user.email || "");
+
+          window.dispatchEvent(new Event("storage"));
+          navigate("/home");
+        } else {
+          setErrorMessage(result.message || "Email atau password salah");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -215,86 +232,88 @@ function SignIn() {
     <Container>
       <GlobalStyle />
       <Card
-  initial={{ y: -40, opacity: 0 }}
-  animate={{ y: 0, opacity: 1 }}
-  transition={{ duration: 0.6, ease: "easeOut" }}
->
-  <img
-    src={Logo}
-    alt="Logo"
-    style={{ width: "70px", height: "70px", marginBottom: "1rem" }}
-  />
-  <Title>Welcome Back</Title>
-  <Subtitle>Sign in to your account</Subtitle>
+        initial={{ y: -40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <img
+          src={Logo}
+          alt="Logo"
+          style={{ width: "70px", height: "70px", marginBottom: "1rem" }}
+        />
+        <Title>Welcome Back</Title>
+        <Subtitle>Sign in to your account</Subtitle>
 
-  <form onSubmit={handleSubmit}>
-    <div className="form-field">
-      <label htmlFor="email">Email Address</label>
-      <div className="input-wrapper">
-        <div className="field-icon">
-          <FaEnvelope />
+        <form onSubmit={handleSubmit}>
+          <div className="form-field">
+            <label htmlFor="email">Email Address</label>
+            <div className="input-wrapper">
+              <div className="field-icon">
+                <FaEnvelope />
+              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label htmlFor="password">Password</label>
+            <div className="input-wrapper">
+              <span className="field-icon">
+                <FaLock />
+              </span>
+              <input
+                id="password"
+                name="password"
+                type={passwordVisible ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                style={{ paddingRight: "2.5rem" }}
+              />
+              {formData.password && (
+                <span
+                  className="toggle-password"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    color: "#b8860b",
+                  }}
+                >
+                  {passwordVisible ? <FaEyeSlash /> : <FaEye />}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div
+              style={{ color: "red", marginBottom: "1rem", fontSize: "0.9rem" }}
+            >
+              {errorMessage}
+            </div>
+          )}
+
+          <button type="submit" disabled={isLoading} className="signin-button">
+            {isLoading ? "Login..." : "Login"}
+          </button>
+        </form>
+
+        <div className="signin-link">
+          <span>Don't have an account?</span>{" "}
+          <a href="/signup">Create a new account</a>
         </div>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          value={formData.email}
-          onChange={handleChange}
-        />
-      </div>
-    </div>
-
-    <div className="form-field">
-      <label htmlFor="password">Password</label>
-      <div className="input-wrapper">
-        <span className="field-icon">
-          <FaLock />
-        </span>
-        <input
-          id="password"
-          name="password"
-          type={passwordVisible ? "text" : "password"}
-          required
-          value={formData.password}
-          onChange={handleChange}
-          style={{ paddingRight: "2.5rem" }}
-        />
-        {formData.password && (
-          <span
-            className="toggle-password"
-            onClick={() => setPasswordVisible(!passwordVisible)}
-            style={{
-              position: "absolute",
-              right: "0.75rem",
-              top: "50%",
-              transform: "translateY(-50%)",
-              cursor: "pointer",
-              color: "#b8860b",
-            }}
-          >
-            {passwordVisible ? <FaEyeSlash /> : <FaEye />}
-          </span>
-        )}
-      </div>
-    </div>
-
-    {errorMessage && (
-      <div style={{ color: "red", marginBottom: "1rem", fontSize: "0.9rem" }}>
-        {errorMessage}
-      </div>
-    )}
-
-    <button type="submit" disabled={isLoading} className="signin-button">
-      {isLoading ? "Login..." : "Login"}
-    </button>
-  </form>
-
-  <div className="signin-link">
-    <span>Don't have an account?</span>{" "}
-    <a href="/signup">Create a new account</a>
-  </div>
-</Card>
+      </Card>
     </Container>
   );
 }

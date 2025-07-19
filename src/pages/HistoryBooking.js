@@ -1,11 +1,334 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { IoIosLock } from "react-icons/io"
 import { FaBuilding, FaBed, FaRulerCombined, FaEye, FaSearch } from "react-icons/fa"
 import { Slide } from "@mui/material"
+import { Star } from "lucide-react" // Assuming lucide-react is installed
 
+// --- Simplified UI Components (mimicking shadcn/ui with inline styles) ---
+
+// Dialog Component
+function Dialog({ open, onOpenChange, children }) {
+  const dialogRef = useRef(null)
+
+  useEffect(() => {
+    if (open) {
+      dialogRef.current?.showModal()
+      document.body.style.overflow = "hidden" // Prevent scrolling on body
+    } else {
+      dialogRef.current?.close()
+      document.body.style.overflow = "" // Restore scrolling on body
+    }
+
+    // Cleanup function to ensure scrolling is re-enabled if component unmounts
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [open])
+
+  const handleClose = (e) => {
+    if (e.target === dialogRef.current) {
+      onOpenChange(false)
+    }
+  }
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClick={handleClose}
+      onCancel={() => onOpenChange(false)} // Handle escape key
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 50,
+        backgroundColor: "rgba(0,0,0,0.5)", // Overlay background
+        backdropFilter: "blur(4px)", // backdrop-blur-sm
+        border: "none",
+        padding: 0,
+        margin: 0,
+        width: "100%",
+        height: "100%",
+        display: open ? "flex" : "none", // Control visibility
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {children}
+    </dialog>
+  )
+}
+
+// DialogContent Component
+function DialogContent({ className, children, ...props }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        zIndex: 50,
+        display: "grid",
+        width: "100%",
+        maxWidth: "425px", // sm:max-w-[425px]
+        gap: "1rem", // gap-4
+        border: "1px solid #e5e7eb", // border-input
+        backgroundColor: "white", // bg-background
+        padding: "1.5rem", // p-6
+        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", // shadow-lg
+        borderRadius: "0.5rem", // sm:rounded-lg
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
+
+// DialogHeader Component
+function DialogHeader({ className, children, ...props }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.375rem", // space-y-1.5
+        textAlign: "center", // text-center
+        // sm:text-left is harder to apply with inline styles without media queries
+        marginBottom: "1rem",
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
+
+// DialogTitle Component
+function DialogTitle({ className, children, ...props }) {
+  return (
+    <h2
+      style={{
+        fontSize: "1.25rem", // text-lg
+        fontWeight: "600", // font-semibold
+        lineHeight: "1.25", // leading-none
+        letterSpacing: "-0.025em", // tracking-tight
+      }}
+      {...props}
+    >
+      {children}
+    </h2>
+  )
+}
+
+// DialogDescription Component
+function DialogDescription({ className, children, ...props }) {
+  return (
+    <p
+      style={{
+        fontSize: "0.875rem", // text-sm
+        color: "#6b7280", // text-muted-foreground
+      }}
+      {...props}
+    >
+      {children}
+    </p>
+  )
+}
+
+// Button Component
+function Button({ className, variant, children, ...props }) {
+  const baseStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    whiteSpace: "nowrap",
+    borderRadius: "0.375rem", // rounded-md
+    fontSize: "0.875rem", // text-sm
+    fontWeight: "500", // font-medium
+    transition: "background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out",
+    padding: "0.5rem 1rem", // px-4 py-2
+    cursor: "pointer",
+    border: "1px solid transparent",
+  }
+
+  const variantStyles = {
+    default: {
+      backgroundColor: "#d09500", // primary
+      color: "white",
+      // Hover styles are tricky with inline styles, often require external CSS or JS for dynamic changes
+    },
+    outline: {
+      backgroundColor: "transparent",
+      color: "#374151", // foreground
+      borderColor: "#d1d5db", // border
+      // Hover styles are tricky with inline styles
+    },
+    // Add other variants as needed
+  }
+
+  const currentStyle = { ...baseStyle, ...(variantStyles[variant] || variantStyles.default) }
+
+  return (
+    <button style={currentStyle} {...props}>
+      {children}
+    </button>
+  )
+}
+
+// Input Component
+function Input({ className, type = "text", ...props }) {
+  return (
+    <input
+      type={type}
+      style={{
+        display: "flex",
+        height: "2.5rem", // h-10
+        width: "100%",
+        borderRadius: "0.375rem", // rounded-md
+        border: "1px solid #d1d5db", // border border-input
+        backgroundColor: "white", // bg-background
+        padding: "0.5rem 0.75rem", // px-3 py-2
+        fontSize: "0.875rem", // text-sm
+        // ring-offset-background, focus-visible, disabled styles are harder with inline styles
+        // placeholder:text-muted-foreground
+      }}
+      {...props}
+    />
+  )
+}
+
+// Label Component
+function Label({ className, children, ...props }) {
+  return (
+    <label
+      style={{
+        fontSize: "0.875rem", // text-sm
+        fontWeight: "500", // font-medium
+        lineHeight: "1.25", // leading-none
+        // peer-disabled styles are harder with inline styles
+      }}
+      {...props}
+    >
+      {children}
+    </label>
+  )
+}
+
+// Textarea Component
+function Textarea({ className, ...props }) {
+  return (
+    <textarea
+      style={{
+        display: "flex",
+        minHeight: "5rem", // min-h-[80px]
+        width: "100%",
+        borderRadius: "0.375rem", // rounded-md
+        border: "1px solid #d1d5db", // border border-input
+        backgroundColor: "white", // bg-background
+        padding: "0.5rem 0.75rem", // px-3 py-2
+        fontSize: "0.875rem", // text-sm
+        resize: "vertical",
+        // ring-offset-background, focus-visible, disabled styles are harder with inline styles
+        // placeholder:text-muted-foreground
+      }}
+      {...props}
+    />
+  )
+}
+
+// ReviewForm Component (nested within HistoryBooking.js)
+function ReviewForm({ booking, onClose }) {
+  const [rating, setRating] = useState(0)
+  const [title, setTitle] = useState("")
+  const [comment, setComment] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    // Simulate API call for review submission
+    console.log("Submitting review for booking:", booking.bookingId)
+    console.log("Rating:", rating)
+    console.log("Title:", title)
+    console.log("Comment:", comment)
+
+    try {
+      // Replace with actual API call (e.g., fetch, axios)
+      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
+      alert("Review submitted successfully!")
+    } catch (error) {
+      console.error("Error submitting review:", error)
+      alert("An error occurred while submitting your review.")
+    } finally {
+      setIsSubmitting(false)
+      onClose() // Close the dialog after submission (or on error, depending on desired UX)
+    }
+  }
+
+  return (
+    <form style={{ display: "grid", gap: "1rem", padding: "1rem 1rem" }} onSubmit={handleSubmit}>
+      <div style={{ display: "grid", gap: "0.5rem" }}>
+        <Label htmlFor="rating">Overall Rating</Label>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              style={{
+                width: "1.5rem",
+                height: "1.5rem",
+                cursor: "pointer",
+                transition: "color 0.2s",
+                color: rating >= star ? "#d09500" : "#e5e7eb", // Primary/muted-foreground equivalent
+                fill: rating >= star ? "#d09500" : "none",
+                stroke: rating >= star ? "#d09500" : "#9ca3af",
+              }}
+              onClick={() => setRating(star)}
+            />
+          ))}
+        </div>
+        {rating === 0 && <p style={{ fontSize: "0.875rem", color: "#ef4444" }}>Please select a rating.</p>}
+      </div>
+
+      <div style={{ display: "grid", gap: "0.5rem" }}>
+        <Label htmlFor="title">Review Title</Label>
+        <Input
+          id="title"
+          placeholder="Summarize your experience"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ display: "grid", gap: "0.5rem" }}>
+        <Label htmlFor="comment">Your Review</Label>
+        <Textarea
+          id="comment"
+          placeholder="Tell us more about your stay..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={5}
+          required
+        />
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSubmitting || rating === 0}>
+          {isSubmitting ? "Submitting..." : "Submit Review"}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+// HistoryBooking Component
 const HistoryBooking = () => {
   // State management
   const [bookings, setBookings] = useState([])
@@ -18,6 +341,8 @@ const HistoryBooking = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [showControls, setShowControls] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const [showReviewDialog, setShowReviewDialog] = useState(false) // State for review dialog visibility
+  const [selectedBookingForReview, setSelectedBookingForReview] = useState(null) // State to hold booking for review
   const navigate = useNavigate()
 
   // Fetch user data from localStorage
@@ -115,38 +440,33 @@ const HistoryBooking = () => {
 
   const getBookingStatus = (booking) => {
     // 1. Priority - cancelled status
-    if (booking.paymentStatus.toLowerCase() === "cancelled" ||
-      booking.status?.toLowerCase() === "cancelled") {
-      return "cancelled";
+    if (booking.paymentStatus.toLowerCase() === "cancelled" || booking.status?.toLowerCase() === "cancelled") {
+      return "cancelled"
     }
 
     // 2. If status is completed
     if (booking.status?.toLowerCase() === "completed") {
-      return "completed";
+      return "completed"
     }
 
     // 3. For active status (set by admin approval)
     if (booking.status?.toLowerCase() === "active") {
-      return "active";
+      return "active"
     }
 
     // 4. Payment status logic
     if (booking.paymentMethod.toLowerCase().includes("cash")) {
-      return booking.status?.toLowerCase() === "pending"
-        ? "pending"
-        : "paid";
+      return booking.status?.toLowerCase() === "pending" ? "pending" : "paid"
     }
 
     // 5. For non-cash (Midtrans)
     if (booking.paymentMethod.toLowerCase().includes("midtrans")) {
-      return "paid";
+      return "paid"
     }
 
     // Default completed if past checkout date
-    return "completed";
-  };
-
-  // ... rest of the code remains the same ...
+    return "completed"
+  }
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -154,65 +474,65 @@ const HistoryBooking = () => {
         return {
           backgroundColor: "#fff",
           color: "#f59e0b",
-          borderColor: "#f59e0b"
-        };
+          borderColor: "#f59e0b",
+        }
       case "paid":
         return {
           backgroundColor: "#fff",
           color: "#10b981",
-          borderColor: "#10b981"
-        };
+          borderColor: "#10b981",
+        }
       case "upcoming":
         return {
           backgroundColor: "#fff",
           color: "#2563eb",
-          borderColor: "#2563eb"
-        };
+          borderColor: "#2563eb",
+        }
       case "active":
         return {
           backgroundColor: "#fff",
           color: "#059669",
-          borderColor: "#059669"
-        };
+          borderColor: "#059669",
+        }
       case "completed":
         return {
           backgroundColor: "#fff",
           color: "#6b7280",
-          borderColor: "#6b7280"
-        };
+          borderColor: "#6b7280",
+        }
       case "cancelled":
         return {
           backgroundColor: "#fff",
           color: "#dc2626",
-          borderColor: "#dc2626"
-        };
+          borderColor: "#dc2626",
+        }
       default:
         return {
           backgroundColor: "#fff",
           color: "#6b7280",
-          borderColor: "#6b7280"
-        };
+          borderColor: "#6b7280",
+        }
     }
-  };
+  }
 
   const getStatusText = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return "Pending";
+        return "Pending"
       case "paid":
-        return "Paid";
+        return "Paid"
       case "upcoming":
-        return "Upcoming";
+        return "Upcoming"
       case "active":
-        return "Active";
+        return "Active"
       case "completed":
-        return "Completed";
+        return "Completed"
       case "cancelled":
-        return "Cancelled";
+        return "Cancelled"
       default:
-        return status;
+        return status
     }
-  };
+  }
 
   const getPaymentStatusColor = (status) => {
     switch (status) {
@@ -243,8 +563,8 @@ const HistoryBooking = () => {
         (booking) =>
           booking.roomType.toLowerCase().includes(searchQuery) ||
           booking.bookingId.toLowerCase().includes(searchQuery) ||
-          (booking.roomDetails?.bed?.toLowerCase().includes(searchQuery)) ||
-          (booking.roomDetails?.roomView?.toLowerCase().includes(searchQuery))
+          booking.roomDetails?.bed?.toLowerCase().includes(searchQuery) ||
+          booking.roomDetails?.roomView?.toLowerCase().includes(searchQuery),
       )
     }
 
@@ -299,8 +619,8 @@ const HistoryBooking = () => {
   }
 
   const handleReviewStay = (booking) => {
-    console.log("Reviewing stay:", booking.bookingId)
-    alert(`Review stay for booking ${booking.bookingId}`)
+    setSelectedBookingForReview(booking) // Set the booking to be reviewed
+    setShowReviewDialog(true) // Open the review dialog
   }
 
   // Styles
@@ -404,7 +724,7 @@ const HistoryBooking = () => {
       display: "flex",
       flexDirection: "column",
       gap: "1.25rem",
-      marginTop: "150px"
+      marginTop: "150px",
     },
     bookingCard: {
       backgroundColor: "white",
@@ -572,7 +892,7 @@ const HistoryBooking = () => {
       backgroundColor: "white",
       borderRadius: "12px",
       boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-      marginTop: "10rem"
+      marginTop: "10rem",
     },
     emptyIcon: {
       fontSize: "3rem",
@@ -669,7 +989,6 @@ const HistoryBooking = () => {
       color: "#6b7280",
       fontSize: "0.9rem",
     },
-
   }
 
   return (
@@ -808,9 +1127,7 @@ const HistoryBooking = () => {
                     {/* Room Image with Status Badge */}
                     <div
                       style={
-                        isMobile
-                          ? { ...styles.imageContainer, ...styles.mobileImageContainer }
-                          : styles.imageContainer
+                        isMobile ? { ...styles.imageContainer, ...styles.mobileImageContainer } : styles.imageContainer
                       }
                     >
                       <img
@@ -818,7 +1135,7 @@ const HistoryBooking = () => {
                         alt={`${booking.roomType} room`}
                         style={{
                           ...styles.roomImage,
-                          position: "absolute",  // Tambahkan ini untuk memastikan gambar menutupi area
+                          position: "absolute", // Tambahkan ini untuk memastikan gambar menutupi area
                           top: 0,
                           left: 0,
                         }}
@@ -887,7 +1204,7 @@ const HistoryBooking = () => {
                             <FaBed style={styles.roomDetailIcon} />
                             <span style={styles.roomDetailText}>{roomDetails.bed || "N/A"}</span>
                           </div>
-                          <div style={styles.roomDetailItem}>
+                          <div style={styles.infoItem}>
                             <FaEye style={styles.roomDetailIcon} />
                             <span style={styles.roomDetailText}>{roomDetails.roomView || "N/A"}</span>
                           </div>
@@ -974,6 +1291,21 @@ const HistoryBooking = () => {
           </div>
         )}
       </div>
+
+      {/* Review Dialog */}
+      {selectedBookingForReview && (
+        <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Submit Your Review</DialogTitle>
+              <DialogDescription>
+                Share your experience for booking #{selectedBookingForReview.bookingId}.
+              </DialogDescription>
+            </DialogHeader>
+            <ReviewForm booking={selectedBookingForReview} onClose={() => setShowReviewDialog(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

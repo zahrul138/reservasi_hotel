@@ -13,6 +13,7 @@ import {
 } from "react-icons/im";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
+import { RiFeedbackFill } from "react-icons/ri";
 
 const styles = {
   sidebar: (isOpen) => ({
@@ -77,6 +78,7 @@ const SidebarAdmin = ({ activePage = "" }) => {
     { icon: <ImEnter />, text: "Check In", path: "/admin/checkIn" },
     { icon: <ImExit />, text: "Check Out", path: "/admin/checkOut" },
     { icon: <FaClockRotateLeft />, text: "History", path: "/admin/history" },
+    { icon: <RiFeedbackFill />, text: "Feedback", path: "/admin/feedback" },
   ];
 
   return (

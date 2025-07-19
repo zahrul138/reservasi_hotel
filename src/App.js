@@ -13,6 +13,7 @@ import GuestList from "./admin/GuestList";
 import CheckInAdmin from "./admin/CheckInAdmin";
 import CheckOutAdmin from "./admin/CheckOutAdmin";
 import HistoryAdmin from "./admin/HistoryAdmin";
+import FeedbackAdmin from "./admin/FeedbackAdmin";
 
 import Homepage from "./pages/HomePage";
 import RoomDetail from "./pages/RoomDetail";
@@ -56,6 +57,7 @@ function App() {
         <Route path="/admin/checkIn" element={<CheckInAdmin />} />
         <Route path="/admin/checkOut" element={<CheckOutAdmin />} />
         <Route path="/admin/history" element={<HistoryAdmin />} />
+        <Route path="/admin/feedback" element={<FeedbackAdmin />} />
 
         {/* Routes dengan Navbar */}
         <Route path="/home" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
