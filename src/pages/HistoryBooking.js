@@ -1,38 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { useNavigate } from "react-router-dom"
-import { IoIosLock } from "react-icons/io"
-import { FaBuilding, FaBed, FaRulerCombined, FaEye, FaSearch } from "react-icons/fa"
-import { Slide } from "@mui/material"
-import { Star } from "lucide-react" // Assuming lucide-react is installed
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { IoIosLock } from "react-icons/io";
+import {
+  FaBuilding,
+  FaBed,
+  FaRulerCombined,
+  FaEye,
+  FaSearch,
+} from "react-icons/fa";
+import { Slide } from "@mui/material";
+import { Star } from "lucide-react";
 
 // --- Simplified UI Components (mimicking shadcn/ui with inline styles) ---
 
 // Dialog Component
 function Dialog({ open, onOpenChange, children }) {
-  const dialogRef = useRef(null)
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     if (open) {
-      dialogRef.current?.showModal()
-      document.body.style.overflow = "hidden" // Prevent scrolling on body
+      dialogRef.current?.showModal();
+      document.body.style.overflow = "hidden"; // Prevent scrolling on body
     } else {
-      dialogRef.current?.close()
-      document.body.style.overflow = "" // Restore scrolling on body
+      dialogRef.current?.close();
+      document.body.style.overflow = ""; // Restore scrolling on body
     }
 
     // Cleanup function to ensure scrolling is re-enabled if component unmounts
     return () => {
-      document.body.style.overflow = ""
-    }
-  }, [open])
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const handleClose = (e) => {
     if (e.target === dialogRef.current) {
-      onOpenChange(false)
+      onOpenChange(false);
     }
-  }
+  };
 
   return (
     <dialog
@@ -60,7 +66,7 @@ function Dialog({ open, onOpenChange, children }) {
     >
       {children}
     </dialog>
-  )
+  );
 }
 
 // DialogContent Component
@@ -77,14 +83,15 @@ function DialogContent({ className, children, ...props }) {
         border: "1px solid #e5e7eb", // border-input
         backgroundColor: "white", // bg-background
         padding: "1.5rem", // p-6
-        boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", // shadow-lg
+        boxShadow:
+          "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", // shadow-lg
         borderRadius: "0.5rem", // sm:rounded-lg
       }}
       {...props}
     >
       {children}
     </div>
-  )
+  );
 }
 
 // DialogHeader Component
@@ -103,7 +110,7 @@ function DialogHeader({ className, children, ...props }) {
     >
       {children}
     </div>
-  )
+  );
 }
 
 // DialogTitle Component
@@ -120,7 +127,7 @@ function DialogTitle({ className, children, ...props }) {
     >
       {children}
     </h2>
-  )
+  );
 }
 
 // DialogDescription Component
@@ -135,7 +142,7 @@ function DialogDescription({ className, children, ...props }) {
     >
       {children}
     </p>
-  )
+  );
 }
 
 // Button Component
@@ -148,11 +155,12 @@ function Button({ className, variant, children, ...props }) {
     borderRadius: "0.375rem", // rounded-md
     fontSize: "0.875rem", // text-sm
     fontWeight: "500", // font-medium
-    transition: "background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out",
+    transition:
+      "background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out",
     padding: "0.5rem 1rem", // px-4 py-2
     cursor: "pointer",
     border: "1px solid transparent",
-  }
+  };
 
   const variantStyles = {
     default: {
@@ -167,15 +175,18 @@ function Button({ className, variant, children, ...props }) {
       // Hover styles are tricky with inline styles
     },
     // Add other variants as needed
-  }
+  };
 
-  const currentStyle = { ...baseStyle, ...(variantStyles[variant] || variantStyles.default) }
+  const currentStyle = {
+    ...baseStyle,
+    ...(variantStyles[variant] || variantStyles.default),
+  };
 
   return (
     <button style={currentStyle} {...props}>
       {children}
     </button>
-  )
+  );
 }
 
 // Input Component
@@ -197,7 +208,7 @@ function Input({ className, type = "text", ...props }) {
       }}
       {...props}
     />
-  )
+  );
 }
 
 // Label Component
@@ -214,7 +225,7 @@ function Label({ className, children, ...props }) {
     >
       {children}
     </label>
-  )
+  );
 }
 
 // Textarea Component
@@ -236,41 +247,150 @@ function Textarea({ className, ...props }) {
       }}
       {...props}
     />
-  )
+  );
 }
 
 // ReviewForm Component (nested within HistoryBooking.js)
-function ReviewForm({ booking, onClose }) {
-  const [rating, setRating] = useState(0)
-  const [title, setTitle] = useState("")
-  const [comment, setComment] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+function ReviewForm({
+  booking,
+  onClose,
+  userId,
+  bookings,
+  alreadyReviewed,
+  setAlreadyReviewed,
+}) {
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState("");
+  const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      const response = await fetch("https://localhost:7298/api/Review", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingId: reviewData.bookingId,
+          roomId: reviewData.roomId,
+          userId: reviewData.userId,
+          rating: reviewData.rating,
+          title: reviewData.title,
+          comment: reviewData.comment,
+          // Tambahkan ini:
+          fullname: reviewData.fullname || "",
+          roomType: reviewData.roomType || "",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error details:", errorData); // Log detail error
+        throw new Error(errorData.message || "Failed to submit review");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      throw error;
+    }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
 
-    // Simulate API call for review submission
-    console.log("Submitting review for booking:", booking.bookingId)
-    console.log("Rating:", rating)
-    console.log("Title:", title)
-    console.log("Comment:", comment)
+    if (rating === 0) {
+      alert("Please select a rating");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      // Replace with actual API call (e.g., fetch, axios)
-      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
-      alert("Review submitted successfully!")
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) throw new Error("User not logged in");
+
+      const reviewData = {
+        bookingId: booking.id,
+        roomId: booking.roomId,
+        userId: user.id,
+        rating: rating,
+        title: title,
+        comment: comment,
+        fullname: user.fullname || "",
+        roomType: booking.roomType || "",
+      };
+
+      const response = await fetch("https://localhost:7298/api/Review", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.title || "Failed to submit review");
+      }
+
+      // Update status alreadyReviewed setelah submit berhasil
+      setAlreadyReviewed((prev) => ({
+        ...prev,
+        [booking.id]: true,
+      }));
+
+      onClose();
+      alert("Review submitted successfully!");
     } catch (error) {
-      console.error("Error submitting review:", error)
-      alert("An error occurred while submitting your review.")
+      console.error("Review submission failed:", error);
+      alert(`Failed to submit review: ${error.message}`);
     } finally {
-      setIsSubmitting(false)
-      onClose() // Close the dialog after submission (or on error, depending on desired UX)
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!userId || !bookings || bookings.length === 0) return;
+
+    const checkReviews = async () => {
+      const reviewStatus = {};
+
+      for (const bookingItem of bookings) {
+        if (bookingItem.status === "completed") {
+          try {
+            const response = await fetch(
+              `https://localhost:7298/api/Review/user/${userId}/booking/${bookingItem.id}`
+            );
+
+            if (!response.ok) {
+              reviewStatus[bookingItem.id] = false;
+              continue;
+            }
+
+            const hasReviewed = await response.json();
+            reviewStatus[bookingItem.id] = hasReviewed;
+          } catch (error) {
+            console.error("Error checking review status:", error);
+            reviewStatus[bookingItem.id] = false;
+          }
+        } else {
+          reviewStatus[bookingItem.id] = false;
+        }
+      }
+
+      setAlreadyReviewed(reviewStatus);
+    };
+
+    checkReviews();
+  }, [userId, bookings, setAlreadyReviewed]);
 
   return (
-    <form style={{ display: "grid", gap: "1rem", padding: "1rem 1rem" }} onSubmit={handleSubmit}>
+    <form
+      style={{ display: "grid", gap: "1rem", padding: "1rem 1rem" }}
+      onSubmit={handleSubmit}
+    >
       <div style={{ display: "grid", gap: "0.5rem" }}>
         <Label htmlFor="rating">Overall Rating</Label>
         <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
@@ -290,7 +410,11 @@ function ReviewForm({ booking, onClose }) {
             />
           ))}
         </div>
-        {rating === 0 && <p style={{ fontSize: "0.875rem", color: "#ef4444" }}>Please select a rating.</p>}
+        {rating === 0 && (
+          <p style={{ fontSize: "0.875rem", color: "#ef4444" }}>
+            Please select a rating.
+          </p>
+        )}
       </div>
 
       <div style={{ display: "grid", gap: "0.5rem" }}>
@@ -316,8 +440,15 @@ function ReviewForm({ booking, onClose }) {
         />
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
-        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+      <div
+        style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}
+      >
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting || rating === 0}>
@@ -325,148 +456,196 @@ function ReviewForm({ booking, onClose }) {
         </Button>
       </div>
     </form>
-  )
+  );
 }
 
 // HistoryBooking Component
 const HistoryBooking = () => {
   // State management
-  const [bookings, setBookings] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState(null)
-  const [noUser, setNoUser] = useState(false)
-  const [filter, setFilter] = useState("all")
-  const [sortBy, setSortBy] = useState("newest")
-  const [isMobile, setIsMobile] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [showControls, setShowControls] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [showReviewDialog, setShowReviewDialog] = useState(false) // State for review dialog visibility
-  const [selectedBookingForReview, setSelectedBookingForReview] = useState(null) // State to hold booking for review
-  const navigate = useNavigate()
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const [noUser, setNoUser] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showControls, setShowControls] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [selectedBookingForReview, setSelectedBookingForReview] =
+    useState(null);
+  const [alreadyReviewed, setAlreadyReviewed] = useState({});
+  const navigate = useNavigate();
 
   // Fetch user data from localStorage
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"))
+    const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser && storedUser.id) {
-      setUserId(storedUser.id)
+      setUserId(storedUser.id);
     } else {
-      setBookings([])
-      setLoading(false)
-      setNoUser(true)
+      setBookings([]);
+      setLoading(false);
+      setNoUser(true);
     }
-  }, [])
+  }, []);
 
   // Fetch bookings and rooms data
   useEffect(() => {
-    if (!userId) return
+    if (!userId) return;
 
     const fetchData = async () => {
       try {
         const [bookingsRes, roomsRes] = await Promise.all([
           fetch("https://localhost:7298/api/Booking"),
           fetch("https://localhost:7298/api/Room"),
-        ])
+        ]);
 
-        const bookingsData = await bookingsRes.json()
-        const roomsData = await roomsRes.json()
+        const bookingsData = await bookingsRes.json();
+        const roomsData = await roomsRes.json();
 
         const userBookings = bookingsData
           .filter((b) => b.userId === userId)
           .map((booking) => {
-            const matchedRoom = roomsData.find((room) => room.title === booking.roomType)
+            const matchedRoom = roomsData.find(
+              (room) => room.title === booking.roomType
+            );
 
             // Handle image URL construction with better fallbacks
-            let roomImage = "/placeholder.svg?height=180&width=220"
+            let roomImage = "/placeholder.svg?height=180&width=220";
             if (matchedRoom?.image1) {
               // Clean the image path and ensure proper URL construction
-              const imagePath = matchedRoom.image1.trim()
-              if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+              const imagePath = matchedRoom.image1.trim();
+              if (
+                imagePath.startsWith("http://") ||
+                imagePath.startsWith("https://")
+              ) {
                 // Already a full URL
-                roomImage = imagePath
+                roomImage = imagePath;
               } else if (imagePath.startsWith("/uploads/")) {
                 // Relative path starting with /uploads/
-                roomImage = `https://localhost:7298${imagePath}`
+                roomImage = `https://localhost:7298${imagePath}`;
               } else {
                 // Path without /uploads/ prefix
-                roomImage = `https://localhost:7298/uploads/${imagePath}`
+                roomImage = `https://localhost:7298/uploads/${imagePath}`;
               }
             }
 
             return {
               ...booking,
-              bookingId: `BK-${new Date(booking.createdAt).toISOString().split("T")[0].replace(/-/g, "")}-${booking.id.toString().padStart(3, "0")}`,
+              bookingId: `BK-${new Date(booking.createdAt)
+                .toISOString()
+                .split("T")[0]
+                .replace(/-/g, "")}-${booking.id.toString().padStart(3, "0")}`,
               roomImage: roomImage,
               roomDetails: matchedRoom || null,
-            }
-          })
+            };
+          });
 
-        setBookings(userBookings)
+        setBookings(userBookings);
       } catch (err) {
-        console.error("Failed to fetch data:", err)
+        console.error("Failed to fetch data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [userId])
+    fetchData();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId || !bookings || bookings.length === 0) return;
+
+    const checkReviews = async () => {
+      const reviewStatus = {};
+
+      for (const bookingItem of bookings) {
+        if (bookingItem.status === "completed") {
+          try {
+            const response = await fetch(
+              `https://localhost:7298/api/Review/user/${userId}/booking/${bookingItem.id}`
+            );
+
+            if (!response.ok) {
+              reviewStatus[bookingItem.id] = false;
+              continue;
+            }
+
+            const hasReviewed = await response.json();
+            reviewStatus[bookingItem.id] = hasReviewed;
+          } catch (error) {
+            console.error("Error checking review status:", error);
+            reviewStatus[bookingItem.id] = false;
+          }
+        } else {
+          reviewStatus[bookingItem.id] = false;
+        }
+      }
+
+      setAlreadyReviewed(reviewStatus);
+    };
+
+    checkReviews();
+  }, [userId, bookings, setAlreadyReviewed]);
 
   // Scroll effect like navbar
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > lastScrollY) {
-        setShowControls(false)
+        setShowControls(false);
       } else {
-        setShowControls(true)
+        setShowControls(true);
       }
-      setLastScrollY(window.scrollY)
-    }
+      setLastScrollY(window.scrollY);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [lastScrollY])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Responsive design handler
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    handleResize()
-    window.addEventListener("resize", handleResize)
-    return () => window.removeEventListener("resize", handleResize)
-  }, [])
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const getBookingStatus = (booking) => {
     // 1. Priority - cancelled status
-    if (booking.paymentStatus.toLowerCase() === "cancelled" || booking.status?.toLowerCase() === "cancelled") {
-      return "cancelled"
+    if (
+      booking.paymentStatus.toLowerCase() === "cancelled" ||
+      booking.status?.toLowerCase() === "cancelled"
+    ) {
+      return "cancelled";
     }
 
     // 2. If status is completed
     if (booking.status?.toLowerCase() === "completed") {
-      return "completed"
+      return "completed";
     }
 
     // 3. For active status (set by admin approval)
     if (booking.status?.toLowerCase() === "active") {
-      return "active"
+      return "active";
     }
 
     // 4. Payment status logic
     if (booking.paymentMethod.toLowerCase().includes("cash")) {
-      return booking.status?.toLowerCase() === "pending" ? "pending" : "paid"
+      return booking.status?.toLowerCase() === "pending" ? "pending" : "paid";
     }
 
     // 5. For non-cash (Midtrans)
     if (booking.paymentMethod.toLowerCase().includes("midtrans")) {
-      return "paid"
+      return "paid";
     }
 
     // Default completed if past checkout date
-    return "completed"
-  }
+    return "completed";
+  };
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -475,87 +654,85 @@ const HistoryBooking = () => {
           backgroundColor: "#fff",
           color: "#f59e0b",
           borderColor: "#f59e0b",
-        }
+        };
       case "paid":
         return {
           backgroundColor: "#fff",
           color: "#10b981",
           borderColor: "#10b981",
-        }
+        };
       case "upcoming":
         return {
           backgroundColor: "#fff",
           color: "#2563eb",
           borderColor: "#2563eb",
-        }
+        };
       case "active":
         return {
           backgroundColor: "#fff",
           color: "#059669",
           borderColor: "#059669",
-        }
+        };
       case "completed":
         return {
           backgroundColor: "#fff",
           color: "#6b7280",
           borderColor: "#6b7280",
-        }
+        };
       case "cancelled":
         return {
           backgroundColor: "#fff",
           color: "#dc2626",
           borderColor: "#dc2626",
-        }
+        };
       default:
         return {
           backgroundColor: "#fff",
           color: "#6b7280",
           borderColor: "#6b7280",
-        }
+        };
     }
-  }
+  };
 
   const getStatusText = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return "Pending"
+        return "Pending";
       case "paid":
-        return "Paid"
+        return "Paid";
       case "upcoming":
-        return "Upcoming"
+        return "Upcoming";
       case "active":
-        return "Active"
+        return "Active";
       case "completed":
-        return "Completed"
+        return "Completed";
       case "cancelled":
-        return "Cancelled"
+        return "Cancelled";
       default:
-        return status
+        return status;
     }
-  }
+  };
 
   const getPaymentStatusColor = (status) => {
     switch (status) {
       case "paid":
-        return "#10b981"
+        return "#10b981";
       case "pending":
-        return "#f59e0b"
+        return "#f59e0b";
       case "cancelled":
-        return "#ef4444"
+        return "#ef4444";
       default:
-        return "#6b7280"
+        return "#6b7280";
     }
-  }
-
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value.toLowerCase())
-  }
+  };
 
   const filteredAndSortedBookings = () => {
-    let filtered = bookings
+    let filtered = bookings;
 
     if (filter !== "all") {
-      filtered = bookings.filter((booking) => getBookingStatus(booking) === filter)
+      filtered = bookings.filter(
+        (booking) => getBookingStatus(booking) === filter
+      );
     }
 
     if (searchQuery) {
@@ -564,32 +741,41 @@ const HistoryBooking = () => {
           booking.roomType.toLowerCase().includes(searchQuery) ||
           booking.bookingId.toLowerCase().includes(searchQuery) ||
           booking.roomDetails?.bed?.toLowerCase().includes(searchQuery) ||
-          booking.roomDetails?.roomView?.toLowerCase().includes(searchQuery),
-      )
+          booking.roomDetails?.roomView?.toLowerCase().includes(searchQuery)
+      );
     }
 
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return new Date(b.createdAt || b.checkinDate).getTime() - new Date(a.createdAt || a.checkinDate).getTime()
+          return (
+            new Date(b.createdAt || b.checkinDate).getTime() -
+            new Date(a.createdAt || a.checkinDate).getTime()
+          );
         case "oldest":
-          return new Date(a.createdAt || a.checkinDate).getTime() - new Date(b.createdAt || b.checkinDate).getTime()
+          return (
+            new Date(a.createdAt || a.checkinDate).getTime() -
+            new Date(b.createdAt || b.checkinDate).getTime()
+          );
         case "checkin":
-          return new Date(a.checkinDate).getTime() - new Date(b.checkinDate).getTime()
+          return (
+            new Date(a.checkinDate).getTime() -
+            new Date(b.checkinDate).getTime()
+          );
         default:
-          return 0
+          return 0;
       }
-    })
+    });
 
-    return filtered
-  }
+    return filtered;
+  };
 
   const calculateNights = (checkinDate, checkoutDate) => {
-    const checkIn = new Date(checkinDate)
-    const checkOut = new Date(checkoutDate)
-    const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime())
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  }
+    const checkIn = new Date(checkinDate);
+    const checkOut = new Date(checkoutDate);
+    const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -597,31 +783,31 @@ const HistoryBooking = () => {
       month: "short",
       day: "numeric",
       year: "numeric",
-    })
-  }
+    });
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   // Action handlers
   const handleModifyBooking = (booking) => {
-    console.log("Modifying booking:", booking.bookingId)
-    alert(`Modify booking ${booking.bookingId}`)
-  }
+    console.log("Modifying booking:", booking.bookingId);
+    alert(`Modify booking ${booking.bookingId}`);
+  };
 
   const handleContactHotel = (booking) => {
-    console.log("Contacting hotel for:", booking.bookingId)
-    alert(`Contact hotel for booking ${booking.bookingId}`)
-  }
+    console.log("Contacting hotel for:", booking.bookingId);
+    alert(`Contact hotel for booking ${booking.bookingId}`);
+  };
 
   const handleReviewStay = (booking) => {
-    setSelectedBookingForReview(booking) // Set the booking to be reviewed
-    setShowReviewDialog(true) // Open the review dialog
-  }
+    setSelectedBookingForReview(booking); // Set the booking to be reviewed
+    setShowReviewDialog(true); // Open the review dialog
+  };
 
   // Styles
   const styles = {
@@ -989,7 +1175,7 @@ const HistoryBooking = () => {
       color: "#6b7280",
       fontSize: "0.9rem",
     },
-  }
+  };
 
   return (
     <div style={styles.page}>
@@ -997,10 +1183,21 @@ const HistoryBooking = () => {
         {/* Controls Section with Slide effect */}
         <Slide direction="down" in={showControls}>
           <div style={styles.controlsCard}>
-            <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "1.5rem",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
               <div style={styles.filterGroup}>
                 <label style={styles.label}>Filter:</label>
-                <select style={styles.select} value={filter} onChange={(e) => setFilter(e.target.value)}>
+                <select
+                  style={styles.select}
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                >
                   <option value="all">All Bookings</option>
                   <option value="active">Active</option>
                   <option value="completed">Completed</option>
@@ -1012,7 +1209,11 @@ const HistoryBooking = () => {
 
               <div style={styles.filterGroup}>
                 <label style={styles.label}>Sort by:</label>
-                <select style={styles.select} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                <select
+                  style={styles.select}
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                   <option value="checkin">Check-in Date</option>
@@ -1066,8 +1267,18 @@ const HistoryBooking = () => {
             <div style={{ fontSize: "3rem", color: "#d09500" }}>
               <IoIosLock />
             </div>
-            <h3 style={{ fontSize: "1.5rem", fontWeight: "600", marginBottom: "0.5rem" }}>Login Required</h3>
-            <p style={{ color: "#6b7280", marginBottom: "1rem" }}>You need to login to see your booking history.</p>
+            <h3
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "600",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Login Required
+            </h3>
+            <p style={{ color: "#6b7280", marginBottom: "1rem" }}>
+              You need to login to see your booking history.
+            </p>
             <button
               style={{
                 padding: "0.6rem 1.5rem",
@@ -1093,45 +1304,72 @@ const HistoryBooking = () => {
               <FaBuilding />
             </div>
             <h3 style={styles.emptyTitle}>No Bookings Yet</h3>
-            <p style={styles.emptyText}>You haven't made any hotel reservations yet. Start exploring our rooms!</p>
-            <button style={styles.browseButton} onClick={() => navigate("/searchbooking")}>
+            <p style={styles.emptyText}>
+              You haven't made any hotel reservations yet. Start exploring our
+              rooms!
+            </p>
+            <button
+              style={styles.browseButton}
+              onClick={() => navigate("/searchbooking")}
+            >
               Browse Rooms
             </button>
           </div>
         )}
 
         {/* Filtered Empty State */}
-        {!loading && !noUser && filteredAndSortedBookings().length === 0 && bookings.length > 0 && (
-          <div style={styles.emptyState}>
-            <div style={styles.emptyIcon}>🔍</div>
-            <h3 style={styles.emptyTitle}>No Bookings Found</h3>
-            <p style={styles.emptyText}>No bookings match your current filter criteria.</p>
-          </div>
-        )}
+        {!loading &&
+          !noUser &&
+          filteredAndSortedBookings().length === 0 &&
+          bookings.length > 0 && (
+            <div style={styles.emptyState}>
+              <div style={styles.emptyIcon}>🔍</div>
+              <h3 style={styles.emptyTitle}>No Bookings Found</h3>
+              <p style={styles.emptyText}>
+                No bookings match your current filter criteria.
+              </p>
+            </div>
+          )}
 
         {/* Bookings List */}
         {!loading && !noUser && filteredAndSortedBookings().length > 0 && (
           <div style={styles.bookingsList}>
             {filteredAndSortedBookings().map((booking) => {
-              const status = getBookingStatus(booking)
-              const nights = calculateNights(booking.checkinDate, booking.checkoutDate)
-              const roomDetails = booking.roomDetails
+              const status = getBookingStatus(booking);
+              const nights = calculateNights(
+                booking.checkinDate,
+                booking.checkoutDate
+              );
+              const roomDetails = booking.roomDetails;
 
               return (
                 <div key={booking.bookingId} style={styles.bookingCard}>
                   <div
                     style={
-                      isMobile ? { ...styles.bookingContent, ...styles.mobileBookingContent } : styles.bookingContent
+                      isMobile
+                        ? {
+                          ...styles.bookingContent,
+                          ...styles.mobileBookingContent,
+                        }
+                        : styles.bookingContent
                     }
                   >
                     {/* Room Image with Status Badge */}
                     <div
                       style={
-                        isMobile ? { ...styles.imageContainer, ...styles.mobileImageContainer } : styles.imageContainer
+                        isMobile
+                          ? {
+                            ...styles.imageContainer,
+                            ...styles.mobileImageContainer,
+                          }
+                          : styles.imageContainer
                       }
                     >
                       <img
-                        src={booking.roomImage || "/placeholder.svg?height=180&width=220"}
+                        src={
+                          booking.roomImage ||
+                          "/placeholder.svg?height=180&width=220"
+                        }
                         alt={`${booking.roomType} room`}
                         style={{
                           ...styles.roomImage,
@@ -1140,11 +1378,12 @@ const HistoryBooking = () => {
                           left: 0,
                         }}
                         onError={(e) => {
-                          e.target.src = "/placeholder.svg?height=180&width=220"
-                          e.target.style.backgroundColor = "#f9fafb"
+                          e.target.src =
+                            "/placeholder.svg?height=180&width=220";
+                          e.target.style.backgroundColor = "#f9fafb";
                         }}
                         onLoad={(e) => {
-                          e.target.style.opacity = "1"
+                          e.target.style.opacity = "1";
                         }}
                         loading="lazy"
                       />
@@ -1159,9 +1398,11 @@ const HistoryBooking = () => {
                           fontWeight: "600",
                           textTransform: "uppercase",
                           letterSpacing: "0.025em",
-                          backgroundColor: getStatusColor(status).backgroundColor,
+                          backgroundColor:
+                            getStatusColor(status).backgroundColor,
                           color: getStatusColor(status).color,
-                          border: `1px solid ${getStatusColor(status).borderColor}`,
+                          border: `1px solid ${getStatusColor(status).borderColor
+                            }`,
                           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                           zIndex: 2,
                         }}
@@ -1174,7 +1415,12 @@ const HistoryBooking = () => {
                     <div style={styles.contentSection}>
                       <div
                         style={
-                          isMobile ? { ...styles.bookingHeader, ...styles.mobileBookingHeader } : styles.bookingHeader
+                          isMobile
+                            ? {
+                              ...styles.bookingHeader,
+                              ...styles.mobileBookingHeader,
+                            }
+                            : styles.bookingHeader
                         }
                       >
                         <div>
@@ -1183,10 +1429,17 @@ const HistoryBooking = () => {
                         </div>
                         <div
                           style={
-                            isMobile ? { ...styles.priceSection, ...styles.mobilePriceSection } : styles.priceSection
+                            isMobile
+                              ? {
+                                ...styles.priceSection,
+                                ...styles.mobilePriceSection,
+                              }
+                              : styles.priceSection
                           }
                         >
-                          <div style={styles.price}>{formatCurrency(booking.totalPrice)}</div>
+                          <div style={styles.price}>
+                            {formatCurrency(booking.totalPrice)}
+                          </div>
                           <div style={styles.nights}>{nights} nights</div>
                         </div>
                       </div>
@@ -1194,36 +1447,61 @@ const HistoryBooking = () => {
                       {/* Room Details Section */}
                       {roomDetails && (
                         <div
-                          style={isMobile ? { ...styles.roomDetails, ...styles.mobileRoomDetails } : styles.roomDetails}
+                          style={
+                            isMobile
+                              ? {
+                                ...styles.roomDetails,
+                                ...styles.mobileRoomDetails,
+                              }
+                              : styles.roomDetails
+                          }
                         >
                           <div style={styles.roomDetailItem}>
                             <FaRulerCombined style={styles.roomDetailIcon} />
-                            <span style={styles.roomDetailText}>{roomDetails.size || "N/A"}</span>
+                            <span style={styles.roomDetailText}>
+                              {roomDetails.size || "N/A"}
+                            </span>
                           </div>
                           <div style={styles.roomDetailItem}>
                             <FaBed style={styles.roomDetailIcon} />
-                            <span style={styles.roomDetailText}>{roomDetails.bed || "N/A"}</span>
+                            <span style={styles.roomDetailText}>
+                              {roomDetails.bed || "N/A"}
+                            </span>
                           </div>
                           <div style={styles.infoItem}>
                             <FaEye style={styles.roomDetailIcon} />
-                            <span style={styles.roomDetailText}>{roomDetails.roomView || "N/A"}</span>
+                            <span style={styles.roomDetailText}>
+                              {roomDetails.roomView || "N/A"}
+                            </span>
                           </div>
                         </div>
                       )}
 
                       {/* Booking Information Grid */}
-                      <div style={isMobile ? { ...styles.infoGrid, ...styles.mobileInfoGrid } : styles.infoGrid}>
+                      <div
+                        style={
+                          isMobile
+                            ? { ...styles.infoGrid, ...styles.mobileInfoGrid }
+                            : styles.infoGrid
+                        }
+                      >
                         <div style={styles.infoItem}>
                           <div style={styles.infoLabel}>Check-in</div>
-                          <div style={styles.infoValue}>{formatDate(booking.checkinDate)}</div>
+                          <div style={styles.infoValue}>
+                            {formatDate(booking.checkinDate)}
+                          </div>
                         </div>
                         <div style={styles.infoItem}>
                           <div style={styles.infoLabel}>Check-out</div>
-                          <div style={styles.infoValue}>{formatDate(booking.checkoutDate)}</div>
+                          <div style={styles.infoValue}>
+                            {formatDate(booking.checkoutDate)}
+                          </div>
                         </div>
                         <div style={styles.infoItem}>
                           <div style={styles.infoLabel}>Guests</div>
-                          <div style={styles.infoValue}>{booking.adultGuests + booking.childGuests} guests</div>
+                          <div style={styles.infoValue}>
+                            {booking.adultGuests + booking.childGuests} guests
+                          </div>
                         </div>
                         <div style={styles.infoItem}>
                           <div style={styles.infoLabel}>Payment</div>
@@ -1231,10 +1509,16 @@ const HistoryBooking = () => {
                             <div
                               style={{
                                 ...styles.statusDot,
-                                backgroundColor: getPaymentStatusColor(booking.paymentStatus),
+                                backgroundColor: getPaymentStatusColor(
+                                  booking.paymentStatus
+                                ),
                               }}
                             />
-                            <span style={styles.infoValue}>{booking.paymentMethod === "cash" ? "Cash" : "Online"}</span>
+                            <span style={styles.infoValue}>
+                              {booking.paymentMethod === "cash"
+                                ? "Cash"
+                                : "Online"}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1242,8 +1526,12 @@ const HistoryBooking = () => {
                       {/* Special Request Section */}
                       {booking.specialRequest && (
                         <div style={styles.specialRequest}>
-                          <div style={styles.specialRequestTitle}>Special Request</div>
-                          <p style={styles.specialRequestText}>{booking.specialRequest}</p>
+                          <div style={styles.specialRequestTitle}>
+                            Special Request
+                          </div>
+                          <p style={styles.specialRequestText}>
+                            {booking.specialRequest}
+                          </p>
                         </div>
                       )}
 
@@ -1251,14 +1539,21 @@ const HistoryBooking = () => {
                       <div style={styles.actions}>
                         <button
                           style={{ ...styles.button, ...styles.primaryButton }}
-                          onClick={() => navigate("/invoice", { state: { bookingId: booking.id } })}
+                          onClick={() =>
+                            navigate("/invoice", {
+                              state: { bookingId: booking.id },
+                            })
+                          }
                         >
                           📄 Invoice
                         </button>
 
                         {status === "upcoming" && (
                           <button
-                            style={{ ...styles.button, ...styles.secondaryButton }}
+                            style={{
+                              ...styles.button,
+                              ...styles.secondaryButton,
+                            }}
                             onClick={() => handleModifyBooking(booking)}
                           >
                             ✏️ Modify
@@ -1267,26 +1562,45 @@ const HistoryBooking = () => {
 
                         {status === "active" && (
                           <button
-                            style={{ ...styles.button, ...styles.secondaryButton }}
+                            style={{
+                              ...styles.button,
+                              ...styles.secondaryButton,
+                            }}
                             onClick={() => handleContactHotel(booking)}
                           >
                             📞 Contact
                           </button>
                         )}
 
-                        {status === "completed" && (
+                        {status === "completed" && !alreadyReviewed[booking.id] && (
                           <button
-                            style={{ ...styles.button, ...styles.secondaryButton }}
+                            style={{
+                              ...styles.button,
+                              ...styles.secondaryButton,
+                            }}
                             onClick={() => handleReviewStay(booking)}
                           >
                             ⭐ Review
                           </button>
                         )}
+
+                        {status === "completed" && alreadyReviewed[booking.id] && (
+                          <div
+                            style={{
+                              ...styles.button,
+                              backgroundColor: "#f0f0f0",
+                              color: "#666",
+                              cursor: "default",
+                            }}
+                          >
+                            ✓ Reviewed
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         )}
@@ -1299,15 +1613,23 @@ const HistoryBooking = () => {
             <DialogHeader>
               <DialogTitle>Submit Your Review</DialogTitle>
               <DialogDescription>
-                Share your experience for booking #{selectedBookingForReview.bookingId}.
+                Share your experience for booking #
+                {selectedBookingForReview.bookingId}.
               </DialogDescription>
             </DialogHeader>
-            <ReviewForm booking={selectedBookingForReview} onClose={() => setShowReviewDialog(false)} />
+            <ReviewForm
+              booking={selectedBookingForReview}
+              onClose={() => setShowReviewDialog(false)}
+              userId={userId}
+              bookings={bookings}
+              alreadyReviewed={alreadyReviewed}
+              setAlreadyReviewed={setAlreadyReviewed}
+            />
           </DialogContent>
         </Dialog>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default HistoryBooking
+export default HistoryBooking;

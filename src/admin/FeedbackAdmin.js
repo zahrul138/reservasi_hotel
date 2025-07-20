@@ -1,183 +1,209 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Star, Check, X } from "lucide-react" // Assuming lucide-react is installed
-import SidebarAdmin from "../components/SidebarAdmin" // Assuming SidebarAdmin.js exists at this path
+import { useState, useEffect } from "react";
+import { Star, Check, X } from "lucide-react"; // Assuming lucide-react is installed
+import SidebarAdmin from "../components/SidebarAdmin"; // Assuming SidebarAdmin.js exists at this path
 
 // --- Inlined Review Storage Logic (simulating a backend with localStorage) ---
-const REVIEWS_STORAGE_KEY = "admin_pending_reviews"
+const REVIEWS_STORAGE_KEY = "admin_pending_reviews";
 
 function getReviews() {
-  if (typeof window === "undefined") return [] // Ensure this runs only in browser
+  if (typeof window === "undefined") return []; // Ensure this runs only in browser
   try {
-    const storedReviews = localStorage.getItem(REVIEWS_STORAGE_KEY)
-    return storedReviews ? JSON.parse(storedReviews) : []
+    const storedReviews = localStorage.getItem(REVIEWS_STORAGE_KEY);
+    return storedReviews ? JSON.parse(storedReviews) : [];
   } catch (error) {
-    console.error("Failed to load reviews from localStorage:", error)
-    return []
+    console.error("Failed to load reviews from localStorage:", error);
+    return [];
   }
 }
 
 function saveReviews(reviews) {
-  if (typeof window === "undefined") return // Ensure this runs only in browser
+  if (typeof window === "undefined") return; // Ensure this runs only in browser
   try {
-    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews))
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(reviews));
   } catch (error) {
-    console.error("Failed to save reviews to localStorage:", error)
+    console.error("Failed to save reviews to localStorage:", error);
   }
 }
 
 function addReview(newReview) {
-  const reviews = getReviews()
+  const reviews = getReviews();
   const reviewWithId = {
     id: Date.now().toString(), // Simple unique ID
     status: "pending", // Default status
     createdAt: new Date().toISOString(),
     ...newReview,
-  }
-  reviews.push(reviewWithId)
-  saveReviews(reviews)
-  return reviewWithId
+  };
+  reviews.push(reviewWithId);
+  saveReviews(reviews);
+  return reviewWithId;
 }
 
 function updateReviewStatus(reviewId, newStatus) {
-  const reviews = getReviews()
-  const reviewIndex = reviews.findIndex((r) => r.id === reviewId)
+  const reviews = getReviews();
+  const reviewIndex = reviews.findIndex((r) => r.id === reviewId);
   if (reviewIndex > -1) {
     reviews[reviewIndex] = {
       ...reviews[reviewIndex],
       status: newStatus,
       moderatedAt: new Date().toISOString(),
-    }
-    saveReviews(reviews)
-    return reviews[reviewIndex]
+    };
+    saveReviews(reviews);
+    return reviews[reviewIndex];
   }
-  return null
+  return null;
 }
 
 // --- Helper Functions ---
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  if (isNaN(date)) return "Invalid Date"
+  const date = new Date(dateString);
+  if (isNaN(date)) return "Invalid Date";
 
   const day = date.toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  })
+  });
 
   const time = date.toLocaleTimeString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  })
+  });
 
-  return `${day} at ${time}`
-}
+  return `${day} at ${time}`;
+};
 
 // --- FeedbackAdmin Component ---
 const FeedbackAdmin = () => {
-  const [reviews, setReviews] = useState([])
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [loading, setLoading] = useState(true)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
-  const [hoveredItem, setHoveredItem] = useState(null)
-  const [selectedReview, setSelectedReview] = useState(null) // For detail modal
+  const [reviews, setReviews] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null); // For detail modal
 
-  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev)
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   // Function to refresh reviews from localStorage
   const refreshReviews = () => {
-    const loadedReviews = getReviews()
-    setReviews(loadedReviews)
-    setLoading(false)
-  }
+    const loadedReviews = getReviews();
+    setReviews(loadedReviews);
+    setLoading(false);
+  };
 
-  // Dummy data initialization
-  useEffect(() => {
-    if (typeof window !== "undefined" && getReviews().length === 0) {
-      const dummyReviews = [
-        {
-          bookingId: "BK-20231026-001",
-          rating: 5,
-          title: "Excellent Stay!",
-          comment:
-            "The room was spacious and clean, and the staff were incredibly friendly and helpful. Highly recommend!",
-          status: "pending",
-          createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-        },
-        {
-          bookingId: "BK-20231101-005",
-          rating: 4,
-          title: "Good Value for Money",
-          comment:
-            "Comfortable bed and decent amenities. The breakfast could be improved, but overall a pleasant experience.",
-          status: "approved",
-          createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
-          moderatedAt: new Date(Date.now() - 86400000 * 4).toISOString(),
-        },
-        {
-          bookingId: "BK-20231115-010",
-          rating: 2,
-          title: "Disappointing Experience",
-          comment:
-            "The air conditioning was not working properly, and there was a strange smell in the hallway. Not up to par.",
-          status: "pending",
-          createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 day ago
-        },
-        {
-          bookingId: "BK-20231201-012",
-          rating: 5,
-          title: "Perfect Getaway!",
-          comment:
-            "Beautiful views and a very relaxing atmosphere. The pool area was fantastic. Will definitely return!",
-          status: "approved",
-          createdAt: new Date(Date.now() - 86400000 * 7).toISOString(), // 7 days ago
-          moderatedAt: new Date(Date.now() - 86400000 * 6).toISOString(),
-        },
-        {
-          bookingId: "BK-20240105-020",
-          rating: 1,
-          title: "Unacceptable Service",
-          comment: "Waited over an hour for room service, and the order was incorrect. Very poor customer service.",
-          status: "rejected",
-          createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 days ago
-          moderatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-        },
-      ]
+  // Fungsi untuk mengambil semua review pending
+  const fetchPendingReviews = async () => {
+    try {
+      const response = await fetch(
+        "https://localhost:7298/api/Review?status=pending"
+      );
+      if (!response.ok) throw new Error("Failed to fetch reviews");
+      const data = await response.json();
+      setReviews(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setLoading(false);
+      return [];
+    }
+  };
 
-      // Add dummy reviews using the addReview function to ensure proper ID and status handling
-      dummyReviews.forEach((review) => {
-        const existingReviews = getReviews()
-        // Only add if a review with the same bookingId and title doesn't already exist
-        if (!existingReviews.some((r) => r.bookingId === review.bookingId && r.title === review.title)) {
-          const addedReview = addReview(review) // This will add with 'pending' status by default
-          // Manually update status if it's not pending for dummy data
-          if (review.status !== "pending") {
-            updateReviewStatus(addedReview.id, review.status)
-          }
+  // Fungsi untuk update status review
+  const updateReviewStatus = async (reviewId, status, moderatedById) => {
+    try {
+      const response = await fetch(
+        `https://localhost:7298/api/Review/${reviewId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status,
+            moderatedById,
+          }),
+          credentials: "include",
         }
-      })
-      refreshReviews() // Refresh to show the newly added dummy data
-    } else {
-      refreshReviews() // Load existing reviews if any
-    }
-  }, [])
+      );
 
-  const handleStatusChange = (reviewId, newStatus) => {
-    const updatedReview = updateReviewStatus(reviewId, newStatus)
-    if (updatedReview) {
-      setReviews((prevReviews) => prevReviews.map((review) => (review.id === reviewId ? updatedReview : review)))
-      setSelectedReview((prev) => (prev && prev.id === reviewId ? updatedReview : prev)) // Update modal if open
+      if (!response.ok) throw new Error("Failed to update review status");
+      return true;
+    } catch (error) {
+      console.error("Error updating review status:", error);
+      return false;
     }
-  }
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch("https://localhost:7298/api/Review");
+        if (!response.ok) throw new Error("Failed to fetch reviews");
+        const data = await response.json();
+        setReviews(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  const handleStatusChange = async (reviewId, newStatus) => {
+    try {
+      const response = await fetch(
+        `https://localhost:7298/api/Review/${reviewId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: newStatus, // Just send the new status
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to update review status");
+      }
+
+      // Update UI immediately
+      setReviews((prevReviews) =>
+        prevReviews.map((review) =>
+          review.id === reviewId
+            ? {
+                ...review,
+                status: newStatus,
+                moderatedAt: new Date().toISOString(),
+              }
+            : review
+        )
+      );
+
+      // Close modal if open
+      if (selectedReview?.id === reviewId) {
+        setSelectedReview(null);
+      }
+
+      alert(`Review has been ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating review:", error);
+      alert(`Error: ${error.message}`);
+    }
+  };
 
   const filteredReviews = reviews.filter((review) => {
     if (filterStatus === "all") {
-      return true
+      return true;
     }
-    return review.status === filterStatus
-  })
+    return review.status === filterStatus;
+  });
 
   const style = {
     container: {
@@ -346,7 +372,7 @@ const FeedbackAdmin = () => {
       color: "#666",
       fontSize: "18px",
     },
-  }
+  };
 
   return (
     <div style={style.container}>
@@ -374,9 +400,6 @@ const FeedbackAdmin = () => {
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
-          <button style={{ ...style.actionBtn, backgroundColor: "#d0b375", marginRight: 0 }} onClick={refreshReviews}>
-            Refresh
-          </button>
         </div>
 
         <div style={style.tableContainer}>
@@ -385,6 +408,8 @@ const FeedbackAdmin = () => {
               <tr>
                 <th style={style.th}>No</th>
                 <th style={style.th}>Booking ID</th>
+                <th style={style.th}>Room</th>
+                <th style={style.th}>Guest</th>
                 <th style={style.th}>Title</th>
                 <th style={style.th}>Rating</th>
                 <th style={style.th}>Status</th>
@@ -396,13 +421,27 @@ const FeedbackAdmin = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ ...style.td, textAlign: "center", padding: "30px" }}>
+                  <td
+                    colSpan={8}
+                    style={{
+                      ...style.td,
+                      textAlign: "center",
+                      padding: "30px",
+                    }}
+                  >
                     Loading reviews...
                   </td>
                 </tr>
               ) : filteredReviews.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ ...style.td, textAlign: "center", padding: "30px" }}>
+                  <td
+                    colSpan={8}
+                    style={{
+                      ...style.td,
+                      textAlign: "center",
+                      padding: "30px",
+                    }}
+                  >
                     No reviews found matching your criteria.
                   </td>
                 </tr>
@@ -411,9 +450,21 @@ const FeedbackAdmin = () => {
                   <tr key={review.id}>
                     <td style={style.td}>{index + 1}</td>
                     <td style={style.td}>#{review.bookingId}</td>
+                    <td style={style.td}>
+                      {review.room?.title || review.roomType || "N/A"}
+                    </td>
+                    <td style={style.td}>
+                      {review.user?.fullName || review.fullname || "Anonymous"}
+                    </td>
                     <td style={style.td}>{review.title}</td>
                     <td style={style.td}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "2px",
+                        }}
+                      >
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
@@ -431,12 +482,19 @@ const FeedbackAdmin = () => {
                       <span
                         style={{
                           ...style.badge,
-                          ...(review.status === "pending" && { backgroundColor: "#f59e0b" }),
-                          ...(review.status === "approved" && { backgroundColor: "#4caf50" }),
-                          ...(review.status === "rejected" && { backgroundColor: "#f44336" }),
+                          ...(review.status === "pending" && {
+                            backgroundColor: "#f59e0b",
+                          }),
+                          ...(review.status === "approved" && {
+                            backgroundColor: "#4caf50",
+                          }),
+                          ...(review.status === "rejected" && {
+                            backgroundColor: "#f44336",
+                          }),
                         }}
                       >
-                        {review.status.charAt(0).toUpperCase() + review.status.slice(1)}
+                        {review.status.charAt(0).toUpperCase() +
+                          review.status.slice(1)}
                       </span>
                     </td>
                     <td style={style.td}>{formatDate(review.createdAt)}</td>
@@ -444,26 +502,44 @@ const FeedbackAdmin = () => {
                       {review.status === "pending" && (
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button
-                            style={{ ...style.actionBtn, ...style.approveBtn, marginRight: 0 }}
-                            onClick={() => handleStatusChange(review.id, "approved")}
+                            style={{
+                              ...style.actionBtn,
+                              ...style.approveBtn,
+                              marginRight: 0,
+                            }}
+                            onClick={() =>
+                              handleStatusChange(review.id, "approved")
+                            }
                           >
                             <Check size={16} /> Approve
                           </button>
                           <button
-                            style={{ ...style.actionBtn, ...style.rejectBtn, marginRight: 0 }}
-                            onClick={() => handleStatusChange(review.id, "rejected")}
+                            style={{
+                              ...style.actionBtn,
+                              ...style.rejectBtn,
+                              marginRight: 0,
+                            }}
+                            onClick={() =>
+                              handleStatusChange(review.id, "rejected")
+                            }
                           >
                             <X size={16} /> Reject
                           </button>
                         </div>
                       )}
                       {review.status !== "pending" && (
-                        <span style={{ fontSize: "12px", color: "#666" }}>Moderated</span>
+                        <span style={{ fontSize: "12px", color: "#666" }}>
+                          Moderated
+                        </span>
                       )}
                     </td>
                     <td style={style.td}>
                       <button
-                        style={{ ...style.actionBtn, ...style.detailBtn, marginRight: 0 }}
+                        style={{
+                          ...style.actionBtn,
+                          ...style.detailBtn,
+                          marginRight: 0,
+                        }}
                         onClick={() => setSelectedReview(review)}
                       >
                         More
@@ -480,7 +556,10 @@ const FeedbackAdmin = () => {
         {selectedReview && (
           <div style={style.modalOverlay}>
             <div style={style.modal}>
-              <button onClick={() => setSelectedReview(null)} style={style.closeBtn}>
+              <button
+                onClick={() => setSelectedReview(null)}
+                style={style.closeBtn}
+              >
                 ✖
               </button>
               <div style={style.heading}>Review Details</div>
@@ -490,21 +569,44 @@ const FeedbackAdmin = () => {
                   <span style={style.value}>#{selectedReview.bookingId}</span>
                 </div>
                 <div style={style.field}>
+                  <span style={style.label}>Guest</span>
+                  <span style={style.value}>
+                    {selectedReview.user?.fullName || selectedReview.fullname}
+                  </span>
+                </div>
+                <div style={style.field}>
+                  <span style={style.label}>Room</span>
+                  <span style={style.value}>
+                    {selectedReview.room?.title ||
+                      selectedReview.roomType ||
+                      "N/A"}
+                  </span>
+                </div>
+                <div style={style.field}>
                   <span style={style.label}>Review Title</span>
                   <span style={style.value}>{selectedReview.title}</span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Rating</span>
                   <span style={style.value}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "2px",
+                      }}
+                    >
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           size={16}
                           style={{
-                            color: i < selectedReview.rating ? "#d09500" : "#e5e7eb",
-                            fill: i < selectedReview.rating ? "#d09500" : "none",
-                            stroke: i < selectedReview.rating ? "#d09500" : "#9ca3af",
+                            color:
+                              i < selectedReview.rating ? "#d09500" : "#e5e7eb",
+                            fill:
+                              i < selectedReview.rating ? "#d09500" : "none",
+                            stroke:
+                              i < selectedReview.rating ? "#d09500" : "#9ca3af",
                           }}
                         />
                       ))}
@@ -517,41 +619,58 @@ const FeedbackAdmin = () => {
                     <span
                       style={{
                         ...style.badge,
-                        ...(selectedReview.status === "pending" && { backgroundColor: "#f59e0b" }),
-                        ...(selectedReview.status === "approved" && { backgroundColor: "#4caf50" }),
-                        ...(selectedReview.status === "rejected" && { backgroundColor: "#f44336" }),
+                        ...(selectedReview.status === "pending" && {
+                          backgroundColor: "#f59e0b",
+                        }),
+                        ...(selectedReview.status === "approved" && {
+                          backgroundColor: "#4caf50",
+                        }),
+                        ...(selectedReview.status === "rejected" && {
+                          backgroundColor: "#f44336",
+                        }),
                       }}
                     >
-                      {selectedReview.status.charAt(0).toUpperCase() + selectedReview.status.slice(1)}
+                      {selectedReview.status.charAt(0).toUpperCase() +
+                        selectedReview.status.slice(1)}
                     </span>
                   </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Submitted At</span>
-                  <span style={style.value}>{formatDate(selectedReview.createdAt)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedReview.createdAt)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Moderated At</span>
                   <span style={style.value}>
-                    {selectedReview.moderatedAt ? formatDate(selectedReview.moderatedAt) : "N/A"}
+                    {selectedReview.moderatedAt
+                      ? formatDate(selectedReview.moderatedAt)
+                      : "N/A"}
                   </span>
                 </div>
                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                   <span style={style.label}>Comment</span>
-                  <span style={style.value}>{selectedReview.comment || "-"}</span>
+                  <span style={style.value}>
+                    {selectedReview.comment || "-"}
+                  </span>
                 </div>
               </div>
               {selectedReview.status === "pending" && (
                 <div style={style.modalActions}>
                   <button
                     style={{ ...style.actionBtn, ...style.approveBtn }}
-                    onClick={() => handleStatusChange(selectedReview.id, "approved")}
+                    onClick={() =>
+                      handleStatusChange(selectedReview.id, "approved")
+                    }
                   >
                     <Check size={16} /> &nbsp; Approve
                   </button>
                   <button
                     style={{ ...style.actionBtn, ...style.rejectBtn }}
-                    onClick={() => handleStatusChange(selectedReview.id, "rejected")}
+                    onClick={() =>
+                      handleStatusChange(selectedReview.id, "rejected")
+                    }
                   >
                     <X size={16} /> &nbsp; Reject
                   </button>
@@ -562,8 +681,7 @@ const FeedbackAdmin = () => {
         )}
       </main>
     </div>
-  )
-}
+  );
+};
 
-export default FeedbackAdmin
-      
+export default FeedbackAdmin;

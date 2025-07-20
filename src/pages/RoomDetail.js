@@ -58,6 +58,7 @@ function RoomDetail() {
   const [activeTab, setActiveTab] = useState("description")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const guestDropdownRef = useRef(null)
+  const [reviews, setReviews] = useState([]);
   const navigate = useNavigate()
 
   // Fetch room data from API
@@ -92,6 +93,23 @@ function RoomDetail() {
     const user = localStorage.getItem("user")
     if (user) setIsLoggedIn(true)
   }, [id])
+
+  useEffect(() => {
+    const fetchRoomReviews = async () => {
+      try {
+        const response = await fetch(`https://localhost:7298/api/Review/room/${id}/approved`);
+        if (!response.ok) throw new Error('Failed to fetch reviews');
+        const data = await response.json();
+        setReviews(data);
+      } catch (error) {
+        console.error('Error fetching room reviews:', error);
+      }
+    };
+
+    if (id) {
+      fetchRoomReviews();
+    }
+  }, [id]);
 
   // --- Booking Logic ---
   const totalGuests = adults + children
@@ -171,12 +189,6 @@ function RoomDetail() {
   }
 
   if (!room) return <div style={{ color: "#D09500", textAlign: "center", marginTop: 100 }}>Loading...</div>
-
-  // Dummy review & similar rooms (kalau backend-mu belum ready, bisa kamu custom)
-  const reviews =
-    room.reviews.length > 0
-      ? room.reviews
-      : [{ id: 1, author: "User 1", rating: 5, date: "2025-06-01", comment: "Mantap, kamar bersih & nyaman!" }]
 
   // Calculate average rating
   const averageRating = reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
@@ -1156,6 +1168,27 @@ function RoomDetail() {
           .details-tabs button {
             flex: 1 0 100%;
           }
+
+          .review-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+          }
+
+          .review-card {
+            background-color: #f8f5f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+          }
+
+          .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          }
         }
       `}</style>
       <div className="room-detail-page">
@@ -1374,9 +1407,9 @@ function RoomDetail() {
                       <span>
                         {formatRupiah(
                           room.price *
-                            (checkIn && checkOut
-                              ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
-                              : 0),
+                          (checkIn && checkOut
+                            ? Math.ceil((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+                            : 0),
                         )}
                       </span>
                     </div>
@@ -1487,7 +1520,9 @@ function RoomDetail() {
                 <div className="reviews-content">
                   <div className="reviews-summary">
                     <div className="average-rating">
-                      <div className="rating-number">{averageRating.toFixed(1)}</div>
+                      <div className="rating-number">
+                        {reviews.length > 0 ? (reviews.reduce((total, review) => total + review.rating, 0) / reviews.length).toFixed(1) : '0.0'}
+                      </div>
                       <div className="rating-stars">
                         {[...Array(5)].map((_, i) => (
                           <FaStar key={i} className={i < Math.round(averageRating) ? "star-filled" : "star-empty"} />
@@ -1501,14 +1536,23 @@ function RoomDetail() {
                     {reviews.map((review) => (
                       <div key={review.id} className="review-card">
                         <div className="review-header">
-                          <div className="reviewer-name">{review.author}</div>
-                          <div className="review-date">{review.date}</div>
+                          <div className="reviewer-name">
+                            {review.user?.fullName || review.fullname}
+                          </div>
+                          <div className="review-date">
+                            {new Date(review.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
                         </div>
                         <div className="review-rating">
                           {[...Array(5)].map((_, i) => (
                             <FaStar key={i} className={i < review.rating ? "star-filled" : "star-empty"} />
                           ))}
                         </div>
+                        <h4 className="review-title">{review.title}</h4>
                         <div className="review-comment">{review.comment}</div>
                       </div>
                     ))}
