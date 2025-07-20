@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Navbar from "./pages/Navbar";
 
@@ -29,9 +30,7 @@ import ContactPage from "./pages/ContactPage";
 const LayoutWithNavbar = ({ children }) => (
   <>
     <Navbar />
-    <div className="container mt-3">
-      {children}
-    </div>
+    <div className="container mt-3">{children}</div>
   </>
 );
 
@@ -39,8 +38,12 @@ function App() {
   return (
     <Router>
       {/* Toast global biar muncul di semua halaman */}
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+      />
+
       <Routes>
         {/* Route tanpa Navbar */}
         <Route path="/signin" element={<SignIn />} />
@@ -51,27 +54,132 @@ function App() {
         <Route path="/invoice" element={<InvoicePage />} />
 
         {/* Admin routes */}
-        <Route path="/admin/dashboard" element={<DashboardAdmin />} />
-        <Route path="/admin/roomManage" element={<RoomManage />} />
-        <Route path="/admin/guestList" element={<GuestList />} />
-        <Route path="/admin/checkIn" element={<CheckInAdmin />} />
-        <Route path="/admin/checkOut" element={<CheckOutAdmin />} />
-        <Route path="/admin/history" element={<HistoryAdmin />} />
-        <Route path="/admin/feedback" element={<FeedbackAdmin />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/roomManage"
+          element={
+            <ProtectedRoute>
+              <RoomManage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/guestList"
+          element={
+            <ProtectedRoute>
+              <GuestList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/checkIn"
+          element={
+            <ProtectedRoute>
+              <CheckInAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/checkOut"
+          element={
+            <ProtectedRoute>
+              <CheckOutAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/history"
+          element={
+            <ProtectedRoute>
+              <HistoryAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/feedback"
+          element={
+            <ProtectedRoute>
+              <FeedbackAdmin />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Routes dengan Navbar */}
-        <Route path="/home" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
-        <Route path="/room/:id" element={<LayoutWithNavbar><RoomDetail /></LayoutWithNavbar>} />
-        <Route path="/searchbooking" element={<LayoutWithNavbar><SearchBooking /></LayoutWithNavbar>} />
-        <Route path="/historybooking" element={<LayoutWithNavbar><HistoryBooking /></LayoutWithNavbar>} />
-        <Route path="/about" element={<LayoutWithNavbar><AboutPage /></LayoutWithNavbar>} />
-        <Route path="/contact" element={<LayoutWithNavbar><ContactPage /></LayoutWithNavbar>} />
+        <Route
+          path="/home"
+          element={
+            <LayoutWithNavbar>
+              <Homepage />
+            </LayoutWithNavbar>
+          }
+        />
+        <Route
+          path="/room/:id"
+          element={
+            <LayoutWithNavbar>
+              <RoomDetail />
+            </LayoutWithNavbar>
+          }
+        />
+        <Route
+          path="/searchbooking"
+          element={
+            <LayoutWithNavbar>
+              <SearchBooking />
+            </LayoutWithNavbar>
+          }
+        />
+        <Route
+          path="/historybooking"
+          element={
+            <LayoutWithNavbar>
+              <HistoryBooking />
+            </LayoutWithNavbar>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <LayoutWithNavbar>
+              <AboutPage />
+            </LayoutWithNavbar>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <LayoutWithNavbar>
+              <ContactPage />
+            </LayoutWithNavbar>
+          }
+        />
 
         {/* Default route */}
-        <Route path="/" element={<LayoutWithNavbar><Homepage /></LayoutWithNavbar>} />
+        <Route
+          path="/"
+          element={
+            <LayoutWithNavbar>
+              <Homepage />
+            </LayoutWithNavbar>
+          }
+        />
 
         {/* Catch-all route */}
-        <Route path="*" element={<LayoutWithNavbar><h2>Halaman tidak ditemukan</h2></LayoutWithNavbar>} />
+        <Route
+          path="*"
+          element={
+            <LayoutWithNavbar>
+              <h2>Halaman tidak ditemukan</h2>
+            </LayoutWithNavbar>
+          }
+        />
       </Routes>
     </Router>
   );

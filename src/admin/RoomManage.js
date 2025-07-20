@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import axios from "axios";
-import SidebarAdmin from "../components/SidebarAdmin"
+import SidebarAdmin from "../components/SidebarAdmin";
+import { Navigate } from "react-router-dom";
 import {
   FaWifi,
   FaTv,
@@ -26,7 +27,7 @@ import {
   FiImage,
   FiEdit,
   FiTrash2,
-  FiPlusCircle
+  FiPlusCircle,
 } from "react-icons/fi";
 
 // Constants defined inside the component
@@ -39,27 +40,42 @@ const AMENITY_OPTIONS = [
   { icon: <FaDoorOpen />, name: "Room service" },
   { icon: <FaBath />, name: "Luxury bathroom" },
   { icon: <FaBed />, name: "Premium bedding" },
-]
+];
 
 const FEATURE_OPTIONS = [
-  { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Complimentary Wi-Fi" },
+  {
+    icon: <FaCheck style={{ color: "#d0b375" }} />,
+    name: "Complimentary Wi-Fi",
+  },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "48-inch Smart TV" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Minibar" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Coffee machine" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Air conditioning" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Room service" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Safe" },
-  { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Bathrobe & slippers" },
-  { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Premium toiletries" },
+  {
+    icon: <FaCheck style={{ color: "#d0b375" }} />,
+    name: "Bathrobe & slippers",
+  },
+  {
+    icon: <FaCheck style={{ color: "#d0b375" }} />,
+    name: "Premium toiletries",
+  },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Work desk" },
   { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Blackout curtains" },
-  { icon: <FaCheck style={{ color: "#d0b375" }} />, name: "Daily housekeeping" },
+  {
+    icon: <FaCheck style={{ color: "#d0b375" }} />,
+    name: "Daily housekeeping",
+  },
 ];
 
 const POLICY_OPTIONS = [
   { icon: <FaClock />, name: "Check-in: 3:00 PM" },
   { icon: <FaClock />, name: "Check-out: 12:00 PM" },
-  { icon: <FaClock />, name: "Cancellation: Free up to 48 hours before arrival" },
+  {
+    icon: <FaClock />,
+    name: "Cancellation: Free up to 48 hours before arrival",
+  },
   { icon: <FaSmokingBan />, name: "No smoking" },
   { icon: <FaDog />, name: "No pets allowed" },
   { icon: <FaBed />, name: "Extra bed: $30 per night (upon request)" },
@@ -84,7 +100,9 @@ function RoomManage() {
     try {
       if (typeof value === "string") {
         const parsed = JSON.parse(value);
-        return Array.isArray(parsed) ? parsed.map(i => String(i).replace(/^"+|"+$/g, '')) : [];
+        return Array.isArray(parsed)
+          ? parsed.map((i) => String(i).replace(/^"+|"+$/g, ""))
+          : [];
       }
       return Array.isArray(value) ? value : [];
     } catch {
@@ -92,13 +110,16 @@ function RoomManage() {
     }
   };
 
-
   // Fetch Rooms from API
   const fetchRoomsFromAPI = async () => {
     try {
       const res = await fetch(`${API_URL}/api/room`);
       const contentType = res.headers.get("content-type");
-      if (!res.ok || !contentType || !contentType.includes("application/json")) {
+      if (
+        !res.ok ||
+        !contentType ||
+        !contentType.includes("application/json")
+      ) {
         setRooms([]);
         return;
       }
@@ -109,7 +130,8 @@ function RoomManage() {
         ...room,
         images: [room.image1, room.image2, room.image3],
         features: parseSafe(room.features),
-        amenities: typeof room.amenities === "string" ? JSON.parse(room.amenities) : [],
+        amenities:
+          typeof room.amenities === "string" ? JSON.parse(room.amenities) : [],
         policies: parseSafe(room.policies),
       }));
 
@@ -127,15 +149,15 @@ function RoomManage() {
       const formData = new FormData();
 
       // Upload gambar terlebih dahulu
-      const files = roomData.images.filter(img => img instanceof File);
+      const files = roomData.images.filter((img) => img instanceof File);
       let uploaded = ["", "", ""];
       if (files.length) {
         const imageFormData = new FormData();
-        files.forEach(img => imageFormData.append("images", img));
+        files.forEach((img) => imageFormData.append("images", img));
 
         const res = await fetch(`${API_URL}/api/upload/multi`, {
           method: "POST",
-          body: imageFormData
+          body: imageFormData,
         });
 
         if (!res.ok) {
@@ -166,7 +188,10 @@ function RoomManage() {
       // Format array jadi string atau json
       formData.append("features", JSON.stringify(roomData.features));
       formData.append("policies", JSON.stringify(roomData.policies));
-      formData.append("amenities", JSON.stringify(roomData.amenities.map(a => a.name)));
+      formData.append(
+        "amenities",
+        JSON.stringify(roomData.amenities.map((a) => a.name))
+      );
 
       // Kirim request
       const resp = await fetch(`${API_URL}/api/room`, {
@@ -206,14 +231,24 @@ function RoomManage() {
       // Ubah array ke format string atau JSON
       formData.append("features", JSON.stringify(data.features));
       formData.append("policies", JSON.stringify(data.policies));
-      formData.append("amenities", JSON.stringify(data.amenities.map(a => a.name)));
-
-
+      formData.append(
+        "amenities",
+        JSON.stringify(data.amenities.map((a) => a.name))
+      );
 
       // Kirim gambar lama (string) agar tidak terhapus
-      formData.append("Image1", typeof data.images[0] === "string" ? data.images[0] : "");
-      formData.append("Image2", typeof data.images[1] === "string" ? data.images[1] : "");
-      formData.append("Image3", typeof data.images[2] === "string" ? data.images[2] : "");
+      formData.append(
+        "Image1",
+        typeof data.images[0] === "string" ? data.images[0] : ""
+      );
+      formData.append(
+        "Image2",
+        typeof data.images[1] === "string" ? data.images[1] : ""
+      );
+      formData.append(
+        "Image3",
+        typeof data.images[2] === "string" ? data.images[2] : ""
+      );
 
       // Kirim gambar baru (File)
       data.images.forEach((img) => {
@@ -243,9 +278,6 @@ function RoomManage() {
     }
   };
 
-
-
-
   // DELETE Room
   const handleDeleteRoom = async (id) => {
     await fetch(`${API_URL}/api/room/${id}`, { method: "DELETE" });
@@ -256,9 +288,10 @@ function RoomManage() {
   const RoomForm = ({ initialData, onSubmit }) => {
     const toAmenityObject = (arr) => {
       if (!Array.isArray(arr)) return [];
-      if (arr.length > 0 && typeof arr[0] === "object" && arr[0].name) return arr;
+      if (arr.length > 0 && typeof arr[0] === "object" && arr[0].name)
+        return arr;
       return arr
-        .map(name => AMENITY_OPTIONS.find(opt => opt.name === name))
+        .map((name) => AMENITY_OPTIONS.find((opt) => opt.name === name))
         .filter(Boolean);
     };
 
@@ -267,7 +300,10 @@ function RoomManage() {
     const [showPolicyPicker, setShowPolicyPicker] = useState(false);
     // const [fileNames, setFileNames] = useState({});
     const [inputKeys, setInputKeys] = useState(["0", "1", "2"]);
-    const normalizedImages = initialData?.images?.length === 3 ? initialData.images : [null, null, null];
+    const normalizedImages =
+      initialData?.images?.length === 3
+        ? initialData.images
+        : [null, null, null];
 
     const [formData, setFormData] = useState({
       id: initialData?.id || "",
@@ -286,10 +322,7 @@ function RoomManage() {
       quantity: initialData?.quantity || 1,
     });
 
-
     const [previewImages, setPreviewImages] = useState(["", "", ""]);
-
-
 
     useEffect(() => {
       const updatedPreviews = formData.images.map((img) => {
@@ -302,7 +335,6 @@ function RoomManage() {
 
       setPreviewImages(updatedPreviews);
     }, [formData.images]);
-
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -328,9 +360,6 @@ function RoomManage() {
       setInputKeys(newKeys);
     };
 
-
-
-
     const handleImageRemove = (index) => {
       const updatedImages = [...formData.images];
       updatedImages[index] = null;
@@ -346,34 +375,31 @@ function RoomManage() {
       setInputKeys(updatedKeys);
     };
 
-
-
-
     // Tambah Feature
     const addFeatureFromPicker = (featureOption) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         features: prev.features.includes(featureOption.name)
           ? prev.features
-          : [...prev.features, featureOption.name]
+          : [...prev.features, featureOption.name],
       }));
     };
 
     // Hapus Feature
     const removeFeature = (index) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        features: prev.features.filter((_, i) => i !== index)
+        features: prev.features.filter((_, i) => i !== index),
       }));
     };
 
     // Tambah Amenity
     const addAmenityFromPicker = (amenityOption) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        amenities: prev.amenities.some(a => a.name === amenityOption.name)
+        amenities: prev.amenities.some((a) => a.name === amenityOption.name)
           ? prev.amenities
-          : [...prev.amenities, amenityOption]
+          : [...prev.amenities, amenityOption],
       }));
     };
 
@@ -387,19 +413,19 @@ function RoomManage() {
 
     // Tambah Policy
     const addPolicyFromPicker = (policyOption) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         policies: prev.policies.includes(policyOption.name)
           ? prev.policies
-          : [...prev.policies, policyOption.name]
+          : [...prev.policies, policyOption.name],
       }));
     };
 
     // Hapus Policy
     const removePolicy = (index) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        policies: prev.policies.filter((_, i) => i !== index)
+        policies: prev.policies.filter((_, i) => i !== index),
       }));
     };
 
@@ -408,8 +434,16 @@ function RoomManage() {
       return "Rp " + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || user.role !== "admin") {
+      return <Navigate to="/signin" replace />;
+    }
+
     return (
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+      >
         {/* Basic Information */}
         <div style={{ marginBottom: "25px" }}>
           <h3
@@ -425,15 +459,30 @@ function RoomManage() {
             Basic Information
           </h3>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "15px",
+            }}
+          >
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
                 Room Title *
               </label>
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, title: e.target.value }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -448,13 +497,25 @@ function RoomManage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
                 Short Description *
               </label>
               <input
                 type="text"
                 value={formData.shortDescription}
-                onChange={(e) => setFormData((prev) => ({ ...prev, shortDescription: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    shortDescription: e.target.value,
+                  }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -469,7 +530,14 @@ function RoomManage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
                 Price (Rp) *
               </label>
               <input
@@ -492,13 +560,23 @@ function RoomManage() {
               />
             </div>
 
-
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>Size *</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
+                Size *
+              </label>
               <input
                 type="text"
                 value={formData.size}
-                onChange={(e) => setFormData((prev) => ({ ...prev, size: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, size: e.target.value }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -513,13 +591,25 @@ function RoomManage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
                 Occupancy *
               </label>
               <input
                 type="text"
                 value={formData.occupancy}
-                onChange={(e) => setFormData((prev) => ({ ...prev, occupancy: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    occupancy: e.target.value,
+                  }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -534,13 +624,22 @@ function RoomManage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
                 Bed Type *
               </label>
               <input
                 type="text"
                 value={formData.bed}
-                onChange={(e) => setFormData((prev) => ({ ...prev, bed: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, bed: e.target.value }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -555,11 +654,22 @@ function RoomManage() {
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>View *</label>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "5px",
+                  fontWeight: "bold",
+                  color: "#333",
+                }}
+              >
+                View *
+              </label>
               <input
                 type="text"
                 value={formData.roomView}
-                onChange={(e) => setFormData((prev) => ({ ...prev, roomView: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, roomView: e.target.value }))
+                }
                 style={{
                   width: "100%",
                   padding: "10px",
@@ -575,12 +685,24 @@ function RoomManage() {
           </div>
 
           <div style={{ marginBottom: "15px" }}>
-            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+                color: "#333",
+              }}
+            >
               Full Description *
             </label>
             <textarea
               value={formData.fullDescription}
-              onChange={(e) => setFormData((prev) => ({ ...prev, fullDescription: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  fullDescription: e.target.value,
+                }))
+              }
               style={{
                 width: "100%",
                 padding: "10px",
@@ -618,7 +740,12 @@ function RoomManage() {
             <input
               type="number"
               value={formData.quantity}
-              onChange={(e) => setFormData((prev) => ({ ...prev, quantity: Math.max(1, Number(e.target.value)) }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  quantity: Math.max(1, Number(e.target.value)),
+                }))
+              }
               style={{
                 width: "100%",
                 padding: "10px",
@@ -661,7 +788,14 @@ function RoomManage() {
             }}
           >
             {[0, 1, 2].map((index) => (
-              <div key={index} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 {/* Label */}
                 <label
                   style={{
@@ -705,14 +839,26 @@ function RoomManage() {
 
                   {/* Nama file */}
                   {formData.images[index] instanceof File && (
-                    <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#666",
+                        marginTop: "5px",
+                      }}
+                    >
                       Selected: {formData.images[index].name}
                     </div>
                   )}
                   {typeof formData.images[index] === "string" &&
                     formData.images[index] &&
                     !formData.images[index].includes("blob:") && (
-                      <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#666",
+                          marginTop: "5px",
+                        }}
+                      >
                         File: {formData.images[index].split("/").pop()}
                       </div>
                     )}
@@ -739,7 +885,11 @@ function RoomManage() {
                         key={previewImages[index]}
                         src={previewImages[index]}
                         alt={`Room preview ${index + 1}`}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                         onError={(e) => {
                           e.currentTarget.src = "/default-placeholder.png";
                         }}
@@ -803,8 +953,7 @@ function RoomManage() {
 
           <button
             type="button"
-            onClick={() => setShowFeaturePicker(v => !v)}
-
+            onClick={() => setShowFeaturePicker((v) => !v)}
             style={{
               backgroundColor: "#d0b375",
               color: "#fff",
@@ -839,7 +988,9 @@ function RoomManage() {
               }}
             >
               {FEATURE_OPTIONS.map((featureOption) => {
-                const isSelected = formData.features.includes(featureOption.name);
+                const isSelected = formData.features.includes(
+                  featureOption.name
+                );
                 return (
                   <div
                     key={featureOption.name}
@@ -857,8 +1008,12 @@ function RoomManage() {
                     }}
                     onClick={() => addFeatureFromPicker(featureOption)}
                   >
-                    <span style={{ fontSize: "16px" }}>{featureOption.icon}</span>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{featureOption.name}</span>
+                    <span style={{ fontSize: "16px" }}>
+                      {featureOption.icon}
+                    </span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                      {featureOption.name}
+                    </span>
                   </div>
                 );
               })}
@@ -866,10 +1021,24 @@ function RoomManage() {
           )}
 
           <div>
-            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+                color: "#333",
+              }}
+            >
               Selected Features ({formData.features.length})
             </label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "10px",
+              }}
+            >
               {formData.features.map((feature, index) => (
                 <div
                   key={index}
@@ -884,7 +1053,7 @@ function RoomManage() {
                     border: "1px solid #d0b375",
                   }}
                 >
-                  <span style={{ color: "#d0b375" }}>{ }</span>
+                  <span style={{ color: "#d0b375" }}>{}</span>
                   <span>{feature}</span>
                   <button
                     type="button"
@@ -904,8 +1073,11 @@ function RoomManage() {
               ))}
             </div>
             {formData.features.length === 0 && (
-              <p style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}>
-                No features selected. Click "Add Features" to choose from available options.
+              <p
+                style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}
+              >
+                No features selected. Click "Add Features" to choose from
+                available options.
               </p>
             )}
           </div>
@@ -927,8 +1099,7 @@ function RoomManage() {
 
           <button
             type="button"
-            onClick={() => setShowAmenityPicker(v => !v)}
-
+            onClick={() => setShowAmenityPicker((v) => !v)}
             style={{
               backgroundColor: "#d0b375",
               color: "#fff",
@@ -963,7 +1134,9 @@ function RoomManage() {
               }}
             >
               {AMENITY_OPTIONS.map((amenityOption) => {
-                const isSelected = formData.amenities.some((amenity) => amenity.name === amenityOption.name);
+                const isSelected = formData.amenities.some(
+                  (amenity) => amenity.name === amenityOption.name
+                );
 
                 return (
                   <div
@@ -975,7 +1148,9 @@ function RoomManage() {
                       textAlign: "center",
                       cursor: "pointer",
                       transition: "all 0.3s ease",
-                      border: isSelected ? "2px solid #87723b" : "1px solid #e2e8f0",
+                      border: isSelected
+                        ? "2px solid #87723b"
+                        : "1px solid #e2e8f0",
                       transform: "translateY(0)",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                     }}
@@ -1007,10 +1182,24 @@ function RoomManage() {
           )}
 
           <div>
-            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+                color: "#333",
+              }}
+            >
               Selected Amenities ({formData.amenities.length})
             </label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "10px",
+              }}
+            >
               {formData.amenities.map((amenity, index) => (
                 <div
                   key={index}
@@ -1025,12 +1214,11 @@ function RoomManage() {
                     border: "1px solid #d0b375",
                   }}
                 >
-                  <span style={{ color: "#d0b375" }}>{ }</span>
+                  <span style={{ color: "#d0b375" }}>{}</span>
                   <span>{amenity.name}</span>
                   <button
                     type="button"
-                    onClick={() => setShowAmenityPicker(v => !v)}
-
+                    onClick={() => setShowAmenityPicker((v) => !v)}
                     style={{
                       background: "none",
                       border: "none",
@@ -1046,13 +1234,15 @@ function RoomManage() {
               ))}
             </div>
             {formData.amenities.length === 0 && (
-              <p style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}>
-                No amenities selected. Click "Add Amenities" to choose from available options.
+              <p
+                style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}
+              >
+                No amenities selected. Click "Add Amenities" to choose from
+                available options.
               </p>
             )}
           </div>
         </div>
-
 
         <div style={{ marginBottom: "25px" }}>
           <h3
@@ -1070,8 +1260,7 @@ function RoomManage() {
 
           <button
             type="button"
-            onClick={() => setShowPolicyPicker(v => !v)}
-
+            onClick={() => setShowPolicyPicker((v) => !v)}
             style={{
               backgroundColor: "#d0b375",
               color: "#fff",
@@ -1106,7 +1295,9 @@ function RoomManage() {
               }}
             >
               {POLICY_OPTIONS.map((policyOption) => {
-                const isSelected = formData.policies.includes(policyOption.name);
+                const isSelected = formData.policies.includes(
+                  policyOption.name
+                );
 
                 return (
                   <div
@@ -1125,8 +1316,12 @@ function RoomManage() {
                     }}
                     onClick={() => addPolicyFromPicker(policyOption)}
                   >
-                    <span style={{ fontSize: "16px" }}>{policyOption.icon}</span>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>{policyOption.name}</span>
+                    <span style={{ fontSize: "16px" }}>
+                      {policyOption.icon}
+                    </span>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>
+                      {policyOption.name}
+                    </span>
                   </div>
                 );
               })}
@@ -1134,10 +1329,24 @@ function RoomManage() {
           )}
 
           <div>
-            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold", color: "#333" }}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: "5px",
+                fontWeight: "bold",
+                color: "#333",
+              }}
+            >
               Selected Policies ({formData.policies.length})
             </label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "10px",
+              }}
+            >
               {formData.policies.map((policy, index) => (
                 <div
                   key={index}
@@ -1152,7 +1361,7 @@ function RoomManage() {
                     border: "1px solid #d0b375",
                   }}
                 >
-                  <span style={{ color: "#d0b375" }}>{ }</span>
+                  <span style={{ color: "#d0b375" }}>{}</span>
                   <span>{policy}</span>
                   <button
                     type="button"
@@ -1172,8 +1381,11 @@ function RoomManage() {
               ))}
             </div>
             {formData.policies.length === 0 && (
-              <p style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}>
-                No policies selected. Click "Add Policies" to choose from available options.
+              <p
+                style={{ fontSize: "14px", color: "#666", fontStyle: "italic" }}
+              >
+                No policies selected. Click "Add Policies" to choose from
+                available options.
               </p>
             )}
           </div>
@@ -1197,23 +1409,22 @@ function RoomManage() {
           {initialData ? "Update Room Type" : "Add Room Type"}
         </button>
       </form>
-    )
-  }
+    );
+  };
 
-
-  // Card Romm Grid 
+  // Card Romm Grid
 
   // Component logic
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const saveRooms = (updatedRooms) => {
-    setRooms(updatedRooms)
-    const tempInputs = {}
+    setRooms(updatedRooms);
+    const tempInputs = {};
     updatedRooms.forEach((room) => {
-      tempInputs[room.id] = room.quantity
-    })
-    setTempQuantityInputs(tempInputs)
-  }
+      tempInputs[room.id] = room.quantity;
+    });
+    setTempQuantityInputs(tempInputs);
+  };
 
   // const handleEditRoom = (roomData) => {
   //   if (!editingRoom) return
@@ -1225,10 +1436,10 @@ function RoomManage() {
   // }
 
   const requestQuantityChange = (roomId, newQuantity, changeType) => {
-    const room = rooms.find((r) => r.id === roomId)
-    if (!room) return
+    const room = rooms.find((r) => r.id === roomId);
+    if (!room) return;
 
-    if (newQuantity < 0) return
+    if (newQuantity < 0) return;
 
     setPendingQuantityChange({
       roomId,
@@ -1236,60 +1447,64 @@ function RoomManage() {
       currentQuantity: room.quantity,
       newQuantity,
       changeType,
-    })
-  }
+    });
+  };
 
   const confirmQuantityChange = () => {
-    if (!pendingQuantityChange) return
+    if (!pendingQuantityChange) return;
 
     const updatedRooms = rooms.map((room) =>
-      room.id === pendingQuantityChange.roomId ? { ...room, quantity: pendingQuantityChange.newQuantity } : room,
-    )
-    saveRooms(updatedRooms)
-    setPendingQuantityChange(null)
-  }
+      room.id === pendingQuantityChange.roomId
+        ? { ...room, quantity: pendingQuantityChange.newQuantity }
+        : room
+    );
+    saveRooms(updatedRooms);
+    setPendingQuantityChange(null);
+  };
 
   const cancelQuantityChange = () => {
     if (pendingQuantityChange) {
       setTempQuantityInputs((prev) => ({
         ...prev,
         [pendingQuantityChange.roomId]: pendingQuantityChange.currentQuantity,
-      }))
+      }));
     }
-    setPendingQuantityChange(null)
-  }
+    setPendingQuantityChange(null);
+  };
 
   const handleIncrementRequest = (roomId) => {
-    const room = rooms.find((r) => r.id === roomId)
+    const room = rooms.find((r) => r.id === roomId);
     if (room) {
-      requestQuantityChange(roomId, room.quantity + 1, "increment")
+      requestQuantityChange(roomId, room.quantity + 1, "increment");
     }
-  }
+  };
 
   const handleDecrementRequest = (roomId) => {
-    const room = rooms.find((r) => r.id === roomId)
+    const room = rooms.find((r) => r.id === roomId);
     if (room && room.quantity > 0) {
-      requestQuantityChange(roomId, room.quantity - 1, "decrement")
+      requestQuantityChange(roomId, room.quantity - 1, "decrement");
     }
-  }
+  };
 
   const handleDirectQuantityChange = (roomId, newQuantity) => {
     setTempQuantityInputs((prev) => ({
       ...prev,
       [roomId]: newQuantity,
-    }))
-  }
+    }));
+  };
 
   const handleQuantityInputBlur = (roomId) => {
-    const room = rooms.find((r) => r.id === roomId)
-    const newQuantity = tempQuantityInputs[roomId]
+    const room = rooms.find((r) => r.id === roomId);
+    const newQuantity = tempQuantityInputs[roomId];
 
     if (room && newQuantity !== room.quantity && newQuantity >= 0) {
-      requestQuantityChange(roomId, newQuantity, "direct")
+      requestQuantityChange(roomId, newQuantity, "direct");
     }
-  }
+  };
 
-  useEffect(() => { fetchRoomsFromAPI(); }, []);
+  useEffect(() => {
+    fetchRoomsFromAPI();
+  }, []);
 
   const formatRupiah = (angka) =>
     new Intl.NumberFormat("id-ID", {
@@ -1297,7 +1512,6 @@ function RoomManage() {
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(angka);
-
 
   return (
     <div className="room-manage-page">
@@ -1713,7 +1927,7 @@ function RoomManage() {
           <div className="header-left">
             <h1 className="page-title">Room Management</h1>
             <p className="page-subtitle">
-              Total Rooms: { } | Room Types: {rooms.length}
+              Total Rooms: {} | Room Types: {rooms.length}
             </p>
           </div>
           <button className="add-button" onClick={() => setShowAddModal(true)}>
@@ -1730,16 +1944,23 @@ function RoomManage() {
                 <img
                   src={
                     room.images && room.images[0]
-                      ? (room.images[0].startsWith('/uploads/')
+                      ? room.images[0].startsWith("/uploads/")
                         ? `https://localhost:7298${room.images[0]}`
-                        : room.images[0])
+                        : room.images[0]
                       : "https://via.placeholder.com/350x200"
                   }
                   alt={room.title}
-                  style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "8px" }}
+                  style={{
+                    width: "100%",
+                    height: "200px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
                 />
                 <div className="quantity-badge">{room.quantity} rooms</div>
-                <div className="price-badge">{formatRupiah(room.price)} / night</div>
+                <div className="price-badge">
+                  {formatRupiah(room.price)} / night
+                </div>
               </div>
 
               <div className="room-content">
@@ -1767,48 +1988,68 @@ function RoomManage() {
                     ? room.features
                     : parseSafe(room.features); // fallback kalau string JSON
 
-                  return features.length > 0 && (
-                    <div style={{ marginBottom: "15px" }}>
-                      <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
-                        Features:
+                  return (
+                    features.length > 0 && (
+                      <div style={{ marginBottom: "15px" }}>
+                        <div
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            marginBottom: "8px",
+                            color: "#333",
+                          }}
+                        >
+                          Features:
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "5px",
+                          }}
+                        >
+                          {features.slice(0, 3).map((feature, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                backgroundColor: "#e8f5e8",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                color: "#333",
+                                border: "1px solid #d0b375",
+                              }}
+                            >
+                              {String(feature)}
+                            </span>
+                          ))}
+                          {features.length > 3 && (
+                            <span style={{ fontSize: "12px", color: "#666" }}>
+                              +{features.length - 3} more
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                        {features.slice(0, 3).map((feature, index) => (
-                          <span
-                            key={index}
-                            style={{
-                              backgroundColor: "#e8f5e8",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              color: "#333",
-                              border: "1px solid #d0b375",
-                            }}
-                          >
-                            {String(feature)}
-                          </span>
-                        ))}
-                        {features.length > 3 && (
-                          <span style={{ fontSize: "12px", color: "#666" }}>
-                            +{features.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    )
                   );
                 })()}
-
-
-
-
 
                 {/* Amenities Section */}
                 {Array.isArray(room.amenities) && room.amenities.length > 0 && (
                   <div style={{ marginBottom: "15px" }}>
-                    <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
+                    <div
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        marginBottom: "8px",
+                        color: "#333",
+                      }}
+                    >
                       Amenities:
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                    <div
+                      style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}
+                    >
                       {room.amenities.slice(0, 3).map((amenity, index) => (
                         <span
                           key={index}
@@ -1821,7 +2062,9 @@ function RoomManage() {
                             border: "1px solid #7986cb",
                           }}
                         >
-                          {typeof amenity === "object" && amenity.name ? amenity.name : String(amenity)}
+                          {typeof amenity === "object" && amenity.name
+                            ? amenity.name
+                            : String(amenity)}
                         </span>
                       ))}
                       {room.amenities.length > 3 && (
@@ -1839,38 +2082,51 @@ function RoomManage() {
                     ? room.policies
                     : parseSafe(room.policies);
 
-                  return policies.length > 0 && (
-                    <div style={{ marginBottom: "15px" }}>
-                      <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px", color: "#333" }}>
-                        Policies:
+                  return (
+                    policies.length > 0 && (
+                      <div style={{ marginBottom: "15px" }}>
+                        <div
+                          style={{
+                            fontSize: "14px",
+                            fontWeight: "bold",
+                            marginBottom: "8px",
+                            color: "#333",
+                          }}
+                        >
+                          Policies:
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "5px",
+                          }}
+                        >
+                          {policies.slice(0, 2).map((policy, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                backgroundColor: "#fff8e1",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                color: "#333",
+                                border: "1px solid #d0b375",
+                              }}
+                            >
+                              {String(policy)}
+                            </span>
+                          ))}
+                          {policies.length > 2 && (
+                            <span style={{ fontSize: "12px", color: "#666" }}>
+                              +{policies.length - 2} more
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                        {policies.slice(0, 2).map((policy, index) => (
-                          <span
-                            key={index}
-                            style={{
-                              backgroundColor: "#fff8e1",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              color: "#333",
-                              border: "1px solid #d0b375",
-                            }}
-                          >
-                            {String(policy)}
-                          </span>
-                        ))}
-                        {policies.length > 2 && (
-                          <span style={{ fontSize: "12px", color: "#666" }}>
-                            +{policies.length - 2} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    )
                   );
                 })()}
-
-
 
                 {/* Quantity Controls */}
                 <div className="quantity-section">
@@ -1886,7 +2142,10 @@ function RoomManage() {
 
                     <div className="quantity-display">{room.quantity}</div>
 
-                    <button className="quantity-button" onClick={() => handleIncrementRequest(room.id)}>
+                    <button
+                      className="quantity-button"
+                      onClick={() => handleIncrementRequest(room.id)}
+                    >
                       <FiPlus size={16} />
                     </button>
 
@@ -1895,7 +2154,12 @@ function RoomManage() {
                     <input
                       type="number"
                       value={tempQuantityInputs[room.id] || room.quantity}
-                      onChange={(e) => handleDirectQuantityChange(room.id, Number.parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        handleDirectQuantityChange(
+                          room.id,
+                          Number.parseInt(e.target.value) || 0
+                        )
+                      }
                       onBlur={() => handleQuantityInputBlur(room.id)}
                       className="quantity-input"
                       min="0"
@@ -1906,16 +2170,21 @@ function RoomManage() {
                 <div className="room-actions">
                   <button
                     className="action-btn edit-btn"
-                    onClick={() => setEditingRoom({
-                      ...room,
-                      images: [room.image1, room.image2, room.image3]
-                    })}
+                    onClick={() =>
+                      setEditingRoom({
+                        ...room,
+                        images: [room.image1, room.image2, room.image3],
+                      })
+                    }
                   >
                     <FiEdit size={16} />
                     Edit
                   </button>
 
-                  <button className="action-btn delete-btn" onClick={() => handleDeleteRoom(room.id)}>
+                  <button
+                    className="action-btn delete-btn"
+                    onClick={() => handleDeleteRoom(room.id)}
+                  >
                     <FiTrash2 size={16} />
                     Delete
                   </button>
@@ -1936,13 +2205,19 @@ function RoomManage() {
           <div className="modal-overlay">
             <div className="confirmation-dialog">
               <h3 className="confirmation-title">Confirm Quantity Change</h3>
-              <p className="confirmation-message">{ }</p>
+              <p className="confirmation-message">{}</p>
               <div className="confirmation-buttons">
-                <button className="confirm-button" onClick={confirmQuantityChange}>
+                <button
+                  className="confirm-button"
+                  onClick={confirmQuantityChange}
+                >
                   <FiCheck size={16} />
                   Confirm
                 </button>
-                <button className="cancel-button" onClick={cancelQuantityChange}>
+                <button
+                  className="cancel-button"
+                  onClick={cancelQuantityChange}
+                >
                   <FiX size={16} />
                   Cancel
                 </button>
@@ -1952,11 +2227,17 @@ function RoomManage() {
         )}
 
         {/* Add Room Modal (SELALU ADA, cuma toggle show/hide) */}
-        <div className="modal-overlay" style={{ display: showAddModal ? "flex" : "none" }}>
+        <div
+          className="modal-overlay"
+          style={{ display: showAddModal ? "flex" : "none" }}
+        >
           <div className="modal">
             <div className="modal-header">
               <h2 className="modal-title">Add New Room Type</h2>
-              <button className="close-button" onClick={() => setShowAddModal(false)}>
+              <button
+                className="close-button"
+                onClick={() => setShowAddModal(false)}
+              >
                 ×
               </button>
             </div>
@@ -1967,11 +2248,17 @@ function RoomManage() {
         </div>
 
         {/* Edit Room Modal */}
-        <div className="modal-overlay" style={{ display: editingRoom ? "flex" : "none" }}>
+        <div
+          className="modal-overlay"
+          style={{ display: editingRoom ? "flex" : "none" }}
+        >
           <div className="modal">
             <div className="modal-header">
               <h2 className="modal-title">Edit Room Type</h2>
-              <button className="close-button" onClick={() => setEditingRoom(null)}>
+              <button
+                className="close-button"
+                onClick={() => setEditingRoom(null)}
+              >
                 ×
               </button>
             </div>
@@ -1983,7 +2270,11 @@ function RoomManage() {
                     if (editingRoom && data) {
                       handleUpdateRoom(editingRoom.id, data);
                     } else {
-                      console.error("Editing room or data is undefined", editingRoom, data);
+                      console.error(
+                        "Editing room or data is undefined",
+                        editingRoom,
+                        data
+                      );
                     }
                   }}
                 />
@@ -1993,7 +2284,7 @@ function RoomManage() {
         </div>
       </main>
     </div>
-  )
-};
+  );
+}
 
-export default RoomManage
+export default RoomManage;

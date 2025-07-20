@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Check } from "lucide-react";
 import SidebarAdmin from "../components/SidebarAdmin";
+import { Navigate } from "react-router-dom";
 
 const style = {
   container: {
@@ -228,6 +229,11 @@ const CheckOutAdmin = () => {
   const activeBookings = bookings.filter(
     (b) => b.status?.toLowerCase() === "active"
   );
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
 
   return (
     <div style={style.container}>

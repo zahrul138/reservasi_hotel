@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { FaLock, FaEnvelope, FaEyeSlash, FaEye } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; 
 import { motion } from "framer-motion";
 import Logo from "../assets/images/LogoRG3.png";
 
@@ -148,6 +148,14 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function SignIn() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Cek jika redirect berasal dari route admin
+    if (location.state?.from?.pathname?.startsWith("/admin")) {
+      alert("Anda harus login sebagai admin untuk mengakses halaman tersebut!");
+    }
+  }, [location.state]);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -179,7 +187,7 @@ function SignIn() {
       ) {
         const adminUser = {
           id: 1,
-          email: "admin@gmailx`.com",
+          email: "admin@gmail.com",
           fullname: "Administrator",
           role: "admin",
           avatar: "",
@@ -189,9 +197,9 @@ function SignIn() {
         localStorage.setItem("fullname", adminUser.fullname);
         localStorage.setItem("avatar", adminUser.avatar || "");
         localStorage.setItem("email", adminUser.email);
-        localStorage.setItem("role", adminUser.role); 
+        localStorage.setItem("role", adminUser.role);
 
-        navigate("/admin/dashboard");
+        navigate("/home"); 
       } else {
         // Original API call for regular users
         const response = await fetch("https://localhost:7298/api/user/login", {

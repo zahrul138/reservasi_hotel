@@ -7,6 +7,7 @@ import {
   FaSignOutAlt as FaExit,
 } from "react-icons/fa";
 import SidebarAdmin from "../components/SidebarAdmin";
+import { Navigate } from "react-router-dom";
 
 const style = {
   container: {
@@ -84,6 +85,11 @@ const DashboardAdmin = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
 
   return (
     <div style={style.container}>

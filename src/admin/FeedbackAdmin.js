@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Star, Check, X } from "lucide-react"; // Assuming lucide-react is installed
 import SidebarAdmin from "../components/SidebarAdmin"; // Assuming SidebarAdmin.js exists at this path
+import { Navigate } from "react-router-dom";
 
 // --- Inlined Review Storage Logic (simulating a backend with localStorage) ---
 const REVIEWS_STORAGE_KEY = "admin_pending_reviews";
@@ -204,6 +205,11 @@ const FeedbackAdmin = () => {
     }
     return review.status === filterStatus;
   });
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
 
   const style = {
     container: {

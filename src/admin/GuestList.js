@@ -1,7 +1,8 @@
 // src/admin/GuestList.js
 import React, { useState, useEffect } from "react";
 import SidebarAdmin from "../components/SidebarAdmin";
-import { getAllUsers } from "../services/userService"; // pastikan path ini sesuai
+import { getAllUsers } from "../services/userService";
+import { Navigate } from "react-router-dom";
 
 const style = {
   container: {
@@ -80,6 +81,11 @@ const GuestList = () => {
     };
     fetchGuests();
   }, []);
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
 
   return (
     <div style={style.container}>

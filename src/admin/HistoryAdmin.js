@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import SidebarAdmin from "../components/SidebarAdmin";
+import { Navigate } from "react-router-dom";
 
 const style = {
   container: {
@@ -166,6 +167,11 @@ const HistoryAdmin = () => {
     (booking) => booking.status?.toLowerCase() === "completed"
   );
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
+
   return (
     <div style={style.container}>
       <SidebarAdmin
@@ -209,7 +215,14 @@ const HistoryAdmin = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} style={{ ...style.td, textAlign: "center", padding: "30px" }}>
+                  <td
+                    colSpan={6}
+                    style={{
+                      ...style.td,
+                      textAlign: "center",
+                      padding: "30px",
+                    }}
+                  >
                     No completed check-out found.
                   </td>
                 </tr>
@@ -221,7 +234,10 @@ const HistoryAdmin = () => {
         {selectedBooking && (
           <div style={style.modalOverlay}>
             <div style={style.modal}>
-              <button onClick={() => setSelectedBooking(null)} style={style.closeBtn}>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                style={style.closeBtn}
+              >
                 ✖
               </button>
               <div style={style.heading}>Booking Details</div>
@@ -244,16 +260,21 @@ const HistoryAdmin = () => {
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-in Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkinDate)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedBooking.checkinDate)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-out Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkoutDate)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedBooking.checkoutDate)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Guest</span>
                   <span style={style.value}>
-                    {selectedBooking.adultGuests} Adult, {selectedBooking.childGuests} Child
+                    {selectedBooking.adultGuests} Adult,{" "}
+                    {selectedBooking.childGuests} Child
                   </span>
                 </div>
                 <div style={style.field}>

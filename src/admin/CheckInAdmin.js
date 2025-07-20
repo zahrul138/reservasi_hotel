@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, X } from "lucide-react";
 import axios from "axios";
+import { Navigate } from "react-router-dom";
 
 import SidebarAdmin from "../components/SidebarAdmin";
 
@@ -152,7 +153,9 @@ const CheckInAdmin = () => {
         const res = await axios.get("https://localhost:7298/api/Booking");
 
         // ✅ Filter hanya booking dengan status 'pending'
-        const filteredBookings = res.data.filter((b) => b.status?.toLowerCase() === "pending");
+        const filteredBookings = res.data.filter(
+          (b) => b.status?.toLowerCase() === "pending"
+        );
         setBookings(filteredBookings);
       } catch (err) {
         console.error("Gagal memuat booking:", err);
@@ -161,8 +164,6 @@ const CheckInAdmin = () => {
 
     fetchBookings();
   }, []);
-
-
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -202,7 +203,7 @@ const CheckInAdmin = () => {
   const handleReject = async (id) => {
     try {
       // Pertama, dapatkan data booking yang akan di-reject
-      const bookingToReject = bookings.find(b => b.id === id);
+      const bookingToReject = bookings.find((b) => b.id === id);
 
       if (!bookingToReject) {
         alert("Booking not found.");
@@ -212,12 +213,12 @@ const CheckInAdmin = () => {
       // Update status booking menjadi cancelled
       await axios.patch(`https://localhost:7298/api/Booking/${id}`, {
         status: "cancelled",
-        paymentStatus: "cancelled"
+        paymentStatus: "cancelled",
       });
 
       // Kembalikan jumlah kamar yang tersedia
       await axios.patch(`https://localhost:7298/api/Room/restore-quantity`, {
-        roomType: bookingToReject.roomType
+        roomType: bookingToReject.roomType,
       });
 
       alert(`Booking rejected and room quantity restored.`);
@@ -228,6 +229,11 @@ const CheckInAdmin = () => {
       alert("Failed to reject booking.");
     }
   };
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user.role !== "admin") {
+    return <Navigate to="/signin" replace />;
+  }
 
   return (
     <div style={style.container}>
@@ -262,7 +268,8 @@ const CheckInAdmin = () => {
                     <td style={style.td}>{booking.roomType}</td>
                     <td style={style.td}>{formatDate(booking.checkinDate)}</td>
                     <td style={style.td}>
-                      {booking.adultGuests} Adults, {booking.childGuests} Children
+                      {booking.adultGuests} Adults, {booking.childGuests}{" "}
+                      Children
                     </td>
                     <td style={style.td}>
                       <button
@@ -276,7 +283,10 @@ const CheckInAdmin = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ padding: "30px", textAlign: "center" }}>
+                  <td
+                    colSpan={7}
+                    style={{ padding: "30px", textAlign: "center" }}
+                  >
                     No guests currently checked in
                   </td>
                 </tr>
@@ -288,7 +298,10 @@ const CheckInAdmin = () => {
         {selectedBooking && (
           <div style={style.modalOverlay}>
             <div style={style.modal}>
-              <button onClick={() => setSelectedBooking(null)} style={style.closeBtn}>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                style={style.closeBtn}
+              >
                 ✖
               </button>
               <div style={style.heading}>Booking Details</div>
@@ -307,21 +320,28 @@ const CheckInAdmin = () => {
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Booking Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.createdAt)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedBooking.createdAt)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Guest</span>
                   <span style={style.value}>
-                    {selectedBooking.adultGuests} Adults, {selectedBooking.childGuests} Children
+                    {selectedBooking.adultGuests} Adults,{" "}
+                    {selectedBooking.childGuests} Children
                   </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-in Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkinDate)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedBooking.checkinDate)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Check-out Date</span>
-                  <span style={style.value}>{formatDate(selectedBooking.checkoutDate)}</span>
+                  <span style={style.value}>
+                    {formatDate(selectedBooking.checkoutDate)}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Room Type</span>
@@ -338,11 +358,15 @@ const CheckInAdmin = () => {
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Payment Method</span>
-                  <span style={style.value}>{selectedBooking.paymentMethod}</span>
+                  <span style={style.value}>
+                    {selectedBooking.paymentMethod}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Payment Status</span>
-                  <span style={style.value}>{selectedBooking.paymentStatus}</span>
+                  <span style={style.value}>
+                    {selectedBooking.paymentStatus}
+                  </span>
                 </div>
                 <div style={style.field}>
                   <span style={style.label}>Address</span>
@@ -350,13 +374,19 @@ const CheckInAdmin = () => {
                 </div>
                 <div style={{ ...style.field, gridColumn: "span 2" }}>
                   <span style={style.label}>Special Request</span>
-                  <span style={style.value}>{selectedBooking.specialRequest || "-"}</span>
+                  <span style={style.value}>
+                    {selectedBooking.specialRequest || "-"}
+                  </span>
                 </div>
               </div>
               <div style={style.modalActions}>
                 <button
                   style={{ ...style.actionBtn, ...style.detailBtn }}
-                  onClick={() => navigate("/invoice", { state: { bookingId: selectedBooking.id } })}
+                  onClick={() =>
+                    navigate("/invoice", {
+                      state: { bookingId: selectedBooking.id },
+                    })
+                  }
                 >
                   Lihat Invoice
                 </button>
